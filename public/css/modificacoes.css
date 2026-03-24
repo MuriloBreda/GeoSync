@@ -1,0 +1,311 @@
+/* Tela de CONTATO */
+
+/* ================================
+PALETA GEOSYNC
+================================ */
+
+:root{
+
+--azul-institucional:#1C3F6E;
+--azul-tech:#2F6FB2;
+--azul-profundo:#0B1F36;
+--azul-claro:#E6EEF8;
+--azul-cinza:#7B92AD;
+--branco:#ffffff;
+
+}
+
+/* ================================
+TOPBAR
+================================ */
+
+.container-fluid.bg-dark{
+    background-color: var(--azul-profundo) !important;
+}
+
+
+/* ================================
+NAVBAR
+================================ */
+
+.navbar{
+    background-color: white !important;
+}
+
+.navbar-brand h1{
+    color: var(--azul-institucional) !important;
+}
+
+.navbar-light .navbar-nav .nav-link{
+    color: var(--azul-institucional) !important;
+    font-weight:500 !important;
+}
+
+.navbar-light .navbar-nav .nav-link:hover{
+    color: var(--azul-tech) !important;
+}
+
+/* botão ativo menu */
+
+.navbar-light .navbar-nav .nav-link.active{
+    background-color: var(--azul-tech) !important;
+    color:white !important;
+    border-radius:4px !important;
+}
+
+
+/* ================================
+BOTÕES
+================================ */
+
+.btn-primary{
+    background-color: var(--azul-institucional) !important;
+    border:none !important;
+}
+
+.btn-primary:hover{
+    background-color: var(--azul-tech) !important;
+}
+
+
+/* ================================
+HEADER (BANNER CONTATO)
+================================ */
+
+.jumbotron{
+
+background:
+linear-gradient(
+rgba(11,31,54,0.85),
+rgba(11,31,54,0.85)
+),
+url("../img/header.jpg") !important;
+
+background-size:cover !important;
+background-position:center !important;
+
+}
+
+
+/* ================================
+SEÇÃO CONTATO
+================================ */
+
+.container-fluid.py-5{
+    background-color: var(--azul-claro) !important;
+}
+
+
+/* caixa endereço */
+
+.bg-primary{
+    background-color: var(--azul-tech) !important;
+}
+
+
+/* formulário */
+
+.contact-form{
+    background-color: white !important;
+    border-radius:6px !important;
+}
+
+
+/* campos formulário */
+
+.form-control{
+    border:1px solid var(--azul-cinza) !important;
+}
+
+.form-control:focus{
+    border-color: var(--azul-tech) !important;
+    box-shadow:none !important;
+}
+
+
+/* botão enviar */
+
+#sendMessageButton{
+    background-color: var(--azul-tech) !important;
+}
+
+#sendMessageButton:hover{
+    background-color: var(--azul-institucional) !important;
+}
+
+
+/* ================================
+MAPA
+================================ */
+
+iframe{
+    width:100% !important;
+    border-radius:6px !important;
+}
+
+
+/* ================================
+FOOTER
+================================ */
+
+.container-fluid.bg-dark.text-white{
+    background-color: var(--azul-profundo) !important;
+}
+
+
+/* títulos footer */
+
+footer h3,
+.text-primary{
+    color: var(--azul-tech) !important;
+}
+
+
+/* links */
+
+footer a{
+    color: var(--azul-cinza) !important;
+}
+
+footer a:hover{
+    color: var(--azul-tech) !important;
+    text-decoration:none !important;
+}
+
+
+/* redes sociais */
+
+.btn-social{
+    border-color: var(--azul-cinza) !important;
+}
+
+.btn-social:hover{
+    background-color: var(--azul-tech) !important;
+    border-color: var(--azul-tech) !important;
+}
+
+
+/* ================================
+INPUT EMAIL FOOTER
+================================ */
+
+.input-group input{
+    border:1px solid var(--azul-cinza) !important;
+}
+
+
+/* ================================
+BOTÃO VOLTAR AO TOPO
+================================ */
+
+.back-to-top{
+    background-color: var(--azul-tech) !important;
+}
+
+.back-to-top:hover{
+    background-color: var(--azul-institucional) !important;
+}
+
+/* Imagem do caminhão (mudar dps) */
+.jumbotron{
+
+background:
+linear-gradient(
+rgba(11,31,54,0.85),
+rgba(11,31,54,0.85)
+),
+url("../img/truck.jpg") !important;
+
+background-size: cover !important;
+background-position: center !important;
+background-repeat: no-repeat !important;
+
+}
+
+/* ===== COR DO MENU ===== */
+
+.navbar-light .navbar-nav .nav-link{
+color:#1C3F6E !important;
+}
+
+/* hover menu */
+.navbar-light .navbar-nav .nav-link:hover{
+color:#2F6FB2 !important;
+background-color:transparent !important;
+}
+
+/* link ativo */
+.navbar-light .navbar-nav .nav-link.active{
+color:white !important;
+background-color:#2F6FB2 !important;
+border-radius:4px !important;
+}
+
+.navbar-light .navbar-nav .nav-link.active{
+background-color: transparent !important;
+color:#2F6FB2 !important;
+}
+
+/* Tela de SERVIÇOS */
+.dashboard {
+    background: #eef1f7 !important;
+    padding: 30px !important;
+    border-radius: 10px !important;
+}
+
+/* CARDS */
+.card-box {
+    background: #ffffff !important;
+    padding: 20px !important;
+    border-radius: 10px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+    transition: 0.3s !important;
+}
+
+.card-box:hover {
+    transform: translateY(-5px) !important;
+}
+
+.card-box p {
+    margin: 0 !important;
+    color: #777 !important;
+    font-size: 14px !important;
+}
+
+.card-box h2 {
+    font-weight: bold !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+/* MAPA */
+.map-box {
+    background: #ffffff !important;
+    padding: 20px !important;
+    border-radius: 10px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+}
+
+.mapa-brasil {
+    width: 100% !important;
+    opacity: 0.9 !important;
+}
+
+/* ALERTAS */
+.alert-box {
+    background: #ffffff !important;
+    padding: 20px !important;
+    border-radius: 10px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+}
+
+.alert-item {
+    background: #eef1f7 !important;
+    padding: 10px !important;
+    border-radius: 6px !important;
+    margin-bottom: 10px !important;
+    font-size: 14px !important;
+}
+
+

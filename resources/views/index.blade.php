@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 
 <head>
     <meta charset="utf-8">
@@ -19,10 +19,11 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
 
     <!-- Libraries Stylesheet -->
-    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="{{ asset('lib/owlcarousel/assets/owl.carousel.min.css') }}" rel="stylesheet">
 
     <!-- Customized Bootstrap Stylesheet -->
-    <link href="css/style.css" rel="stylesheet">
+    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/modificacoes.css') }}" rel="stylesheet">
 </head>
 
 <body>
@@ -71,11 +72,11 @@
             </button>
             <div class="collapse navbar-collapse justify-content-between px-lg-3" id="navbarCollapse">
                 <div class="navbar-nav m-auto py-0">
-                    <a href="index.html" class="nav-item nav-link active">Home</a>
-                    <a href="about.html" class="nav-item nav-link">Sobre</a>
-                    <a href="service.html" class="nav-item nav-link">Serviços</a>
-                    <a href="price.html" class="nav-item nav-link">Preços</a>
-                    <a href="contact.html" class="nav-item nav-link">Contato</a>
+                    <a href="index.blade.php" class="nav-item nav-link active">Home</a>
+                    <a href="about.blade.php" class="nav-item nav-link">Sobre</a>
+                    <a href="service.blade.php" class="nav-item nav-link">Serviços</a>
+                    <a href="price.blade.php" class="nav-item nav-link">Preços</a>
+                    <a href="contact.blade.php" class="nav-item nav-link">Contato</a>
                 </div>
                 <a href="" class="btn btn-primary py-2 px-4 d-none d-lg-block">Peça um Orçamento</a>
             </div>
@@ -115,10 +116,8 @@
                 <div class="col-lg-7">
                     <h6 class="text-primary text-uppercase font-weight-bold">Sobre nós</h6>
                     <h1 class="mb-4">Provedor de Serviços Logísticos Confiáveis e Rápidos</h1>
-                    <p class="mb-4">A dor e as dificuldades fazem parte do caminho, assim como os momentos de reflexão. 
-                        Há tristeza e esforço, mas também aprendizado em cada etapa. O trabalho continua e a verdade permanece,
-                        mesmo quando tudo parece incerto. Entre desafios e perseverança, seguimos em frente com determinação. 
-                        No fim, as experiências vividas se unem e dão sentido à jornada.</p>
+                    <p class="mb-4">Acreditamos que a excelência nasce da união entre aprendizado e tecnologia.
+                        Combinamos nossa base sólida de mercado com uma abordagem ágil para transformar grandes ideias em projetos concretos, sempre pautados pela ética e pela entrega de valor real.</p>
                     <div class="d-flex align-items-center pt-2">
                         <button type="button" class="btn-play" data-toggle="modal"
                             data-src="https://www.youtube.com/embed/DWRcNpR6Kdc" data-target="#videoModal">
@@ -156,19 +155,19 @@
                 <div class="col-lg-7 py-5 py-lg-0">
                     <h6 class="text-primary text-uppercase font-weight-bold">Obtenha uma cotação</h6>
                     <h1 class="mb-4"></h1>
-                    <p class="mb-4">Dolores lorem lorem ipsum sit et ipsum. Sadip sea amet diam dolore sed et. Sit rebum labore sit sit ut vero no sit. Et elitr stet dolor sed sit et sed ipsum et kasd ut. Erat duo eos et erat sed diam duo</p>
+                    <p class="mb-4">Transformamos seus desafios em soluções eficientes com uma equipe de especialistas dedicada ao seu sucesso. Peça seu orçamento hoje e dê o próximo passo com segurança.</p>
                     <div class="row">
                         <div class="col-sm-4">
                             <h1 class="text-primary mb-2" data-toggle="counter-up">225</h1>
-                            <h6 class="font-weight-bold mb-4">SKilled Experts</h6>
+                            <h6 class="font-weight-bold mb-4">Especialistas qualificados</h6>
                         </div>
                         <div class="col-sm-4">
                             <h1 class="text-primary mb-2" data-toggle="counter-up">1050</h1>
-                            <h6 class="font-weight-bold mb-4">Happy Clients</h6>
+                            <h6 class="font-weight-bold mb-4">Clientes satisfeitos</h6>
                         </div>
                         <div class="col-sm-4">
                             <h1 class="text-primary mb-2" data-toggle="counter-up">2500</h1>
-                            <h6 class="font-weight-bold mb-4">Complete Projects</h6>
+                            <h6 class="font-weight-bold mb-4">Projetos Completos</h6>
                         </div>
                     </div>
                 </div>
@@ -183,10 +182,10 @@
                             </div>
                             <div class="form-group">
                                 <select class="custom-select border-0 px-4" style="height: 47px;">
-                                    <option selected>Select A Service</option>
-                                    <option value="1">Service 1</option>
-                                    <option value="2">Service 1</option>
-                                    <option value="3">Service 1</option>
+                                    <option selected>Selecione um serviço</option>
+                                    <option value="1">Serviço 1</option>
+                                    <option value="2">Serviço 1</option>
+                                    <option value="3">Serviço 1</option>
                                 </select>
                             </div>
                             <div>
