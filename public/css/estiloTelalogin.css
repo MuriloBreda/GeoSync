@@ -1,0 +1,111 @@
+body {
+    font-family: Arial;
+    /* background-color: #f5f7fa; */
+    background-image: url('https://img.freepik.com/fotos-gratis/camiao-de-carga-em-branco-na-estrada_23-2151751338.jpg?semt=ais_hybrid&w=740&q=80');
+
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+
+    margin: 0;
+    min-height: 100vh;
+}
+
+.label-icon {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: bold;
+}
+
+.container {
+    width: 320px;
+    margin: auto;
+    margin-top: 100px;
+    padding: 35px;
+    background-color: white;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 15px;
+}
+
+form {
+    text-align: left;
+    text-align: center;
+}
+
+path{
+    text-align: left;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+h1 {
+    color: #2d4f7c;
+}
+
+p {
+    color: #666666;
+}
+
+input {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px; 
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #2d4f7c;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #1e3555;
+}
+
+#criarConta a {
+    color: #3b82f6;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+#criarConta a:hover {
+    text-decoration: underline;
+}
+
+#mensagem {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.logo {
+    width: 200px;
+    height: auto;
+    display: block;
+    margin: 0 auto 5px auto; 
+
+h1 {
+    color: #2d4f7c;
+    margin-top: 0;
+}
+
+h2 {
+    margin-top: 5px;
+}
+
+}
+
+a{
+    text-decoration: none;
+    color: white;
+}

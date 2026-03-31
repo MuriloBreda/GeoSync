@@ -22,12 +22,15 @@ Route::get('/service', function () {
     return view('service');
 });
 
-// Preços
-Route::get('/price', function () {
-    return view('price');
-});
-
 // Welcome (padrão Laravel)
 Route::get('/welcome', function () {
     return view('welcome');
+});
+
+Route::get('/login', function() {
+    return view('login');
+});
+
+Route::get('/accont', function() {
+    return view('createAccount');
 });

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="utf-8">
@@ -32,11 +32,12 @@
         <div class="row py-2 px-lg-5">
             <div class="col-lg-6 text-center text-lg-left mb-2 mb-lg-0">
                 <div class="d-inline-flex align-items-center text-white">
-                    <small><i class="fa fa-phone-alt mr-2"></i>+55 (19) 45988-3899</small>
+                    <small><i class="fa fa-phone-alt mr-2"></i>+55 (19) 99401-0744</small>
                     <small class="px-3">|</small>
-                    <small><i class="fa fa-envelope mr-2"></i>geoSync.logistic@gmail.com.com</small>
+                    <small><i class="fa fa-envelope mr-2"></i>contact@geosync.com</small>
                 </div>
             </div>
+            <!-- Criar nossas contas em redes sociais -->
             <div class="col-lg-6 text-center text-lg-right">
                 <div class="d-inline-flex align-items-center">
                     <a class="text-white px-2" href="">
@@ -65,20 +66,19 @@
     <div class="container-fluid p-0">
         <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-lg-5">
             <a href="index.html" class="navbar-brand ml-lg-3">
-                <h1 class="m-0 display-5 text-uppercase text-primary"><i class="fa fa-truck mr-2"></i>Mais rápido</h1>
+                <h1 class="m-0 display-5 text-uppercase text-primary"><i class="fa fa-truck mr-2"></i>GeoSync</h1>
             </a>
             <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-between px-lg-3" id="navbarCollapse">
                 <div class="navbar-nav m-auto py-0">
-                    <a href="index.blade.php" class="nav-item nav-link active">Home</a>
-                    <a href="about.blade.php" class="nav-item nav-link">Sobre</a>
-                    <a href="service.blade.php" class="nav-item nav-link">Serviços</a>
-                    <a href="price.blade.php" class="nav-item nav-link">Preços</a>
-                    <a href="contact.blade.php" class="nav-item nav-link">Contato</a>
+                    <a href="index.html" class="nav-item nav-link">Inicio</a>
+                    <a href="about.html" class="nav-item nav-link">Sobre</a>
+                    <a href="contact.html" class="nav-item nav-link">Contato</a>
                 </div>
-                <a href="" class="btn btn-primary py-2 px-4 d-none d-lg-block">Peça um Orçamento</a>
+                {{-- colocar tela de serviço aq --}}
+                <a href="" class="btn btn-primary py-2 px-4 d-none d-lg-block">Solicite um Servico</a>
             </div>
         </nav>
     </div>
@@ -89,7 +89,7 @@
     <div class="jumbotron jumbotron-fluid mb-5">
         <div class="container text-center py-5">
             <h1 class="text-primary mb-4">Seguro & mais rápido</h1>
-            <h1 class="text-white display-3 mb-5">Serviços de logística</h1>
+            {{-- <h2 class="text-white display-3 mb-5">GeoSync</h2> --}}
             <div class="mx-auto" style="width: 100%; max-width: 600px;">
                 <div class="input-group">
                     <input type="text" class="form-control border-light" style="padding: 30px;" placeholder="ID de rastreamento">
@@ -108,10 +108,8 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-5 pb-4 pb-lg-0">
-                    <img class="img-fluid w-100" src="img/about.jpg" alt="">
-                    <div class="bg-primary text-dark text-center p-4">
-                        <h3 class="m-0">25+ Anos de experiência</h3>
-                    </div>
+                    <img class="img-fluid w-100" src="" alt="">
+                    
                 </div>
                 <div class="col-lg-7">
                     <h6 class="text-primary text-uppercase font-weight-bold">Sobre nós</h6>
@@ -175,10 +173,10 @@
                     <div class="bg-primary py-5 px-4 px-sm-5">
                         <form class="py-5">
                             <div class="form-group">
-                                <input type="text" class="form-control border-0 p-4" placeholder="Your Name" required="required" />
+                                <input type="text" class="form-control border-0 p-4" placeholder="Seu Nome" required="required" />
                             </div>
                             <div class="form-group">
-                                <input type="email" class="form-control border-0 p-4" placeholder="Your Email" required="required" />
+                                <input type="email" class="form-control border-0 p-4" placeholder="Se Email" required="required" />
                             </div>
                             <div class="form-group">
                                 <select class="custom-select border-0 px-4" style="height: 47px;">
@@ -214,31 +212,31 @@
                         <h6 class="text-white font-weight-medium m-0">Frete Aéreo</h6>
                     </div>
                     <p>Aliamos a solidez da nossa experiência à agilidade da inovação para entregar soluções que inspiram confiança. Com foco em resultados e transparência, transformamos seus desafios em projetos de sucesso, garantindo a excelência técnica que o seu negócio exige.</p>
-                    <a class="border-bottom text-decoration-none" href="">Read More</a>
+                    <a class="border-bottom text-decoration-none" href="">Leia mais</a>
                 </div>
                 <div class="col-lg-3 col-md-6 text-center mb-5">
                     <div class="d-flex align-items-center justify-content-center bg-primary mb-4 p-4">
                         <i class="fa fa-2x fa-ship text-dark pr-3"></i>
-                        <h6 class="text-white font-weight-medium m-0">Ocean Freight</h6>
+                        <h6 class="text-white font-weight-medium m-0">Frete marítimo</h6>
                     </div>
                     <p>Aliamos a solidez da nossa experiência à agilidade da inovação para entregar soluções que inspiram confiança. Com foco em resultados e transparência, transformamos seus desafios em projetos de sucesso, garantindo a excelência técnica que o seu negócio exige.</p>
-                    <a class="border-bottom text-decoration-none" href="">Read More</a>
+                    <a class="border-bottom text-decoration-none" href="">Leia mais</a>
                 </div>
                 <div class="col-lg-3 col-md-6 text-center mb-5">
                     <div class="d-flex align-items-center justify-content-center bg-primary mb-4 p-4">
                         <i class="fa fa-2x fa-truck text-dark pr-3"></i>
-                        <h6 class="text-white font-weight-medium m-0">Land Transport</h6>
+                        <h6 class="text-white font-weight-medium m-0">Transporte Terrestre</h6>
                     </div>
                     <p>Aliamos a solidez da nossa experiência à agilidade da inovação para entregar soluções que inspiram confiança. Com foco em resultados e transparência, transformamos seus desafios em projetos de sucesso, garantindo a excelência técnica que o seu negócio exige.</p>
-                    <a class="border-bottom text-decoration-none" href="">Read More</a>
+                    <a class="border-bottom text-decoration-none" href="">Leia mais</a>
                 </div>
                 <div class="col-lg-3 col-md-6 text-center mb-5">
                     <div class="d-flex align-items-center justify-content-center bg-primary mb-4 p-4">
                         <i class="fa fa-2x fa-store text-dark pr-3"></i>
-                        <h6 class="text-white font-weight-medium m-0">Cargo Storage</h6>
+                        <h6 class="text-white font-weight-medium m-0">Armazenamento de carga</h6>
                     </div>
                     <p>Aliamos a solidez da nossa experiência à agilidade da inovação para entregar soluções que inspiram confiança. Com foco em resultados e transparência, transformamos seus desafios em projetos de sucesso, garantindo a excelência técnica que o seu negócio exige.</p>
-                    <a class="border-bottom text-decoration-none" href="">Read More</a>
+                    <a class="border-bottom text-decoration-none" href="">Leia mais</a>
                 </div>
             </div>
         </div>
@@ -274,8 +272,8 @@
     <div class="container-fluid pt-5">
         <div class="container">
             <div class="text-center pb-2">
-                <h6 class="text-primary text-uppercase font-weight-bold">Pricing Plan</h6>
-                <h1 class="mb-4">Affordable Pricing Packages</h1>
+                <h6 class="text-primary text-uppercase font-weight-bold">Plano de preços</h6>
+                <h1 class="mb-4">Pacotes com preços acessíveis</h1>
             </div>
             <div class="row">
                 <div class="col-md-4 mb-5">
@@ -286,14 +284,14 @@
                             </h1>
                         </div>
                         <div class="bg-primary text-center p-4">
-                            <h3 class="m-0">Basic</h3>
+                            <h3 class="m-0">Básico</h3>
                         </div>
                         <div class="d-flex flex-column align-items-center py-4">
                             <p>HTML5 & CSS3</p>
                             <p>Bootstrap 4</p>
                             <p>Responsive Layout</p>
                             <p>Compatible With All Browsers</p>
-                            <a href="" class="btn btn-primary py-2 px-4 my-2">Order Now</a>
+                            <a href="" class="btn btn-primary py-2 px-4 my-2">Encomende agora</a>
                         </div>
                     </div>
                 </div>
@@ -312,7 +310,7 @@
                             <p>Bootstrap 4</p>
                             <p>Responsive Layout</p>
                             <p>Compatible With All Browsers</p>
-                            <a href="" class="btn btn-primary py-2 px-4 my-2">Order Now</a>
+                            <a href="" class="btn btn-primary py-2 px-4 my-2">Encomende agora</a>
                         </div>
                     </div>
                 </div>
@@ -331,7 +329,7 @@
                             <p>Bootstrap 4</p>
                             <p>Responsive Layout</p>
                             <p>Compatible With All Browsers</p>
-                            <a href="" class="btn btn-primary py-2 px-4 my-2">Order Now</a>
+                            <a href="" class="btn btn-primary py-2 px-4 my-2">Encomende agora</a>
                         </div>
                     </div>
                 </div>
@@ -345,8 +343,8 @@
     <div class="container-fluid pt-5">
         <div class="container">
             <div class="text-center pb-2">
-                <h6 class="text-primary text-uppercase font-weight-bold">Delivery Team</h6>
-                <h1 class="mb-4">Meet Our Delivery Team</h1>
+                <h6 class="text-primary text-uppercase font-weight-bold">Equipe de entrega</h6>
+                <h1 class="mb-4">Conheça nossa equipe de entrega</h1>
             </div>
             <div class="row">
                 <div class="col-lg-3 col-md-6">
@@ -354,8 +352,8 @@
                         <img class="card-img-top" src="img/team-1.jpg" alt="">
                         <div class="card-body text-center p-0">
                             <div class="team-text d-flex flex-column justify-content-center bg-secondary">
-                                <h5 class="font-weight-bold">Full Name</h5>
-                                <span>Designation</span>
+                                <h5 class="font-weight-bold">Nome completo</h5>
+                                <span>Designação</span>
                             </div>
                             <div class="team-social d-flex align-items-center justify-content-center bg-primary">
                                 <a class="btn btn-outline-dark btn-social mr-2" href="#"><i class="fab fa-twitter"></i></a>
@@ -371,8 +369,8 @@
                         <img class="card-img-top" src="img/team-2.jpg" alt="">
                         <div class="card-body text-center p-0">
                             <div class="team-text d-flex flex-column justify-content-center bg-secondary">
-                                <h5 class="font-weight-bold">Full Name</h5>
-                                <span>Designation</span>
+                                <h5 class="font-weight-bold">Nome completo</h5>
+                                <span>Designação</span>
                             </div>
                             <div class="team-social d-flex align-items-center justify-content-center bg-primary">
                                 <a class="btn btn-outline-dark btn-social mr-2" href="#"><i class="fab fa-twitter"></i></a>
@@ -388,8 +386,8 @@
                         <img class="card-img-top" src="img/team-3.jpg" alt="">
                         <div class="card-body text-center p-0">
                             <div class="team-text d-flex flex-column justify-content-center bg-secondary">
-                                <h5 class="font-weight-bold">Full Name</h5>
-                                <span>Designation</span>
+                                <h5 class="font-weight-bold">Nome completo</h5>
+                                <span>Designação</span>
                             </div>
                             <div class="team-social d-flex align-items-center justify-content-center bg-primary">
                                 <a class="btn btn-outline-dark btn-social mr-2" href="#"><i class="fab fa-twitter"></i></a>
@@ -405,8 +403,8 @@
                         <img class="card-img-top" src="img/team-4.jpg" alt="">
                         <div class="card-body text-center p-0">
                             <div class="team-text d-flex flex-column justify-content-center bg-secondary">
-                                <h5 class="font-weight-bold">Full Name</h5>
-                                <span>Designation</span>
+                                <h5 class="font-weight-bold">Nome completo</h5>
+                                <span>Designação</span>
                             </div>
                             <div class="team-social d-flex align-items-center justify-content-center bg-primary">
                                 <a class="btn btn-outline-dark btn-social mr-2" href="#"><i class="fab fa-twitter"></i></a>
@@ -427,7 +425,7 @@
     <div class="container-fluid py-5">
         <div class="container">
             <div class="text-center pb-2">
-                <h6 class="text-primary text-uppercase font-weight-bold">Testimonial</h6>
+                <h6 class="text-primary text-uppercase font-weight-bold">Depoimento</h6>
                 <h1 class="mb-4">Our Clients Say</h1>
             </div>
             <div class="owl-carousel testimonial-carousel">

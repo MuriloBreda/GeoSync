@@ -15,6 +15,16 @@ PALETA GEOSYNC
 
 }
 
+.col-lg-5.pb-4 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.imagem-caminhao {
+    max-width: 90%; /* controla o tamanho */
+}
+
 /* ================================
 TOPBAR
 ================================ */
