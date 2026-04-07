@@ -75,11 +75,11 @@
                 <div class="navbar-nav m-auto py-0">
                     <a href="index.html" class="nav-item nav-link">Inicio</a>
                     <a href="about.html" class="nav-item nav-link">Sobre</a>
-                    <a href="service.html" class="nav-item nav-link">Serviço</a>
-                    <a href="price.html" class="nav-item nav-link">Preço</a>
                     <a href="contact.html" class="nav-item nav-link">Contato</a>
                 </div>
-                <a href="" class="btn btn-primary py-2 px-4 d-none d-lg-block">Solicite um Orçamento</a>
+                
+                {{-- fazer ir pra tela de service.blade.php --}}
+                <a href="" class="btn btn-primary py-2 px-4 d-none d-lg-block">Solicite um Serviço</a>
             </div>
         </nav>
     </div>

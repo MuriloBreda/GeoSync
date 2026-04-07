@@ -10,7 +10,8 @@
 <body>
     
     <div class="container">
-        <img src="C:\Users\44469307882\Downloads\Captura_de_tela_2026-02-10_080104-removebg-preview.png" alt="Logo GeoSync" class="logo">
+        <img src="{{ asset('img/Logo.png') }}" alt="Logo GeoSync" class="logo">
+
         <h1>GeoSync</h1>
         <h2>Bem-vindo ao <span class="destaque">GeoSync</span></h2>
         <p>Faça login para continuar</p>
@@ -23,8 +24,8 @@
                 </svg>
                 Usuário:
             </label>
-            <input type="text" id="usuario">
-
+            <input type="email" required id="usuario">
+            
             <br><br>
 
             <label class="label-icon">
@@ -38,8 +39,9 @@
             <br><br>
 
             <button type="submit">Entrar</button>
+            <br><br>
             <p>não tenho conta</p>
-            <button><a href="Tela_senha.html">Criar conta</a></button>
+            <button><a href="createAccount.blade.php">Criar uma conta</a></button>
         </form>
 
         <p id="mensagem"></p>

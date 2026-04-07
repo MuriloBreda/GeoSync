@@ -1,46 +1,207 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoSync</title>
+    <title>Cadastro - GeoSync</title>
     <link rel="stylesheet" href="style.css">
 </head>
+<style>
+    * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    height: 100vh;
+    background: url('{{ asset('img/imagemFundo.png') }}') no-repeat center center/cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+/* overlay escuro */
+body::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(11, 31, 54, 0.7);
+}
+
+/* centralizar */
+.container {
+    z-index: 1;
+}
+
+/* CARD QUADRADO */
+.card {
+    background: #fff;
+    width: 550px;   /* aumentou mais */
+    height: 550px;  /* mantém quadrado */
+    padding: 20px;
+    border-radius: 14px;
+    text-align: center;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* TITULOS */
+.card h1 {
+    color: #1C3F6E;
+    font-size: 18px;
+}
+
+.card h2 {
+    font-size: 14px;
+}
+
+/* FORM GRID */
+form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    text-align: left;
+}
+
+/* ocupa linha inteira */
+.full {
+    grid-column: span 2;
+}
+
+/* labels */
+label {
+    font-size: 10px;
+}
+
+/* inputs */
+input {
+    width: 100%;
+    padding: 6px;
+    font-size: 11px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* foco */
+input:focus {
+    outline: none;
+    border: 1px solid #2F6FB2;
+}
+
+/* botão */
+button {
+    grid-column: span 2;
+    padding: 8px;
+    font-size: 12px;
+    background: #1C3F6E;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #2F6FB2;
+}
+
+/* texto */
+span {
+    font-size: 11px;
+}
+
+/* botão login */
+.btn-login {
+    display: block;
+    margin-top: 5px;
+    padding: 10px;
+    background: #0B1F36;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 11px;
+    transition: 0.3s;
+}
+
+.btn-login:hover {
+    background: #2F6FB2;
+}
+
+input {
+    padding: 10px;
+    font-size: 13px;
+}
+
+label {
+    font-size: 11px;
+}
+
+button {
+    padding: 12px;
+    font-size: 14px;
+}
+
+.card h1 {
+    font-size: 22px;
+}
+
+.card h2 {
+    font-size: 16px;
+}
+</style>
 <body>
-    <div class="container">
-    <img src="C:\Users\44469307882\Downloads\Captura_de_tela_2026-02-10_080104-removebg-preview.png" alt="Logo GeoSync" class="logo">
-        <div class="card">
-            <h1 class="logo">GeoSync</h1>
-            <h2>Crie sua conta</h2>
-        <form id="formulario">
-    <div class="input-group">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="icon" viewBox="0 0 16 16"> 
-            <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
-        </svg>
-        <input type="text" id="nome" placeholder="Nome completo">
-    </div>
 
-    <div class="input-group">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="icon" viewBox="0 0 16 16"> 
-            <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
-        </svg>
-        <input type="email" id="email" placeholder="Email">
-    </div>
+<div class="container">
+    <div class="card">
 
-    <div class="input-group">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="icon" viewBox="0 0 16 16">
-            <path fill-rule="evenodd" d="M8 0a4 4 0 0 1 4 4v2.05a2.5 2.5 0 0 1 2 2.45v5a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 2 13.5v-5a2.5 2.5 0 0 1 2-2.45V4a4 4 0 0 1 4-4M4.5 7A1.5 1.5 0 0 0 3 8.5v5A1.5 1.5 0 0 0 4.5 15h7a1.5 1.5 0 0 0 1.5-1.5v-5A1.5 1.5 0 0 0 11.5 7zM8 1a3 3 0 0 0-3 3v2h6V4a3 3 0 0 0-3-3"/>
-        </svg>
-        <input type="password" id="senha" placeholder="Senha">
-    </div>
-    <br>
+        <h1>Tela de Cadastro</h1>
+        <img src="{{ asset('img/Logo.png') }}" alt="Logo GeoSync" class="logo" style="width: 100px; margin: auto">
+        {{-- <h2>Tela de Cadastro</h2> --}}
 
-    <button type="submit">Registrar</button>
-</form>
-            <p id="mensagem"></p>
+        <form>
+            <!-- LINHA COMPLETA -->
+            <div class="full">
+                <label>Nome</label>
+                <input type="text" placeholder="Seu nome" required>
+            </div>
 
-        </div>
+            <div class="full">
+                <label>Email</label>
+                <input type="email" placeholder="Seu email" required>
+            </div>
+
+            <!-- 2 COLUNAS -->
+            <div>
+                <label>Usuário</label>
+                <input type="text" placeholder="Usuário" required>
+            </div>
+
+            <div>
+                <label>Senha</label required>
+                <input type="password" placeholder="Senha">
+            </div>
+
+            <!-- LINHA COMPLETA -->
+            <div class="full">
+                <label>Confirmar</label required>
+                <input type="password" placeholder="Confirmar senha">
+            </div>
+
+            <!-- BOTÃO -->
+            <button type="submit">Cadastrar</button>
+        </form>
+
+        <span style="margin: 5px">Já tem conta?</span>
+        <a href=lo"" class="btn-login">Entrar</a>
+
     </div>
-    <script src="validacao.js"></script>
+</div>
+z
 </body>
 </html>

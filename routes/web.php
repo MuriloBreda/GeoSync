@@ -34,3 +34,11 @@ Route::get('/login', function() {
 Route::get('/accont', function() {
     return view('createAccount');
 });
+
+Route::get('/avaliar', function() {
+    return view('avaliacao');
+});
+
+Route::get('/cadastroMercadoria', function() {
+    return view('cadastromercadoria');
+});

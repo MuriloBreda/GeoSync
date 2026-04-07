@@ -1,15 +1,17 @@
 body {
+    scroll-behavior: smooth;
     font-family: Arial;
-    /* background-color: #f5f7fa; */
-    background-image: url('https://img.freepik.com/fotos-gratis/camiao-de-carga-em-branco-na-estrada_23-2151751338.jpg?semt=ais_hybrid&w=740&q=80');
-
+    background-image: url('../img/imagemFundo.png');
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
-    background-attachment: fixed;
 
     margin: 0;
     min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .label-icon {
@@ -20,14 +22,14 @@ body {
 }
 
 .container {
-    width: 320px;
-    margin: auto;
-    margin-top: 100px;
-    padding: 35px;
+    width: 90%;           /* ocupa 90% da tela */
+    max-width: 500px;     /* mas nunca passa de 500px */
+    margin: 5vh auto;     /* centraliza vertical e horizontal */
+    padding: 30px;
     background-color: white;
     text-align: center;
     border: 1px solid #ddd;
-    border-radius: 15px;
+    border-radius: 10px;
 }
 
 form {
@@ -92,7 +94,8 @@ button:hover {
     width: 200px;
     height: auto;
     display: block;
-    margin: 0 auto 5px auto; 
+    margin: 0 auto 5px auto;
+}
 
 h1 {
     color: #2d4f7c;
@@ -101,8 +104,6 @@ h1 {
 
 h2 {
     margin-top: 5px;
-}
-
 }
 
 a{

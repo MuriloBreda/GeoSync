@@ -426,7 +426,7 @@
         <div class="container">
             <div class="text-center pb-2">
                 <h6 class="text-primary text-uppercase font-weight-bold">Depoimento</h6>
-                <h1 class="mb-4">Our Clients Say</h1>
+                <h1 class="mb-4">Nossos clientes dizem</h1>
             </div>
             <div class="owl-carousel testimonial-carousel">
                 <div class="position-relative bg-secondary p-4">
@@ -483,8 +483,8 @@
     <div class="container-fluid pt-5">
         <div class="container">
             <div class="text-center pb-2">
-                <h6 class="text-primary text-uppercase font-weight-bold">Our Blog</h6>
-                <h1 class="mb-4">Latest From Blog</h1>
+                <h6 class="text-primary text-uppercase font-weight-bold">Nosso Blog</h6>
+                <h1 class="mb-4">Últimas do blog</h1>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-5">
@@ -504,12 +504,12 @@
                             </div>
                             <div class="d-flex align-items-center ml-4">
                                 <i class="far fa-bookmark text-primary"></i>
-                                <a class="text-muted ml-2" href="">Web Design</a>
+                                
                             </div>
                         </div>
                         <h4 class="font-weight-bold mb-3">Kasd tempor diam sea justo dolor</h4>
-                        <p>Dolor sea ipsum ipsum et. Erat duo lorem magna vero dolor dolores. Rebum eirmod no dolor diam dolor amet ipsum. Lorem lorem sea sed diam est lorem magna</p>
-                        <a class="border-bottom border-primary text-uppercase text-decoration-none" href="">Read More <i class="fa fa-angle-right"></i></a>
+                        <p>Uso o serviço há alguns meses e estou bem satisfeito. O rastreamento funciona direitinho e me passa mais segurança no dia a dia</p>
+                        <a class="border-bottom border-primary text-uppercase text-decoration-none" href="">Leia mais <i class="fa fa-angle-right"></i></a>
                     </div>
                 </div>
                 <div class="col-md-6 mb-5">
@@ -517,8 +517,8 @@
                         <img class="img-fluid w-100" src="img/blog-2.jpg" alt="">
                         <div class="position-absolute bg-primary d-flex flex-column align-items-center justify-content-center rounded-circle"
                             style="width: 60px; height: 60px; bottom: -30px; right: 30px;">
-                            <h4 class="font-weight-bold mb-n1">01</h4>
-                            <small class="text-white text-uppercase">Jan</small>
+                            <h4 class="font-weight-bold mb-n1">04</h4>
+                            <small class="text-white text-uppercase">Fev</small>
                         </div>
                     </div>
                     <div class="bg-secondary" style="padding: 30px;">
@@ -529,12 +529,12 @@
                             </div>
                             <div class="d-flex align-items-center ml-4">
                                 <i class="far fa-bookmark text-primary"></i>
-                                <a class="text-muted ml-2" href="">Web Design</a>
+                                
                             </div>
                         </div>
                         <h4 class="font-weight-bold mb-3">Kasd tempor diam sea justo dolor</h4>
-                        <p>Dolor sea ipsum ipsum et. Erat duo lorem magna vero dolor dolores. Rebum eirmod no dolor diam dolor amet ipsum. Lorem lorem sea sed diam est lorem magna</p>
-                        <a class="border-bottom border-primary text-uppercase text-decoration-none" href="">Read More <i class="fa fa-angle-right"></i></a>
+                        <p>Já precisei acionar o suporte e fui bem atendido. O sistema de localização é preciso e confiável.</p>
+                        <a class="border-bottom border-primary text-uppercase text-decoration-none" href="">Leia mais <i class="fa fa-angle-right"></i></a>
                     </div>
                 </div>
             </div>
@@ -549,10 +549,10 @@
             <div class="col-lg-7 col-md-6">
                 <div class="row">
                     <div class="col-md-6 mb-5">
-                        <h3 class="text-primary mb-4">Get In Touch</h3>
-                        <p><i class="fa fa-map-marker-alt mr-2"></i>123 Street, New York, USA</p>
-                        <p><i class="fa fa-phone-alt mr-2"></i>+012 345 67890</p>
-                        <p><i class="fa fa-envelope mr-2"></i>info@example.com</p>
+                        <h3 class="text-primary mb-4">Entre em contato</h3>
+                        <p><i class="fa fa-map-marker-alt mr-2"></i>100 R. Bela Vista, Tambaú, BRASIL</p>
+                        <p><i class="fa fa-phone-alt mr-2"></i>55 (19) 99401-0744</p>
+                        <p><i class="fa fa-envelope mr-2"></i>contact@geosync.com</p>
                         <div class="d-flex justify-content-start mt-4">
                             <a class="btn btn-outline-light btn-social mr-2" href="#"><i class="fab fa-twitter"></i></a>
                             <a class="btn btn-outline-light btn-social mr-2" href="#"><i class="fab fa-facebook-f"></i></a>
@@ -561,25 +561,22 @@
                         </div>
                     </div>
                     <div class="col-md-6 mb-5">
-                        <h3 class="text-primary mb-4">Quick Links</h3>
+                        <h3 class="text-primary mb-4">Links rápidos</h3>
                         <div class="d-flex flex-column justify-content-start">
-                            <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Home</a>
-                            <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>About Us</a>
-                            <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Our Services</a>
-                            <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Pricing Plan</a>
-                            <a class="text-white" href="#"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                            <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Início</a>
+                            <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Sobre Nós</a>
+                            <a class="text-white" href="#"><i class="fa fa-angle-right mr-2"></i>Contate-nos</a>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-5 col-md-6 mb-5">
-                <h3 class="text-primary mb-4">Newsletter</h3>
-                <p>Rebum labore lorem dolores kasd est, et ipsum amet et at kasd, ipsum sea tempor magna tempor. Accu kasd sed ea duo ipsum. Dolor duo eirmod sea justo no lorem est diam</p>
+                
                 <div class="w-100">
                     <div class="input-group">
-                        <input type="text" class="form-control border-light" style="padding: 30px;" placeholder="Your Email Address">
+                        <input type="text" class="form-control border-light" style="padding: 30px;" placeholder="seu endereço de email">
                         <div class="input-group-append">
-                            <button class="btn btn-primary px-4">Sign Up</button>
+                            <button class="btn btn-primary px-4">Enviar</button>
                         </div>
                     </div>
                 </div>
@@ -589,7 +586,7 @@
     <div class="container-fluid bg-dark text-white border-top py-4 px-sm-3 px-md-5" style="border-color: #3E3E4E !important;">
         <div class="row">
             <div class="col-lg-6 text-center text-md-left mb-3 mb-md-0">
-                <p class="m-0 text-white">&copy; <a href="#">Your Site Name</a>. All Rights Reserved. 
+                <p class="m-0 text-white">&copy; <a href="#">GeoSync</a>.Todos os direitos reservados. 
 				
 				<!--/*** This template is free as long as you keep the footer author’s credit link/attribution link/backlink. If you'd like to use the template without the footer author’s credit link/attribution link/backlink, you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". Thank you for your support. ***/-->
 				Designed by <a href="https://htmlcodex.com">HTML Codex</a>
@@ -599,16 +596,16 @@
             <div class="col-lg-6 text-center text-md-right">
                 <ul class="nav d-inline-flex">
                     <li class="nav-item">
-                        <a class="nav-link text-white py-0" href="#">Privacy</a>
+                        <a class="nav-link text-white py-0" href="#">Privacidade</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white py-0" href="#">Terms</a>
+                        <a class="nav-link text-white py-0" href="#">Termos</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-white py-0" href="#">FAQs</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white py-0" href="#">Help</a>
+                        <a class="nav-link text-white py-0" href="#">Ajuda</a>
                     </li>
                 </ul>
             </div>
