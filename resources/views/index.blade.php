@@ -1,637 +1,443 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-
+<html lang="pt-br">
 <head>
-    <meta charset="utf-8">
-    <title>GeoSync</title>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="Free HTML Templates" name="keywords">
-    <meta content="Free HTML Templates" name="description">
+<meta charset="utf-8">
+<title>GeoSync</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Favicon -->
-    <link href="img/favicon.ico" rel="icon">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
 
-    <!-- Google Web Fonts -->
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
 
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+/* PALETA */
+:root{
+--azul-institucional:#1C3F6E;
+--azul-tech:#2F6FB2;
+--azul-profundo:#0B1F36;
+--azul-claro:#E6EEF8;
+--azul-cinza:#7B92AD;
+}
 
-    <!-- Libraries Stylesheet -->
-    <link href="{{ asset('lib/owlcarousel/assets/owl.carousel.min.css') }}" rel="stylesheet">
+body{
+margin: 0;
+font-family: 'Poppins', sans-serif;
+background: #f5f7fb;
+overflow-x: hidden;
+}
 
-    <!-- Customized Bootstrap Stylesheet -->
-    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/modificacoes.css') }}" rel="stylesheet">
+.container{
+width:90%;
+margin:auto;
+}
+
+/* FLEX */
+.flex{
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+}
+
+/* TOPBAR */
+.topbar{
+background: var(--azul-profundo);
+color:white;
+padding:8px 0;
+font-size:14px;
+}
+
+.top-icons i{
+margin-left:12px;
+cursor:pointer;
+transition:0.3s;
+}
+
+.top-icons i:hover{
+color:var(--azul-tech);
+}
+
+/* NAVBAR */
+.navbar{
+background:#f1f1f1;
+padding:15px 0;
+}
+
+.logo{
+font-size:26px;
+font-weight:bold;
+color:var(--azul-institucional);
+}
+
+.menu{
+display:flex;
+gap:30px;
+}
+
+.menu a{
+text-decoration:none;
+color:var(--azul-institucional);
+font-size:15px;
+}
+
+.btn{
+background:var(--azul-institucional);
+color:white;
+padding:10px 20px;
+border-radius:4px;
+text-decoration:none;
+}
+
+/* HEADER */
+.header{
+background:
+linear-gradient(rgba(11,31,54,0.85), rgba(11,31,54,0.85)),
+url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
+background-size:cover;
+background-position:center;
+padding:120px 20px;
+text-align:center;
+color:white;
+}
+
+.header h1{
+font-size:40px;
+}
+
+/* SEÇÕES */
+.section{
+padding:35px 0;
+}
+
+/* BLOCO */
+.block{
+background:white;
+border-radius:10px;
+padding:30px;
+box-shadow:0 5px 15px rgba(0,0,0,0.05);
+margin-bottom:15px;
+text-align:center;
+}
+
+.block-left{
+text-align:left;
+}
+
+.block img{
+width:100%;
+max-height:180px;
+object-fit:cover;
+border-radius:10px;
+margin-bottom:15px;
+}
+
+/* TEXTOS */
+h2{
+font-size:28px;
+margin-bottom:10px;
+}
+
+h3{
+font-size:22px;
+}
+
+p{
+font-size:18px;
+line-height:1.6;
+}
+
+.texto-grande{
+font-size:20px;
+line-height:1.8;
+}
+
+/* SERVIÇOS */
+.services{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.service{
+flex:1;
+min-width:250px;
+}
+
+/* EQUIPE */
+.team{
+display:flex;
+justify-content:center;
+gap:20px;
+flex-wrap:wrap;
+margin-top:25px;
+}
+
+.member{
+text-align:center;
+background:white;
+padding:15px;
+border-radius:10px;
+width:160px;
+box-shadow:0 5px 15px rgba(0,0,0,0.05);
+transition:0.3s;
+}
+
+.member:hover{
+transform:translateY(-8px);
+}
+
+.member img{
+width:100px;
+height:100px;
+border-radius:50%;
+object-fit:cover;
+border:3px solid var(--azul-tech);
+}
+
+/* ===== FOOTER MELHORADO ===== */
+
+.footer{
+background: linear-gradient(180deg,#0B1F36,#08192c);
+color:white;
+padding:60px 0 20px;
+margin-top:40px;
+}
+
+.footer-grid{
+display:flex;
+gap:40px;
+flex-wrap:wrap;
+}
+
+.footer-col{
+flex:1;
+min-width:250px;
+}
+
+.footer h3{
+color:var(--azul-tech);
+margin-bottom:15px;
+}
+
+.footer p{
+color:var(--azul-claro);
+font-size:15px;
+}
+
+.footer a{
+display:block;
+color:var(--azul-cinza);
+margin-bottom:8px;
+text-decoration:none;
+transition:0.3s;
+}
+
+.footer a:hover{
+color:var(--azul-tech);
+padding-left:5px;
+}
+
+/* SOCIAL */
+.social{
+display:flex;
+gap:10px;
+margin-top:10px;
+}
+
+.social i{
+width:35px;
+height:35px;
+display:flex;
+align-items:center;
+justify-content:center;
+border-radius:50%;
+border:1px solid var(--azul-cinza);
+cursor:pointer;
+transition:0.3s;
+}
+
+.social i:hover{
+background:var(--azul-tech);
+border-color:var(--azul-tech);
+}
+
+/* NEWSLETTER */
+.newsletter{
+display:flex;
+margin-top:15px;
+}
+
+.newsletter input{
+flex:1;
+padding:12px;
+border:none;
+outline:none;
+}
+
+.newsletter button{
+background:var(--azul-tech);
+border:none;
+color:white;
+padding:0 20px;
+cursor:pointer;
+}
+
+/* COPYRIGHT */
+.copy{
+text-align:center;
+margin-top:30px;
+font-size:14px;
+color:var(--azul-cinza);
+}
+
+</style>
 </head>
 
 <body>
-    <!-- Topbar Start -->
-    <div class="container-fluid bg-dark">
-        <div class="row py-2 px-lg-5">
-            <div class="col-lg-6 text-center text-lg-left mb-2 mb-lg-0">
-                <div class="d-inline-flex align-items-center text-white">
-                    <small><i class="fa fa-phone-alt mr-2"></i>+55 (19) 99401-0744</small>
-                    <small class="px-3">|</small>
-                    <small><i class="fa fa-envelope mr-2"></i>contact@geosync.com</small>
-                </div>
-            </div>
-            <!-- Criar nossas contas em redes sociais -->
-            <div class="col-lg-6 text-center text-lg-right">
-                <div class="d-inline-flex align-items-center">
-                    <a class="text-white px-2" href="">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                    <a class="text-white px-2" href="">
-                        <i class="fab fa-twitter"></i>
-                    </a>
-                    <a class="text-white px-2" href="">
-                        <i class="fab fa-linkedin-in"></i>
-                    </a>
-                    <a class="text-white px-2" href="">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a class="text-white pl-2" href="">
-                        <i class="fab fa-youtube"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Topbar End -->
 
+<!-- TOPBAR -->
+<div class="topbar">
+<div class="container flex">
+<div>+55 (19) 99401-0744 | contact@geosync.com</div>
+<div class="top-icons">
+<a href="https://www.facebook.com/?locale=pt_BR" target="_blank"><i class="fab fa-facebook-f"></i></a>
+<a href="https://x.com/?lang=pt" target="_blank"><i class="fab fa-twitter"></i></a>
+<a href="https://br.linkedin.com/?mcid=6821526239111716925&src=go-pa&trk=sem-ga_campid.12619604099_asid.149519181115_crid.725790844702_kw.linkedin_d.c_tid.kwd-148086543_n.g_mt.e_geo.1032087&cid=&gclsrc=aw.ds&gad_source=1&gad_campaignid=12619604099&gbraid=0AAAAABhL5JN4wzyXHl9v3KlEu0Ue8Qcgx&gclid=Cj0KCQjwy_fOBhC6ARIsAHKFB7-eoK4pgfFGsLmdO-reXead95oZ4BqlwNmRZrwmbZPk-SWcKZa35ykaAtqrEALw_wcB" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+<a href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i></a>
+</div>
+</div>
+</div>
 
-    <!-- Navbar Start -->
-    <div class="container-fluid p-0">
-        <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-lg-5">
-            <a href="index.html" class="navbar-brand ml-lg-3">
-                <h1 class="m-0 display-5 text-uppercase text-primary"><i class="fa fa-truck mr-2"></i>GeoSync</h1>
-            </a>
-            <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-between px-lg-3" id="navbarCollapse">
-                <div class="navbar-nav m-auto py-0">
-                    <a href="index.html" class="nav-item nav-link">Inicio</a>
-                    <a href="about.html" class="nav-item nav-link">Sobre</a>
-                    <a href="contact.html" class="nav-item nav-link">Contato</a>
-                </div>
-                {{-- colocar tela de serviço aq --}}
-                <a href="" class="btn btn-primary py-2 px-4 d-none d-lg-block">Solicite um Servico</a>
-            </div>
-        </nav>
-    </div>
-    <!-- Navbar End -->
+<!-- NAVBAR -->
+<div class="navbar">
+<div class="container flex">
+<div class="logo"><i class="fa fa-truck"></i> GeoSync</div>
 
+<div class="menu">
+<a href="/">Início</a>
+<a href="/about">Sobre</a>
+<a href="/contact">Contato</a>
+</div>
 
-    <!-- Header Start -->
-    <div class="jumbotron jumbotron-fluid mb-5">
-        <div class="container text-center py-5">
-            <h1 class="text-primary mb-4">Seguro & mais rápido</h1>
-            {{-- <h2 class="text-white display-3 mb-5">GeoSync</h2> --}}
-            <div class="mx-auto" style="width: 100%; max-width: 600px;">
-                <div class="input-group">
-                    <input type="text" class="form-control border-light" style="padding: 30px;" placeholder="ID de rastreamento">
-                    <div class="input-group-append">
-                        <button class="btn btn-primary px-3">Rastrear</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Header End -->
+<a href="/login" class="btn" style="border-radius: 8px;">Solicitar um Serviço</a>
+</div>
+</div>
 
+<!-- HEADER -->
+<div class="header">
+<h1>Rastreamento Inteligente</h1>
+<p>Controle total da sua logística em tempo real</p>
+</div>
 
-    <!-- About Start -->
-    <div class="container-fluid py-5">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-5 pb-4 pb-lg-0">
-                    <img class="img-fluid w-100" src="" alt="">
-                    
-                </div>
-                <div class="col-lg-7">
-                    <h6 class="text-primary text-uppercase font-weight-bold">Sobre nós</h6>
-                    <h1 class="mb-4">Provedor de Serviços Logísticos Confiáveis e Rápidos</h1>
-                    <p class="mb-4">Acreditamos que a excelência nasce da união entre aprendizado e tecnologia.
-                        Combinamos nossa base sólida de mercado com uma abordagem ágil para transformar grandes ideias em projetos concretos, sempre pautados pela ética e pela entrega de valor real.</p>
-                    <div class="d-flex align-items-center pt-2">
-                        <button type="button" class="btn-play" data-toggle="modal"
-                            data-src="https://www.youtube.com/embed/DWRcNpR6Kdc" data-target="#videoModal">
-                            <span></span>
-                        </button>
-                        <h5 class="font-weight-bold m-0 ml-4">Assistir vídeo</h5>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Video Modal -->
-        <div class="modal fade" id="videoModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-body">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>        
-                        <!-- 16:9 aspect ratio -->
-                        <div class="embed-responsive embed-responsive-16by9">
-                            <iframe class="embed-responsive-item" src="" id="video"  allowscriptaccess="always" allow="autoplay"></iframe>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- About End -->
+<!-- SOBRE -->
+<div class="container section">
+<div class="block">
+<img src="https://images.unsplash.com/photo-1553413077-190dd305871c">
+<h2>Sobre a GeoSync</h2>
+<p class="texto-grande">
+A GeoSync é uma plataforma inteligente de rastreamento e monitoramento logístico desenvolvida para oferecer total controle sobre operações de transporte e armazenamento.
+Com tecnologia moderna e interface intuitiva, nossa solução permite acompanhar veículos, cargas e rotas em tempo real, garantindo mais segurança, eficiência e transparência em toda a cadeia logística.
+Nosso objetivo é transformar a forma como empresas gerenciam sua logística, reduzindo custos operacionais, otimizando processos e aumentando a confiabilidade nas entregas.
+</p>
+</div>
+</div>
 
+<!-- SERVIÇOS -->
+<div class="container section">
+<div class="services">
 
-    <!--  Quote Request Start -->
-    <div class="container-fluid bg-secondary my-5">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-7 py-5 py-lg-0">
-                    <h6 class="text-primary text-uppercase font-weight-bold">Obtenha uma cotação</h6>
-                    <h1 class="mb-4"></h1>
-                    <p class="mb-4">Transformamos seus desafios em soluções eficientes com uma equipe de especialistas dedicada ao seu sucesso. Peça seu orçamento hoje e dê o próximo passo com segurança.</p>
-                    <div class="row">
-                        <div class="col-sm-4">
-                            <h1 class="text-primary mb-2" data-toggle="counter-up">225</h1>
-                            <h6 class="font-weight-bold mb-4">Especialistas qualificados</h6>
-                        </div>
-                        <div class="col-sm-4">
-                            <h1 class="text-primary mb-2" data-toggle="counter-up">1050</h1>
-                            <h6 class="font-weight-bold mb-4">Clientes satisfeitos</h6>
-                        </div>
-                        <div class="col-sm-4">
-                            <h1 class="text-primary mb-2" data-toggle="counter-up">2500</h1>
-                            <h6 class="font-weight-bold mb-4">Projetos Completos</h6>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-5">
-                    <div class="bg-primary py-5 px-4 px-sm-5">
-                        <form class="py-5">
-                            <div class="form-group">
-                                <input type="text" class="form-control border-0 p-4" placeholder="Seu Nome" required="required" />
-                            </div>
-                            <div class="form-group">
-                                <input type="email" class="form-control border-0 p-4" placeholder="Se Email" required="required" />
-                            </div>
-                            <div class="form-group">
-                                <select class="custom-select border-0 px-4" style="height: 47px;">
-                                    <option selected>Selecione um serviço</option>
-                                    <option value="1">Serviço 1</option>
-                                    <option value="2">Serviço 1</option>
-                                    <option value="3">Serviço 1</option>
-                                </select>
-                            </div>
-                            <div>
-                                <button class="btn btn-dark btn-block border-0 py-3" type="submit">Obtenha uma cotação</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Quote Request Start -->
+<div class="service">
+<div class="block">
+<img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7">
+<h3>Transporte Terrestre</h3>
+<p class="texto-grande">O módulo de transporte terrestre da GeoSync permite o gerenciamento completo da sua frota com rastreamento em tempo real.
+Acompanhe rotas, monitore paradas, identifique desvios e tenha acesso a dados estratégicos que ajudam na tomada de decisões mais rápidas e eficientes.
+Com mais controle e visibilidade, sua operação se torna mais segura, reduzindo riscos e garantindo entregas dentro do prazo.</p>
+</div>
+</div>
 
+<div class="service">
+<div class="block">
+<img src="https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc">
+<h3>Armazenamento</h3>
+<p class="texto-grande">A GeoSync também oferece soluções para controle de armazenamento, proporcionando organização e eficiência na gestão de estoques.
+Tenha total visibilidade sobre entradas, saídas e localização dos produtos, evitando perdas, retrabalho e falhas operacionais.
+Com integração logística, sua empresa ganha mais produtividade e controle em todas as etapas do processo.</p>
+</div>
+</div>
 
-    <!-- Services Start -->
-    <div class="container-fluid pt-5">
-        <div class="container">
-            <div class="text-center pb-2">
-                <h6 class="text-primary text-uppercase font-weight-bold">Nossos serviços</h6>
-                <h1 class="mb-4">Melhores serviços logísticos</h1>
-            </div>
-            <div class="row pb-3">
-                <div class="col-lg-3 col-md-6 text-center mb-5">
-                    <div class="d-flex align-items-center justify-content-center bg-primary mb-4 p-4">
-                        <i class="fa fa-2x fa-plane text-dark pr-3"></i>
-                        <h6 class="text-white font-weight-medium m-0">Frete Aéreo</h6>
-                    </div>
-                    <p>Aliamos a solidez da nossa experiência à agilidade da inovação para entregar soluções que inspiram confiança. Com foco em resultados e transparência, transformamos seus desafios em projetos de sucesso, garantindo a excelência técnica que o seu negócio exige.</p>
-                    <a class="border-bottom text-decoration-none" href="">Leia mais</a>
-                </div>
-                <div class="col-lg-3 col-md-6 text-center mb-5">
-                    <div class="d-flex align-items-center justify-content-center bg-primary mb-4 p-4">
-                        <i class="fa fa-2x fa-ship text-dark pr-3"></i>
-                        <h6 class="text-white font-weight-medium m-0">Frete marítimo</h6>
-                    </div>
-                    <p>Aliamos a solidez da nossa experiência à agilidade da inovação para entregar soluções que inspiram confiança. Com foco em resultados e transparência, transformamos seus desafios em projetos de sucesso, garantindo a excelência técnica que o seu negócio exige.</p>
-                    <a class="border-bottom text-decoration-none" href="">Leia mais</a>
-                </div>
-                <div class="col-lg-3 col-md-6 text-center mb-5">
-                    <div class="d-flex align-items-center justify-content-center bg-primary mb-4 p-4">
-                        <i class="fa fa-2x fa-truck text-dark pr-3"></i>
-                        <h6 class="text-white font-weight-medium m-0">Transporte Terrestre</h6>
-                    </div>
-                    <p>Aliamos a solidez da nossa experiência à agilidade da inovação para entregar soluções que inspiram confiança. Com foco em resultados e transparência, transformamos seus desafios em projetos de sucesso, garantindo a excelência técnica que o seu negócio exige.</p>
-                    <a class="border-bottom text-decoration-none" href="">Leia mais</a>
-                </div>
-                <div class="col-lg-3 col-md-6 text-center mb-5">
-                    <div class="d-flex align-items-center justify-content-center bg-primary mb-4 p-4">
-                        <i class="fa fa-2x fa-store text-dark pr-3"></i>
-                        <h6 class="text-white font-weight-medium m-0">Armazenamento de carga</h6>
-                    </div>
-                    <p>Aliamos a solidez da nossa experiência à agilidade da inovação para entregar soluções que inspiram confiança. Com foco em resultados e transparência, transformamos seus desafios em projetos de sucesso, garantindo a excelência técnica que o seu negócio exige.</p>
-                    <a class="border-bottom text-decoration-none" href="">Leia mais</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Services End -->
+</div>
+</div>
 
+<!-- EQUIPE -->
+<div class="container section">
+<div class="block">
+<h2>Nossa equipe</h2>
+<p>Nossa equipe é formada por profissionais especializados em tecnologia, logística e análise de dados, comprometidos em desenvolver soluções eficientes e inovadoras.
+Trabalhamos com foco em resultados, buscando constantemente melhorias para entregar uma plataforma cada vez mais completa, segura e intuitiva.
+Acreditamos que a união entre conhecimento técnico e visão estratégica é essencial para transformar desafios logísticos em oportunidades de crescimento.</p>
 
-    <!-- Features Start -->
-    <div class="container-fluid bg-secondary my-5">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-5">
-                    <img class="img-fluid w-100" src="img/feature.jpg" alt="">
-                </div>
-                <div class="col-lg-7 py-5 py-lg-0">
-                    <h6 class="text-primary text-uppercase font-weight-bold">Por que nos escolher</h6>
-                    <h1 class="mb-4">Serviços de logística mais rápidos, seguros e confiáveis.</h1>
-                    <p class="mb-4">Nossa trajetória é pautada pela excelência técnica e pelo compromisso com resultados concretos. Unimos a experiência de nossos especialistas à inovação constante para transformar desafios complexos em soluções inteligentes. Acreditamos que a transparência e a dedicação são os pilares para construir parcerias sólidas e projetos de sucesso duradouro.</p>
-                    <ul class="list-inline">
-                        <li><h6><i class="far fa-dot-circle text-primary mr-3"></i>Melhor da indústria</h6>
-                        <li><h6><i class="far fa-dot-circle text-primary mr-3"></i>Serviços de Emergência</h6></li>
-                        <li><h6><i class="far fa-dot-circle text-primary mr-3"></i>Suporte ao cliente 24 horas por dia, 7 dias por semana</h6></li>
-                    </ul>
-                    <a href="" class="btn btn-primary mt-3 py-2 px-4">Saber mais</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Features End -->
+<div class="team">
+<div class="member"><img src="https://randomuser.me/api/portraits/men/1.jpg"></div>
+<div class="member"><img src="https://randomuser.me/api/portraits/women/2.jpg"></div>
+<div class="member"><img src="https://randomuser.me/api/portraits/men/3.jpg"></div>
+<div class="member"><img src="https://randomuser.me/api/portraits/women/4.jpg"></div>
+<div class="member"><img src="https://randomuser.me/api/portraits/men/5.jpg"></div>
+<div class="member"><img src="https://randomuser.me/api/portraits/women/6.jpg"></div>
+</div>
 
+</div>
+</div>
 
-    <!-- Pricing Plan Start -->
-    <div class="container-fluid pt-5">
-        <div class="container">
-            <div class="text-center pb-2">
-                <h6 class="text-primary text-uppercase font-weight-bold">Plano de preços</h6>
-                <h1 class="mb-4">Pacotes com preços acessíveis</h1>
-            </div>
-            <div class="row">
-                <div class="col-md-4 mb-5">
-                    <div class="bg-secondary">
-                        <div class="text-center p-4">
-                            <h1 class="display-4 mb-0">
-                                <small class="align-top text-muted font-weight-medium" style="font-size: 22px; line-height: 45px;">$</small>49<small class="align-bottom text-muted font-weight-medium" style="font-size: 16px; line-height: 40px;">/Mo</small>
-                            </h1>
-                        </div>
-                        <div class="bg-primary text-center p-4">
-                            <h3 class="m-0">Básico</h3>
-                        </div>
-                        <div class="d-flex flex-column align-items-center py-4">
-                            <p>HTML5 & CSS3</p>
-                            <p>Bootstrap 4</p>
-                            <p>Responsive Layout</p>
-                            <p>Compatible With All Browsers</p>
-                            <a href="" class="btn btn-primary py-2 px-4 my-2">Encomende agora</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-5">
-                    <div class="bg-secondary">
-                        <div class="text-center p-4">
-                            <h1 class="display-4 mb-0">
-                                <small class="align-top text-muted font-weight-medium" style="font-size: 22px; line-height: 45px;">$</small>99<small class="align-bottom text-muted font-weight-medium" style="font-size: 16px; line-height: 40px;">/Mo</small>
-                            </h1>
-                        </div>
-                        <div class="bg-primary text-center p-4">
-                            <h3 class="m-0">Premium</h3>
-                        </div>
-                        <div class="d-flex flex-column align-items-center py-4">
-                            <p>HTML5 & CSS3</p>
-                            <p>Bootstrap 4</p>
-                            <p>Responsive Layout</p>
-                            <p>Compatible With All Browsers</p>
-                            <a href="" class="btn btn-primary py-2 px-4 my-2">Encomende agora</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-5">
-                    <div class="bg-secondary">
-                        <div class="text-center p-4">
-                            <h1 class="display-4 mb-0">
-                                <small class="align-top text-muted font-weight-medium" style="font-size: 22px; line-height: 45px;">$</small>149<small class="align-bottom text-muted font-weight-medium" style="font-size: 16px; line-height: 40px;">/Mo</small>
-                            </h1>
-                        </div>
-                        <div class="bg-primary text-center p-4">
-                            <h3 class="m-0">Business</h3>
-                        </div>
-                        <div class="d-flex flex-column align-items-center py-4">
-                            <p>HTML5 & CSS3</p>
-                            <p>Bootstrap 4</p>
-                            <p>Responsive Layout</p>
-                            <p>Compatible With All Browsers</p>
-                            <a href="" class="btn btn-primary py-2 px-4 my-2">Encomende agora</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Pricing Plan End -->
+<!-- FOOTER -->
+<div class="footer">
+<div class="container">
 
+<div class="footer-grid">
 
-    <!-- Team Start -->
-    <div class="container-fluid pt-5">
-        <div class="container">
-            <div class="text-center pb-2">
-                <h6 class="text-primary text-uppercase font-weight-bold">Equipe de entrega</h6>
-                <h1 class="mb-4">Conheça nossa equipe de entrega</h1>
-            </div>
-            <div class="row">
-                <div class="col-lg-3 col-md-6">
-                    <div class="team card position-relative overflow-hidden border-0 mb-5">
-                        <img class="card-img-top" src="img/team-1.jpg" alt="">
-                        <div class="card-body text-center p-0">
-                            <div class="team-text d-flex flex-column justify-content-center bg-secondary">
-                                <h5 class="font-weight-bold">Nome completo</h5>
-                                <span>Designação</span>
-                            </div>
-                            <div class="team-social d-flex align-items-center justify-content-center bg-primary">
-                                <a class="btn btn-outline-dark btn-social mr-2" href="#"><i class="fab fa-twitter"></i></a>
-                                <a class="btn btn-outline-dark btn-social mr-2" href="#"><i class="fab fa-facebook-f"></i></a>
-                                <a class="btn btn-outline-dark btn-social mr-2" href="#"><i class="fab fa-linkedin-in"></i></a>
-                                <a class="btn btn-outline-dark btn-social" href="#"><i class="fab fa-instagram"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="team card position-relative overflow-hidden border-0 mb-5">
-                        <img class="card-img-top" src="img/team-2.jpg" alt="">
-                        <div class="card-body text-center p-0">
-                            <div class="team-text d-flex flex-column justify-content-center bg-secondary">
-                                <h5 class="font-weight-bold">Nome completo</h5>
-                                <span>Designação</span>
-                            </div>
-                            <div class="team-social d-flex align-items-center justify-content-center bg-primary">
-                                <a class="btn btn-outline-dark btn-social mr-2" href="#"><i class="fab fa-twitter"></i></a>
-                                <a class="btn btn-outline-dark btn-social mr-2" href="#"><i class="fab fa-facebook-f"></i></a>
-                                <a class="btn btn-outline-dark btn-social mr-2" href="#"><i class="fab fa-linkedin-in"></i></a>
-                                <a class="btn btn-outline-dark btn-social" href="#"><i class="fab fa-instagram"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="team card position-relative overflow-hidden border-0 mb-5">
-                        <img class="card-img-top" src="img/team-3.jpg" alt="">
-                        <div class="card-body text-center p-0">
-                            <div class="team-text d-flex flex-column justify-content-center bg-secondary">
-                                <h5 class="font-weight-bold">Nome completo</h5>
-                                <span>Designação</span>
-                            </div>
-                            <div class="team-social d-flex align-items-center justify-content-center bg-primary">
-                                <a class="btn btn-outline-dark btn-social mr-2" href="#"><i class="fab fa-twitter"></i></a>
-                                <a class="btn btn-outline-dark btn-social mr-2" href="#"><i class="fab fa-facebook-f"></i></a>
-                                <a class="btn btn-outline-dark btn-social mr-2" href="#"><i class="fab fa-linkedin-in"></i></a>
-                                <a class="btn btn-outline-dark btn-social" href="#"><i class="fab fa-instagram"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="team card position-relative overflow-hidden border-0 mb-5">
-                        <img class="card-img-top" src="img/team-4.jpg" alt="">
-                        <div class="card-body text-center p-0">
-                            <div class="team-text d-flex flex-column justify-content-center bg-secondary">
-                                <h5 class="font-weight-bold">Nome completo</h5>
-                                <span>Designação</span>
-                            </div>
-                            <div class="team-social d-flex align-items-center justify-content-center bg-primary">
-                                <a class="btn btn-outline-dark btn-social mr-2" href="#"><i class="fab fa-twitter"></i></a>
-                                <a class="btn btn-outline-dark btn-social mr-2" href="#"><i class="fab fa-facebook-f"></i></a>
-                                <a class="btn btn-outline-dark btn-social mr-2" href="#"><i class="fab fa-linkedin-in"></i></a>
-                                <a class="btn btn-outline-dark btn-social" href="#"><i class="fab fa-instagram"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Team End -->
+<div class="footer-col">
+<h3>GeoSync</h3>
+<p>Sistema inteligente de rastreamento e logística em tempo real.</p>
+<div class="social">
+<a href="https://www.facebook.com/?locale=pt_BR" target="_blank"><i class="fab fa-facebook-f"></i></a>
+<a href="https://x.com/?lang=pt" target="_blank"><i class="fab fa-twitter"></i></a>
+<a href="https://br.linkedin.com/?mcid=6821526239111716925&src=go-pa&trk=sem-ga_campid.12619604099_asid.149519181115_crid.725790844702_kw.linkedin_d.c_tid.kwd-148086543_n.g_mt.e_geo.1032087&cid=&gclsrc=aw.ds&gad_source=1&gad_campaignid=12619604099&gbraid=0AAAAABhL5JN4wzyXHl9v3KlEu0Ue8Qcgx&gclid=Cj0KCQjwy_fOBhC6ARIsAHKFB7-eoK4pgfFGsLmdO-reXead95oZ4BqlwNmRZrwmbZPk-SWcKZa35ykaAtqrEALw_wcB" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+<a href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i></a>
+</div>
+</div>
 
+<div class="footer-col">
+<h3>Links</h3>
+<a href="/">Início</a>
+<a href="/about">Sobre</a>
+<a href="/login">Serviços</a>
+<a href="/contact">Contato</a>
+</div>
 
-    <!-- Testimonial Start -->
-    <div class="container-fluid py-5">
-        <div class="container">
-            <div class="text-center pb-2">
-                <h6 class="text-primary text-uppercase font-weight-bold">Depoimento</h6>
-                <h1 class="mb-4">Nossos clientes dizem</h1>
-            </div>
-            <div class="owl-carousel testimonial-carousel">
-                <div class="position-relative bg-secondary p-4">
-                    <i class="fa fa-3x fa-quote-right text-primary position-absolute" style="top: -6px; right: 0;"></i>
-                    <div class="d-flex align-items-center mb-3">
-                        <img class="img-fluid rounded-circle" src="img/testimonial-1.jpg" style="width: 60px; height: 60px;" alt="">
-                        <div class="ml-3">
-                            <h6 class="font-weight-semi-bold m-0">Client Name</h6>
-                            <small>- Profession</small>
-                        </div>
-                    </div>
-                    <p class="m-0">Sed ea amet kasd elitr stet, stet rebum et ipsum est duo elitr clita lorem. Dolor ipsum sanct clita</p>
-                </div>
-                <div class="position-relative bg-secondary p-4">
-                    <i class="fa fa-3x fa-quote-right text-primary position-absolute" style="top: -6px; right: 0;"></i>
-                    <div class="d-flex align-items-center mb-3">
-                        <img class="img-fluid rounded-circle" src="img/testimonial-2.jpg" style="width: 60px; height: 60px;" alt="">
-                        <div class="ml-3">
-                            <h6 class="font-weight-semi-bold m-0">Client Name</h6>
-                            <small>- Profession</small>
-                        </div>
-                    </div>
-                    <p class="m-0">Sed ea amet kasd elitr stet, stet rebum et ipsum est duo elitr clita lorem. Dolor ipsum sanct clita</p>
-                </div>
-                <div class="position-relative bg-secondary p-4">
-                    <i class="fa fa-3x fa-quote-right text-primary position-absolute" style="top: -6px; right: 0;"></i>
-                    <div class="d-flex align-items-center mb-3">
-                        <img class="img-fluid rounded-circle" src="img/testimonial-3.jpg" style="width: 60px; height: 60px;" alt="">
-                        <div class="ml-3">
-                            <h6 class="font-weight-semi-bold m-0">Client Name</h6>
-                            <small>- Profession</small>
-                        </div>
-                    </div>
-                    <p class="m-0">Sed ea amet kasd elitr stet, stet rebum et ipsum est duo elitr clita lorem. Dolor ipsum sanct clita</p>
-                </div>
-                <div class="position-relative bg-secondary p-4">
-                    <i class="fa fa-3x fa-quote-right text-primary position-absolute" style="top: -6px; right: 0;"></i>
-                    <div class="d-flex align-items-center mb-3">
-                        <img class="img-fluid rounded-circle" src="img/testimonial-4.jpg" style="width: 60px; height: 60px;" alt="">
-                        <div class="ml-3">
-                            <h6 class="font-weight-semi-bold m-0">Client Name</h6>
-                            <small>- Profession</small>
-                        </div>
-                    </div>
-                    <p class="m-0">Sed ea amet kasd elitr stet, stet rebum et ipsum est duo elitr clita lorem. Dolor ipsum sanct clita</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Testimonial End -->
+<div class="footer-col">
+<h3>Contato</h3>
+<p>📍 Tambaú - SP</p>
+<p>📞 (19) 99401-0744</p>
+<p>📧 contact@geosync.com</p>
+</div>
 
+<div class="footer-col">
+<h3>Newsletter</h3>
+<p>Receba novidades da plataforma</p>
+<div class="newsletter">
+<input type="text" placeholder="Seu email">
+<button>Enviar</button>
+</div>
+</div>
 
-    <!-- Blog Start -->
-    <div class="container-fluid pt-5">
-        <div class="container">
-            <div class="text-center pb-2">
-                <h6 class="text-primary text-uppercase font-weight-bold">Nosso Blog</h6>
-                <h1 class="mb-4">Últimas do blog</h1>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-5">
-                    <div class="position-relative">
-                        <img class="img-fluid w-100" src="img/blog-1.jpg" alt="">
-                        <div class="position-absolute bg-primary d-flex flex-column align-items-center justify-content-center rounded-circle"
-                            style="width: 60px; height: 60px; bottom: -30px; right: 30px;">
-                            <h4 class="font-weight-bold mb-n1">01</h4>
-                            <small class="text-white text-uppercase">Jan</small>
-                        </div>
-                    </div>
-                    <div class="bg-secondary" style="padding: 30px;">
-                        <div class="d-flex mb-3">
-                            <div class="d-flex align-items-center">
-                                <img class="rounded-circle" style="width: 40px; height: 40px;" src="img/user.jpg" alt="">
-                                <a class="text-muted ml-2" href="">John Doe</a>
-                            </div>
-                            <div class="d-flex align-items-center ml-4">
-                                <i class="far fa-bookmark text-primary"></i>
-                                
-                            </div>
-                        </div>
-                        <h4 class="font-weight-bold mb-3">Kasd tempor diam sea justo dolor</h4>
-                        <p>Uso o serviço há alguns meses e estou bem satisfeito. O rastreamento funciona direitinho e me passa mais segurança no dia a dia</p>
-                        <a class="border-bottom border-primary text-uppercase text-decoration-none" href="">Leia mais <i class="fa fa-angle-right"></i></a>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-5">
-                    <div class="position-relative">
-                        <img class="img-fluid w-100" src="img/blog-2.jpg" alt="">
-                        <div class="position-absolute bg-primary d-flex flex-column align-items-center justify-content-center rounded-circle"
-                            style="width: 60px; height: 60px; bottom: -30px; right: 30px;">
-                            <h4 class="font-weight-bold mb-n1">04</h4>
-                            <small class="text-white text-uppercase">Fev</small>
-                        </div>
-                    </div>
-                    <div class="bg-secondary" style="padding: 30px;">
-                        <div class="d-flex mb-3">
-                            <div class="d-flex align-items-center">
-                                <img class="rounded-circle" style="width: 40px; height: 40px;" src="img/user.jpg" alt="">
-                                <a class="text-muted ml-2" href="">John Doe</a>
-                            </div>
-                            <div class="d-flex align-items-center ml-4">
-                                <i class="far fa-bookmark text-primary"></i>
-                                
-                            </div>
-                        </div>
-                        <h4 class="font-weight-bold mb-3">Kasd tempor diam sea justo dolor</h4>
-                        <p>Já precisei acionar o suporte e fui bem atendido. O sistema de localização é preciso e confiável.</p>
-                        <a class="border-bottom border-primary text-uppercase text-decoration-none" href="">Leia mais <i class="fa fa-angle-right"></i></a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Blog End -->
+</div>
 
+<div class="copy">
+© 2026 GeoSync - Todos os direitos reservados
+</div>
 
-    <!-- Footer Start -->
-    <div class="container-fluid bg-dark text-white mt-5 py-5 px-sm-3 px-md-5">
-        <div class="row pt-5">
-            <div class="col-lg-7 col-md-6">
-                <div class="row">
-                    <div class="col-md-6 mb-5">
-                        <h3 class="text-primary mb-4">Entre em contato</h3>
-                        <p><i class="fa fa-map-marker-alt mr-2"></i>100 R. Bela Vista, Tambaú, BRASIL</p>
-                        <p><i class="fa fa-phone-alt mr-2"></i>55 (19) 99401-0744</p>
-                        <p><i class="fa fa-envelope mr-2"></i>contact@geosync.com</p>
-                        <div class="d-flex justify-content-start mt-4">
-                            <a class="btn btn-outline-light btn-social mr-2" href="#"><i class="fab fa-twitter"></i></a>
-                            <a class="btn btn-outline-light btn-social mr-2" href="#"><i class="fab fa-facebook-f"></i></a>
-                            <a class="btn btn-outline-light btn-social mr-2" href="#"><i class="fab fa-linkedin-in"></i></a>
-                            <a class="btn btn-outline-light btn-social" href="#"><i class="fab fa-instagram"></i></a>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-5">
-                        <h3 class="text-primary mb-4">Links rápidos</h3>
-                        <div class="d-flex flex-column justify-content-start">
-                            <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Início</a>
-                            <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Sobre Nós</a>
-                            <a class="text-white" href="#"><i class="fa fa-angle-right mr-2"></i>Contate-nos</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-5 col-md-6 mb-5">
-                
-                <div class="w-100">
-                    <div class="input-group">
-                        <input type="text" class="form-control border-light" style="padding: 30px;" placeholder="seu endereço de email">
-                        <div class="input-group-append">
-                            <button class="btn btn-primary px-4">Enviar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="container-fluid bg-dark text-white border-top py-4 px-sm-3 px-md-5" style="border-color: #3E3E4E !important;">
-        <div class="row">
-            <div class="col-lg-6 text-center text-md-left mb-3 mb-md-0">
-                <p class="m-0 text-white">&copy; <a href="#">GeoSync</a>.Todos os direitos reservados. 
-				
-				<!--/*** This template is free as long as you keep the footer author’s credit link/attribution link/backlink. If you'd like to use the template without the footer author’s credit link/attribution link/backlink, you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". Thank you for your support. ***/-->
-				Designed by <a href="https://htmlcodex.com">HTML Codex</a>
-                <br>Distributed By: <a href="https://themewagon.com" target="_blank">ThemeWagon</a>
-                </p>
-            </div>
-            <div class="col-lg-6 text-center text-md-right">
-                <ul class="nav d-inline-flex">
-                    <li class="nav-item">
-                        <a class="nav-link text-white py-0" href="#">Privacidade</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white py-0" href="#">Termos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white py-0" href="#">FAQs</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white py-0" href="#">Ajuda</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    <!-- Footer End -->
+</div>
+</div>
 
-
-    <!-- Back to Top -->
-    <a href="#" class="btn btn-lg btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
-
-
-    <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
-    <script src="lib/easing/easing.min.js"></script>
-    <script src="lib/waypoints/waypoints.min.js"></script>
-    <script src="lib/counterup/counterup.min.js"></script>
-    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
-
-    <!-- Contact Javascript File -->
-    <script src="mail/jqBootstrapValidation.min.js"></script>
-    <script src="mail/contact.js"></script>
-
-    <!-- Template Javascript -->
-    <script src="js/main.js"></script>
 </body>
-
 </html>

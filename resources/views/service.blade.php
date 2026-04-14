@@ -66,7 +66,7 @@
     <div class="main-wrapper">
         <nav class="sidebar">
             {{-- fazer o link volta pra tela de inicio --}}
-            <div class="sidebar-header"><a href="index.blade.php" style="color: white;">GeoSync</a></div>
+            <div class="sidebar-header"><a href="/" style="color: white;">GeoSync</a></div>
             <ul id="main-menu">
                 <li class="active" onclick="changeTab('dashboard', this)"><a><i class="fas fa-th-large mr-2"></i> Dashboard</a></li>
                 <li onclick="changeTab('entregas', this)"><a><i class="fas fa-truck mr-2"></i> Entregas</a></li>

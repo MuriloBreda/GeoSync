@@ -42,3 +42,7 @@ Route::get('/avaliar', function() {
 Route::get('/cadastroMercadoria', function() {
     return view('cadastromercadoria');
 });
+
+Route::get('/chat', function () {
+    return view('chat');
+})->name('chat');

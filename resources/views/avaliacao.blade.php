@@ -170,7 +170,7 @@ button:active {
 
 <div class="container">
     <h1>Feedback do Cliente</h1>
-    <p class="subtext">Sua voz ajuda a melhora das nossas entregas e fluxos 🚀</p>
+    <p class="subtext">Sua voz ajuda a melhora das nossas entregas e fluxos </p>
 
     <div class="card">
         <h2 style="margin-bottom: 10px;">Compartilhe sua experiência</h2>

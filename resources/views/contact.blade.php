@@ -1,230 +1,371 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-
+<html lang="pt-br">
 <head>
-    <meta charset="utf-8">
-    <title>GeoSync</title>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="Free HTML Templates" name="keywords">
-    <meta content="Free HTML Templates" name="description">
+<meta charset="utf-8">
+<title>GeoSync - Contato</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Favicon -->
-    <link href="img/favicon.ico" rel="icon">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
 
-    <!-- Google Web Fonts -->
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ===== PALETA ===== */
+:root{
+    --azul-institucional:#1C3F6E;
+    --azul-tech:#2F6FB2;
+    --azul-profundo:#0B1F36;
+    --azul-claro:#E6EEF8;
+    --azul-cinza:#7B92AD;
+}
 
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+body{
+    margin:0;
+    font-family:'Poppins', sans-serif;
+    background:#f5f7fb;
+    overflow-x: hidden; /* Remove rolagem lateral */
+}
 
-    <!-- Libraries Stylesheet -->
-    <link href="{{ asset('lib/owlcarousel/assets/owl.carousel.min.css') }}" rel="stylesheet">
+.container{
+    width:90%;
+    max-width: 1200px; /* Limite para telas grandes */
+    margin:auto;
+}
 
-    <!-- Customized Bootstrap Stylesheet -->
-    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/modificacoes.css') }}" rel="stylesheet">
+/* ===== TOPBAR ===== */
+.topbar{
+    background: var(--azul-profundo);
+    color:white;
+    padding:8px 0;
+    font-size:14px;
+}
+
+.top-icons i{
+    margin-left:12px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.top-icons i:hover{
+    color:var(--azul-tech);
+}
+
+.flex{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+}
+
+/* ===== NAVBAR ===== */
+.navbar{
+    background:#f1f1f1;
+    padding:15px 0;
+}
+
+.logo{
+    font-size:26px;
+    font-weight:bold;
+    color:var(--azul-institucional);
+}
+
+.menu{
+    display:flex;
+    gap:30px;
+}
+
+.menu a{
+    text-decoration:none;
+    color:var(--azul-institucional);
+}
+
+.btn{
+    background:var(--azul-institucional);
+    color:white;
+    padding:10px 20px;
+    border-radius:4px;
+    text-decoration:none;
+}
+
+/* ===== HEADER ===== */
+.header{
+    background: linear-gradient(rgba(11,31,54,0.85), rgba(11,31,54,0.85)),
+    url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
+    background-size:cover;
+    background-position:center;
+    padding:80px 20px;
+    text-align:center;
+    color:white;
+}
+
+.header h1{
+    font-size:38px;
+    margin-bottom: 10px;
+}
+
+/* ===== CONTACT SECTION ===== */
+.contact-wrapper{
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+    margin-top:40px;
+    margin-bottom: 40px;
+}
+
+.contact-card{
+    flex:1;
+    min-width:300px;
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.06);
+    box-sizing: border-box; /* Garante que o padding não aumente o tamanho real */
+}
+
+/* LOCALIZAÇÃO E MAPA */
+.location-box{
+    background: var(--azul-tech);
+    color:white;
+    padding:10px;
+    border-radius:8px;
+    text-align:center;
+    font-weight:500;
+    margin-bottom:15px;
+}
+
+iframe{
+    width:100%;
+    height:300px; /* Tamanho proporcional à caixa */
+    border:none;
+    border-radius:10px;
+    display: block;
+}
+
+/* FORMULÁRIO */
+.contact-card h2{
+    margin-bottom:15px;
+    color: var(--azul-institucional);
+    font-size: 22px;
+}
+
+.input{
+    width:100%;
+    padding:10px; /* Input menor */
+    margin-bottom:12px;
+    border-radius:6px;
+    border:1px solid #d0d7e2;
+    font-size:14px;
+    box-sizing: border-box;
+}
+
+.textarea{
+    height:80px; /* Textarea menor */
+    resize:none;
+}
+
+.btn-enviar{
+    width:100%;
+    padding:12px;
+    background: var(--azul-tech);
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.btn-enviar:hover{
+    background: var(--azul-institucional);
+}
+
+/* ===== FOOTER ===== */
+.footer{
+    background: var(--azul-profundo);
+    color:white;
+    padding-top:40px;
+}
+
+.footer-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:30px;
+    padding-bottom:40px;
+}
+
+.footer-col{
+    flex:1;
+    min-width:220px;
+}
+
+.footer-col h3{
+    color:var(--azul-tech);
+    margin-bottom:15px;
+}
+
+.footer-col a, .footer-col p{
+    color:var(--azul-cinza);
+    margin-bottom:8px;
+    text-decoration:none;
+    font-size: 14px;
+}
+
+/* Ícones lado a lado */
+.social {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.social a{
+    color:white;
+    font-size:18px;
+    transition: 0.3s;
+}
+
+.social a:hover {
+    color: var(--azul-tech);
+}
+
+.newsletter{
+    display:flex;
+    margin-top:10px;
+}
+
+.newsletter input{
+    flex:1;
+    padding:10px;
+    border:none;
+    border-radius:4px 0 0 4px;
+}
+
+.newsletter button{
+    background:var(--azul-tech);
+    border:none;
+    color:white;
+    padding:10px;
+    border-radius:0 4px 4px 0;
+    cursor: pointer;
+}
+
+.copy{
+    text-align:center;
+    padding:15px;
+    border-top:1px solid rgba(255,255,255,0.1);
+    color:var(--azul-cinza);
+    font-size: 13px;
+}
+
+.footer-col a {
+    display: block; /* Garante que cada link ocupe uma linha própria */
+    color: var(--azul-cinza);
+    margin-bottom: 8px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.footer-col a:hover {
+    color: var(--azul-tech);
+    padding-left: 5px; /* Efeito de destaque ao passar o mouse */
+}
+</style>
 </head>
 
 <body>
-    <!-- Topbar Start -->
-    <div class="container-fluid bg-dark">
-        <div class="row py-2 px-lg-5">
-            <div class="col-lg-6 text-center text-lg-left mb-2 mb-lg-0">
-                <div class="d-inline-flex align-items-center text-white">
-                    <small><i class="fa fa-phone-alt mr-2"></i>+55 (19) 99401-0744</small>
-                    <small class="px-3">|</small>
-                    <small><i class="fa fa-envelope mr-2"></i>contact@geosync.com</small>
+
+<div class="topbar">
+    <div class="container flex">
+        <div>
+            <i class="fa fa-phone-alt"></i> +55 (19) 99401-0744 | 
+            <i class="fa fa-envelope"></i> contact@geosync.com
+        </div>
+        <div class="top-icons">
+            <a href="https://www.facebook.com/?locale=pt_BR" target="_blank"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://x.com/?lang=pt" target="_blank"><i class="fab fa-twitter"></i></a>
+            <a href="https://br.linkedin.com/?mcid=6821526239111716925&src=go-pa&trk=sem-ga_campid.12619604099_asid.149519181115_crid.725790844702_kw.linkedin_d.c_tid.kwd-148086543_n.g_mt.e_geo.1032087&cid=&gclsrc=aw.ds&gad_source=1&gad_campaignid=12619604099&gbraid=0AAAAABhL5JN4wzyXHl9v3KlEu0Ue8Qcgx&gclid=Cj0KCQjwy_fOBhC6ARIsAHKFB7-eoK4pgfFGsLmdO-reXead95oZ4BqlwNmRZrwmbZPk-SWcKZa35ykaAtqrEALw_wcB" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+            <a href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </div>
+</div>
+
+<div class="navbar">
+    <div class="container flex">
+        <div class="logo"><i class="fa fa-truck"></i> GEOSYNC</div>
+        <div class="menu">
+            <a href="/">Início</a>
+            <a href="/about">Sobre</a>
+            <a href="/contact">Contato</a>
+        </div>
+        <a href="/login" class="btn">Solicite um Serviço</a>
+    </div>
+</div>
+
+<div class="header">
+    <h1>Entre em Contato</h1>
+    <p>Fale com nossa equipe e leve sua logística para o próximo nível</p>
+</div>
+
+<div class="container">
+    <div class="contact-wrapper">
+        <div class="contact-card">
+            <div class="location-box">
+                <i class="fa fa-map-marker-alt"></i> Nossa Localização: Tambaú - SP
+            </div>
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14781.401446152286!2d-47.2798!3d-21.7056!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjHCsDQyJzIwLjEiUyA0N8KwMTYnNDcuMyJX!5e0!3m2!1spt-BR!2sbr!4v1700000000000"></iframe>
+        </div>
+
+        <div class="contact-card">
+            <form action="/chat" method="GET">
+                <h2>Envie uma mensagem</h2>
+                <input type="text" placeholder="Seu nome" class="input" required>
+                <input type="email" placeholder="Seu email" class="input" required>
+                <input type="text" placeholder="Assunto" class="input" required>
+                <textarea placeholder="Mensagem" class="input textarea" required></textarea>
+                <button class="btn-enviar">Enviar Mensagem</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h3>GeoSync</h3>
+                <p>Sistema inteligente de rastreamento e logística em tempo real.</p>
+                <div class="social">
+                    <a href="https://www.facebook.com/?locale=pt_BR" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://x.com/?lang=pt" target="_blank"><i class="fab fa-twitter"></i></a>
+                    <a href="https://br.linkedin.com/?mcid=6821526239111716925&src=go-pa&trk=sem-ga_campid.12619604099_asid.149519181115_crid.725790844702_kw.linkedin_d.c_tid.kwd-148086543_n.g_mt.e_geo.1032087&cid=&gclsrc=aw.ds&gad_source=1&gad_campaignid=12619604099&gbraid=0AAAAABhL5JN4wzyXHl9v3KlEu0Ue8Qcgx&gclid=Cj0KCQjwy_fOBhC6ARIsAHKFB7-eoK4pgfFGsLmdO-reXead95oZ4BqlwNmRZrwmbZPk-SWcKZa35ykaAtqrEALw_wcB" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i></a>
                 </div>
             </div>
-            <!-- Criar nossas contas em redes sociais -->
-            <div class="col-lg-6 text-center text-lg-right">
-                <div class="d-inline-flex align-items-center">
-                    <a class="text-white px-2" href="">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                    <a class="text-white px-2" href="">
-                        <i class="fab fa-twitter"></i>
-                    </a>
-                    <a class="text-white px-2" href="">
-                        <i class="fab fa-linkedin-in"></i>
-                    </a>
-                    <a class="text-white px-2" href="">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a class="text-white pl-2" href="">
-                        <i class="fab fa-youtube"></i>
-                    </a>
+            <div class="footer-col">
+                <h3>Links</h3>
+                <a href="/">Início</a>
+                <a href="/about">Sobre</a>
+                <a href="/service">Serviços</a>
+                <a href="/contact">Contato</a>
+            </div>
+            <div class="footer-col">
+                <h3>Contato</h3>
+                <p>📍 Tambaú - SP</p>
+                <p>📞 (19) 99401-0744</p>
+                <p>📧 contact@geosync.com</p>
+            </div>
+            <div class="footer-col">
+                <h3>Newsletter</h3>
+                <p>Receba novidades da plataforma</p>
+                <div class="newsletter">
+                    <input type="text" placeholder="Seu email">
+                    <button>Enviar</button>
                 </div>
             </div>
         </div>
-    </div>
-    <!-- Topbar End -->
-
-
-    <!-- Navbar Start -->
-    <div class="container-fluid p-0">
-        <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-lg-5">
-            <a href="index.html" class="navbar-brand ml-lg-3">
-                <h1 class="m-0 display-5 text-uppercase text-primary"><i class="fa fa-truck mr-2"></i>GeoSync</h1>
-            </a>
-            <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-between px-lg-3" id="navbarCollapse">
-                <div class="navbar-nav m-auto py-0">
-                    <a href="index.html" class="nav-item nav-link">Inicio</a>
-                    <a href="about.html" class="nav-item nav-link">Sobre</a>
-                    <a href="service.html" class="nav-item nav-link">Serviço</a>
-                    <a href="price.html" class="nav-item nav-link">Preço</a>
-                    <a href="contact.html" class="nav-item nav-link">Contato</a>
-                </div>
-                <a href="" class="btn btn-primary py-2 px-4 d-none d-lg-block">Solicite um Orçamento</a>
-            </div>
-        </nav>
-    </div>
-    <!-- Navbar End -->
-
-
-    <!-- Header Start -->
-    <div class="jumbotron jumbotron-fluid mb-5">
-        <div class="container text-center py-5">
-            <h1 class="text-white display-3">Contato</h1>
-            <div class="d-inline-flex align-items-center text-white"></div>
+        <div class="copy">
+            © 2026 GeoSync - Todos os direitos reservados
         </div>
     </div>
-    <!-- Header End -->
+</div>
 
-
-    <!-- Contact Start -->
-    <div class="container-fluid py-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-5 pb-4 pb-lg-0">
-                    <div class="bg-primary text-dark text-center p-4">
-                        <h4 class="m-0"><i class="fa fa-map-marker-alt text-white mr-2"></i>100 R. Bela Vista, Tambaú, Brasil</h4>
-                    </div>
-                    <!-- Mapa da rua do sesi -->
-                    <iframe
-                        src="https://www.google.com/maps?q=100%20R.%20Bela%20Vista,%20Tambaú,%20Brasil&output=embed"
-                        width="600"
-                        height="450"
-                        style="border:0;"
-                        allowfullscreen=""
-                        loading="lazy">
-                    </iframe>
-                </div>
-                <div class="col-lg-7">
-                    <h6 class="text-primary text-uppercase font-weight-bold">Contate-nos</h6>
-                    <h1 class="mb-4">Contate-nos</h1>
-                    <div class="contact-form bg-secondary" style="padding: 30px;">
-                        <div id="success"></div>
-                        <form name="sentMessage" id="contactForm" novalidate="novalidate">
-                            <div class="control-group">
-                                <input type="text" class="form-control border-0 p-4" id="name" placeholder="Seu Nome"
-                                    required="required" data-validation-required-message="Por favor, digite seu Nome" />
-                                <p class="help-block text-danger"></p>
-                            </div>
-                            <div class="control-group">
-                                <input type="email" class="form-control border-0 p-4" id="email" placeholder="Seu Email"
-                                    required="required" data-validation-required-message="Por favor, digite seu Email" />
-                                <p class="help-block text-danger"></p>
-                            </div>
-                            <div class="control-group">
-                                <input type="text" class="form-control border-0 p-4" id="subject" placeholder="Assunto"
-                                    required="required" data-validation-required-message="Por favor, digite o Assunto" />
-                                <p class="help-block text-danger"></p>
-                            </div>
-                            <div class="control-group">
-                                <textarea class="form-control border-0 py-3 px-4" rows="3" id="message" placeholder="Mensagem"
-                                    required="required"
-                                    data-validation-required-message="Por favor, digite a Mensagem"></textarea>
-                                <p class="help-block text-danger"></p>
-                            </div>
-                            <div>
-                                <button class="btn btn-primary py-3 px-4" type="submit" id="sendMessageButton">Enviar Mensagem</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Contact End -->
-
-
-    <!-- Footer Start -->
-    <div class="container-fluid bg-dark text-white mt-5 py-5 px-sm-3 px-md-5">
-        <div class="row pt-5">
-            <div class="col-lg-7 col-md-6">
-                <div class="row">
-                    <div class="col-md-6 mb-5">
-                        <h3 class="text-primary mb-4">Entre Em Contato</h3>
-                        <p><i class="fa fa-map-marker-alt mr-2"></i>100 R. Bela Vista, Tambaú, Brasil</p>
-                        <p><i class="fa fa-phone-alt mr-2"></i>+55 (19) 99401-0744</p>
-                        <p><i class="fa fa-envelope mr-2"></i>contact@geosync.com</p>
-                        <!-- colocar nossas redes sociais -->
-                        <div class="d-flex justify-content-start mt-4">
-                            <a class="btn btn-outline-light btn-social mr-2" href="#"><i class="fab fa-twitter"></i></a>
-                            <a class="btn btn-outline-light btn-social mr-2" href="#"><i class="fab fa-facebook-f"></i></a>
-                            <a class="btn btn-outline-light btn-social mr-2" href="#"><i class="fab fa-linkedin-in"></i></a>
-                            <a class="btn btn-outline-light btn-social" href="#"><i class="fab fa-instagram"></i></a>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-5">
-                        <h3 class="text-primary mb-4">Links Rápidos</h3>
-                        <div class="d-flex flex-column justify-content-start">
-                            <a class="text-white mb-2" href="index.html"><i class="fa fa-angle-right mr-2"></i>Inicio</a>
-                            <a class="text-white mb-2" href="about.html"><i class="fa fa-angle-right mr-2"></i>Sobre nós</a>
-                            <a class="text-white mb-2" href="service.html"><i class="fa fa-angle-right mr-2"></i>Nosso Serviço</a>
-                            <a class="text-white mb-2" href="price.html"><i class="fa fa-angle-right mr-2"></i>Plano de Preços</a>
-                            <a class="text-white" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contate-nos</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-5 col-md-6 mb-5">
-                
-                <div class="w-100">
-                    <div class="input-group">
-                        <input type="text" class="form-control border-light" style="padding: 30px;" placeholder="Seu Endereço de E-mail">
-                        <div class="input-group-append">
-                            <button class="btn btn-primary px-4">Entrar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="container-fluid bg-dark text-white border-top py-4 px-sm-3 px-md-5" style="border-color: #3E3E4E !important;">
-        <div class="row">
-            <div class="col-lg-6 text-center text-md-left mb-3 mb-md-0">
-                <p class="m-0 text-white" style="text-align: center;">&copy; 2026 GeoSync. Todos os direitos reservados.
-                </p>
-            </div>
-        </div>
-    </div>
-    <!-- Footer End -->
-
-
-    <!-- Back to Top -->
-    <a href="#" class="btn btn-lg btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
-
-
-    <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
-    <script src="lib/easing/easing.min.js"></script>
-    <script src="lib/waypoints/waypoints.min.js"></script>
-    <script src="lib/counterup/counterup.min.js"></script>
-    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
-
-    <!-- Contact Javascript File -->
-    <script src="mail/jqBootstrapValidation.min.js"></script>
-    <script src="mail/contact.js"></script>
-
-    <!-- Template Javascript -->
-    <script src="js/main.js"></script>
 </body>
-
 </html>

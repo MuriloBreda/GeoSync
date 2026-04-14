@@ -1,0 +1,286 @@
+/* =====================
+   RESET BÁSICO
+===================== */
+* {
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif !important;
+  color: #1f2937 !important;
+  background-color: #ffffff !important;
+  line-height: 1.6 !important;
+}
+
+/* =====================
+   CORES GLOBAIS
+===================== */
+:root {
+  --primary: #1e3a5f !important;
+  --primary-light: #153157 !important;
+  --primary-hover: #19427b !important;
+  --text-dark: #ffffff !important;
+  --text-light: rgb(128, 125, 107) !important;
+  --bg-light: #fbf9f9 !important;
+  --border: #e5e7eb !important;
+}
+
+/* =====================
+   NAVBAR
+===================== */
+.navbar {
+  background: #ffffff !important;
+  padding: 15px 0 !important;
+  transition: all 0.3s ease !important;
+}
+
+.navbar a {
+  color: var(--text-dark) !important;
+  font-weight: 500 !important;
+  transition: 0.3s !important;
+}
+
+.navbar a:hover {
+  color: var(--primary-light) !important;
+}
+
+.navbar {
+  background: #f1f1f1 !important;
+  padding: 15px 0 !important; 
+}
+
+
+/* BOTÃO CTA */
+.btn-primary {
+  background: var(--primary-light) !important;
+  color: #fff !important;
+  border-radius: 999px !important;
+  padding: 10px 22px !important;
+  transition: 0.3s !important;
+  border: none !important;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover) !important;
+}
+
+/* =====================
+   HERO / HEADER
+===================== */
+.page-header {
+  background: linear-gradient(135deg, #1e3a5f, #2c5282) !important;
+  color: #fff !important;
+  padding: 100px 0 !important;
+  text-align: center !important;
+}
+
+.page-header h1 {
+  font-size: 48px !important;
+  font-weight: 800 !important;
+}
+
+.menu {
+  display: flex !important;
+  gap: 30px !important;
+}
+
+.menu a {
+  text-decoration: none !important;
+  color: var(--azul-institucional) !important;
+  font-size: 15px !important;
+}
+
+.btn {
+  background: var(--azul-institucional) !important;
+  color: white !important;
+  padding: 10px 20px !important;
+  border-radius: 4px !important;
+  text-decoration: none !important;
+}
+
+/* =====================
+   SEÇÃO SOBRE
+===================== */
+.about-section {
+  padding: 100px 0;
+  background: var(--bg-light) !important;
+}
+
+.section-subtitle {
+  color: var(--primary-light) !important;
+  font-weight: 600 !important;
+  letter-spacing: 1px !important;
+}
+
+.section-title {
+  font-size: 36px !important;
+  font-weight: 800 !important;
+  margin: 10px 0 20px !important;
+}
+
+.section-text {
+  color: var(--text-light) !important;
+  max-width: 600px !important;
+}
+
+/* BLOCO DE DESTAQUE */
+.feature-box {
+  display: flex !important;
+  gap: 15px !important;
+  margin-top: 20px;
+}
+
+.feature-icon {
+  width: 40px !important;
+  height: 40px !important;
+  background: var(--primary-light) !important;
+  border-radius: 8px !important;
+}
+
+/* =====================
+   EQUIPE
+===================== */
+.team-section {
+  padding: 100px 0 !important;
+  background: #ffffff !important;
+  text-align: center !important;
+}
+
+.team-card {
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  padding: 25px !important;
+  transition: 0.3s !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.team-card:hover {
+  transform: translateY(-6px) !important;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* FOTO */
+.team-img {
+  width: 80px !important;
+  height: 80px !important;
+  border-radius: 50% !important;
+  margin-bottom: 15px !important;
+  object-fit: cover !important;
+}
+
+/* NOME */
+.team-card h5 {
+  font-weight: 700 !important;
+  margin-bottom: 5px !important;
+}
+
+/* CARGO */
+.team-card span {
+  color: var(--text-light) !important;
+  font-size: 14px !important;
+}
+
+/* =====================
+   FOOTER
+===================== */
+.footer {
+  background: #0f172a !important;
+  color: #cbd5e1 !important;
+  padding: 60px 0 30px !important;
+}
+
+.footer h5 {
+  color: #ffffff;
+  margin-bottom: 20px !important;
+}
+
+/* LINKS */
+.footer a {
+  color: #cbd5e1 !important;
+  transition: 0.3s !important;
+}
+
+.footer a:hover {
+  color: var(--primary-light) !important;
+}
+
+/* ÍCONES SOCIAIS */
+.footer .social-icon {
+  width: 40px !important;
+  height: 40px !important;
+  border: 1px solid #334155 !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-right: 10px !important;
+  transition: 0.3s !important;
+}
+
+.footer .social-icon:hover {
+  background: var(--primary-light) !important;
+  color: #fff !important;
+  border-color: var(--primary-light) !important;
+}
+
+/* INPUT NEWSLETTER */
+.footer input {
+  border-radius: 8px !important;
+  border: none !important;
+  padding: 10px !important;
+  width: 70% !important;
+}
+
+.footer button {
+  border-radius: 8px !important;
+  border: none !important;
+  background: var(--primary-light) !important;
+  color: white !important;
+  padding: 10px 15px !important;
+  transition: 0.3s !important;
+}
+
+.footer button:hover {
+  background: var(--primary-hover) !important;
+}
+
+/* =====================
+   ESPAÇAMENTO GLOBAL
+===================== */
+section {
+  padding: 80px 0 !important;
+}
+
+/* =====================
+   ANIMAÇÕES SUAVES
+===================== */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px) !important;
+  transition: all 0.6s ease !important;
+}
+
+.fade-in.active {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* =====================
+   RESPONSIVO
+===================== */
+@media (max-width: 768px) {
+  .page-header h1 {
+    font-size: 32px !important;
+  }
+
+  .section-title {
+    font-size: 26px !important;
+  }
+
+  .team-card {
+    margin-bottom: 20px !important;
+  }
+}
