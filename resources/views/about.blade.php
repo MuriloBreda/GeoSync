@@ -324,6 +324,7 @@
                 <a href="/about">Sobre</a>
                 <a href="/login">Serviços</a>
                 <a href="/contact">Contato</a>
+                <a href="/avaliar">Feedback</a>
             </div>
             <div class="footer-col">
                 <h3>Contato</h3>

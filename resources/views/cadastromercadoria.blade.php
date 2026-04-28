@@ -203,11 +203,10 @@
 
   <!-- Navbar -->
   <div class="navbar">
-    <h1>GeoSync</h1>
+    <h1><a href="/" style="text-decoration: none; color: white;">GeoSync</a></h1>
     <div class="menu">
-      <a href="#">Avaliação</a>
-      <a href="#">Perfil</a>
-      <a href="#" class="active">Mercadorias</a>
+      <a href="/avaliar">Avaliação</a>
+      <a href="/service" class="active">Mercadorias</a>
     </div>
   </div>
 

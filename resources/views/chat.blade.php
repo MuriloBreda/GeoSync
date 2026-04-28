@@ -2,8 +2,8 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Chat Operacional</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Central Logística</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
@@ -12,165 +12,34 @@
     --border:#e5e7eb;
     --muted:#6b7280;
 }
+body{margin:0;font-family:Segoe UI;background:var(--bg);}
+.app{height:100vh;display:flex;flex-direction:column;}
 
-*{box-sizing:border-box;}
-
-body{
-    margin:0;
-    font-family:-apple-system,"Segoe UI",Roboto;
-    background:var(--bg);
-}
-
-/* APP */
-.app{
-    height:100dvh;
-    display:flex;
-    flex-direction:column;
-}
-
-/* HEADER */
 .header{
     padding:12px;
-    padding-top:calc(12px + env(safe-area-inset-top));
-    border-bottom:1px solid var(--border);
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
     background:#fff;
+    border-bottom:1px solid var(--border);
+    display:flex;justify-content:space-between;
 }
 
-/* LEFT */
-.left{
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
+.chat{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:10px;}
 
-.avatar{
-    width:36px;
-    height:36px;
-    border-radius:50%;
-    background:linear-gradient(135deg,#60a5fa,#2563eb);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:#fff;
-}
-
-/* HOME BUTTON */
-.home-btn{
-    border:none;
-    background:#f1f5f9;
-    width:38px;
-    height:38px;
-    border-radius:12px;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    transition:.2s;
-    color:#0f172a;
-}
-
-.home-btn:hover{
-    background:#e2e8f0;
-    transform:translateY(-1px);
-}
-
-.home-btn:active{
-    transform:scale(0.92);
-}
-
-/* CHAT */
-.chat{
-    flex:1;
-    overflow-y:auto;
-    padding:15px;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-}
-
-/* MSG */
-.msg{
-    max-width:75%;
-    display:flex;
-    flex-direction:column;
-    animation:pop .2s ease;
-}
-
-@keyframes pop{
-    from{opacity:0; transform:translateY(8px);}
-    to{opacity:1; transform:translateY(0);}
-}
-
-.me{align-self:flex-end; align-items:flex-end;}
+.msg{max-width:75%;}
+.me{align-self:flex-end;}
 .other{align-self:flex-start;}
 
 .bubble{
-    padding:10px 14px;
-    border-radius:18px;
-    font-size:14px;
-}
-
-.me .bubble{
-    background:var(--primary);
-    color:#fff;
-    border-bottom-right-radius:6px;
-}
-
-.other .bubble{
-    background:#fff;
-    border:1px solid var(--border);
-    border-bottom-left-radius:6px;
-}
-
-/* META */
-.meta{
-    font-size:10px;
-    color:var(--muted);
-    margin-top:3px;
-    display:flex;
-    gap:5px;
-}
-
-.status.read{
-    color:#2563eb;
-}
-
-/* INPUT */
-.input-area{
-    display:flex;
-    gap:8px;
     padding:10px;
-    border-top:1px solid var(--border);
+    border-radius:14px;
     background:#fff;
 }
+.me .bubble{background:var(--primary);color:#fff;}
 
-.input-box{
-    flex:1;
-    display:flex;
-    background:#f1f5f9;
-    border-radius:20px;
-    padding:8px 12px;
-}
+.input-area{display:flex;padding:10px;background:#fff;border-top:1px solid var(--border);}
+input{flex:1;padding:10px;border-radius:20px;border:none;background:#f1f5f9;}
+button{margin-left:5px;border:none;background:var(--primary);color:#fff;border-radius:50%;width:40px;}
 
-input{
-    border:none;
-    outline:none;
-    flex:1;
-    background:transparent;
-}
-
-.send{
-    width:38px;
-    height:38px;
-    border-radius:50%;
-    background:var(--primary);
-    color:#fff;
-    border:none;
-    cursor:pointer;
-}
+.meta{font-size:10px;color:var(--muted);}
 </style>
 </head>
 
@@ -178,50 +47,50 @@ input{
 
 <div class="app">
 
-<!-- HEADER -->
 <div class="header">
-
-    <div class="left">
-        <div class="avatar">🚚</div>
-        <div>
-            <strong>Central Operacional</strong>
-            <div style="font-size:11px;color:#6b7280;">Online</div>
-        </div>
-    </div>
-
-    <!-- HOME BUTTON (SVG PROFISSIONAL) -->
-    <button class="home-btn" onclick="goHome()" title="Voltar ao início">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 10.5L12 3l9 7.5"
-                stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"
-                stroke="currentColor" stroke-width="2"
-                stroke-linecap="round"/>
-        </svg>
-    </button>
-
+<strong>🚚 Central Logística</strong>
 </div>
 
-<!-- CHAT -->
 <div id="chat" class="chat"></div>
 
-<!-- INPUT -->
 <div class="input-area">
-    <div class="input-box">
-        <input id="input" placeholder="Mensagem">
-    </div>
-    <button class="send" onclick="send()">➤</button>
+<input id="input" placeholder="Ex: pedido 123">
+<button onclick="send()">➤</button>
 </div>
 
 </div>
 
 <script>
 
+// =======================
+// BANCO SIMULADO
+// =======================
+let db = JSON.parse(localStorage.getItem("logisticaDB")) || {
+    pedidos:{
+        "123":{status:"Em rota", motorista:"Carlos", carga:"Alimentos"},
+        "456":{status:"Aguardando coleta", motorista:"João", carga:"Eletrônicos"}
+    },
+    atual:null
+};
+
+// =======================
+// CHAT STORAGE
+// =======================
+function saveChat(){
+    localStorage.setItem("chat", chat.innerHTML);
+    localStorage.setItem("logisticaDB", JSON.stringify(db));
+}
+
+function loadChat(){
+    chat.innerHTML = localStorage.getItem("chat") || "";
+}
+
+// =======================
+// UI
+// =======================
 function time(){
     let d=new Date();
-    return d.getHours().toString().padStart(2,'0')+":"+
-           d.getMinutes().toString().padStart(2,'0');
+    return d.getHours()+":"+d.getMinutes();
 }
 
 function add(text,type){
@@ -234,68 +103,89 @@ function add(text,type){
 
     let meta=document.createElement("div");
     meta.className="meta";
-
-    let t=document.createElement("span");
-    t.innerText=time();
-
-    let status=document.createElement("span");
-    status.className="status";
-    status.innerText="🕓";
-
-    meta.appendChild(t);
-
-    if(type==="me") meta.appendChild(status);
+    meta.innerText=time();
 
     msg.appendChild(bubble);
     msg.appendChild(meta);
 
-    document.getElementById("chat").appendChild(msg);
-
-    let chat=document.getElementById("chat");
+    chat.appendChild(msg);
     chat.scrollTop=chat.scrollHeight;
 
-    if(type==="me"){
-        setTimeout(()=>status.innerText="✓",500);
-        setTimeout(()=>status.innerText="✓✓",1000);
-        setTimeout(()=>status.classList.add("read"),1600);
+    saveChat();
+}
+
+// =======================
+// LÓGICA LOGÍSTICA
+// =======================
+function sistema(msg){
+
+    msg = msg.toLowerCase();
+
+    // selecionar pedido
+    if(msg.startsWith("pedido")){
+        let id = msg.split(" ")[1];
+
+        if(db.pedidos[id]){
+            db.atual = id;
+            let p = db.pedidos[id];
+            return `Pedido ${id}\nStatus: ${p.status}\nMotorista: ${p.motorista}\nCarga: ${p.carga}`;
+        }
+        return "Pedido não encontrado.";
     }
+
+    // status
+    if(msg.includes("status")){
+        if(!db.atual) return "Informe o número do pedido.";
+        return "Status atual: "+db.pedidos[db.atual].status;
+    }
+
+    // atualizar status
+    if(msg.startsWith("atualizar")){
+        if(!db.atual) return "Selecione um pedido primeiro.";
+
+        let novo = msg.replace("atualizar ","");
+        db.pedidos[db.atual].status = novo;
+
+        return "Status atualizado para: "+novo;
+    }
+
+    // chegou
+    if(msg.includes("cheguei")){
+        return "Local confirmado. Iniciar operação.";
+    }
+
+    // problema
+    if(msg.includes("problema")){
+        return "Ocorrência registrada. Central irá analisar.";
+    }
+
+    return "Comando não reconhecido.";
 }
 
-function bot(msg){
-    msg=msg.toLowerCase();
-
-    if(msg.includes("cheguei")) return "Pode iniciar descarga.";
-    if(msg.includes("atraso")) return "Informe nova previsão.";
-
-    return "Mensagem recebida.";
-}
-
+// =======================
+// SEND
+// =======================
 function send(){
-    let i=document.getElementById("input");
-    let text=i.value.trim();
+    let text=input.value.trim();
     if(!text) return;
 
     add(text,"me");
-    i.value="";
+    input.value="";
 
     setTimeout(()=>{
-        add(bot(text),"other");
-    },700);
+        add(sistema(text),"other");
+    },500);
 }
 
-document.getElementById("input")
-.addEventListener("keydown",e=>{
-    if(e.key==="Enter"){
-        e.preventDefault();
-        send();
-    }
+// ENTER
+input.addEventListener("keydown",e=>{
+    if(e.key==="Enter") send();
 });
 
-function goHome(){
-    document.getElementById("chat").scrollTo({
-        top:0,
-        behavior:"smooth"
-    });
+// INIT
+window.onload=()=>{
+    loadChat();
+    input.focus();
 }
 
 </script>

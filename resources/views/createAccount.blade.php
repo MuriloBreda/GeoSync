@@ -61,6 +61,8 @@
             grid-template-columns: 1fr 1fr;
             gap: 6px;
             text-align: left;
+            font-family:Arial, Helvetica, sans-serif;
+            margin-bottom: 15px;
         }
 
         .full {
@@ -87,8 +89,8 @@
         button {
             grid-column: span 2;
             padding: 12px;
-            font-size: 14px;
-            background: #1C3F6E;
+            font-size: 15px;
+            background: #0f3970;
             color: white;
             border: none;
             border-radius: 6px;
@@ -102,16 +104,21 @@
         .btn-login {
             display: block;
             margin-top: 5px;
-            padding: 10px;
-            background: #0B1F36;
+            padding: 12px;
+            background: #1342a8;
             color: white;
             text-decoration: none;
             border-radius: 6px;
-            font-size: 11px;
+            font-size: 15px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        label{
+            font-size: 14px
         }
 
         .btn-login:hover {
-            background: #2F6FB2;
+            background: #397bc3;
         }
     </style>
 </head>
@@ -123,44 +130,50 @@
 
         <h1>Tela de Cadastro</h1>
 
-        <img src="{{ asset('img/Logo.png') }}" alt="Logo GeoSync" style="width: 100px; margin: auto">
+        <img src="{{ asset('img/Logo.png') }}" alt="Logo GeoSync" style="width: 150px; margin: auto">
 
-        <form action="/login" method="GET">
+        <form action="/register" method="POST">
 
-            <div class="full">
-                <label>Nome</label>
-                <input type="text" name="nome" placeholder="Seu nome" required>
-            </div>
+    @csrf
+    
+    @if($errors->any())
+    <div style="color: red">
+        <ul>
+            @foreach ($errors->all() as $erro)
+                <li>{{$erro}}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
 
-            <div class="full">
-                <label>Email</label>
-                <input type="email" name="email" placeholder="Seu email" required>
-            </div>
+    <div class="full">
+        <label>Nome</label>
+        <input type="text" name="name" placeholder="Seu nome" required>
+    </div>
 
-            <div>
-                <label>Usuário</label>
-                <input type="text" name="usuario" placeholder="Usuário" required>
-            </div>
+    <div class="full">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="Seu email" required>
+    </div>
 
-            <div>
-                <label>Senha</label>
-                <input type="password" name="senha" placeholder="Senha" required>
-            </div>
+    <div>
+        <label>Senha</label>
+        <input type="password" name="password" placeholder="Senha" required>
+    </div>
 
-            <div class="full">
-                <label>Confirmar</label>
-                <input type="password" name="confirmar" placeholder="Confirmar senha" required>
-            </div>
+    <div>
+        <label>Confirmar</label>
+        <input type="password" name="password_confirmation" placeholder="Confirmar senha" required>
+    </div>
 
-            <button type="submit">Cadastrar</button>
+    <button type="submit">Cadastrar</button>
 
-        </form>
+</form>
 
         <span style="margin: 5px">Já tem conta?</span>
         <a href="/login" class="btn-login">Entrar</a>
 
     </div>
 </div>
-
 </body>
 </html>

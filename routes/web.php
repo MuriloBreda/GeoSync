@@ -1,48 +1,43 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\IAController;
+use App\Http\Controllers\ProfileController;
 
 // Página inicial
 Route::get('/', function () {
     return view('index');
 });
 
-// Sobre
-Route::get('/about', function () {
-    return view('about');
-});
+// Páginas
+Route::get('/about', fn() => view('about'));
+Route::get('/contact', fn() => view('contact'));
+Route::get('/service', fn() => view('service'));
+Route::get('/welcome', fn() => view('welcome'));
+Route::get('/faq', fn() => view('faq'));
 
-// Contato
-Route::get('/contact', function () {
-    return view('contact');
-});
+// AUTH
+Route::get('/login', fn() => view('login'))->name('login');
+Route::get('/register', fn() => view('createAccount'));
 
-// Serviços
-Route::get('/service', function () {
-    return view('service');
-});
+// CADASTRO E LOGIN (BACKEND)
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
 
-// Welcome (padrão Laravel)
-Route::get('/welcome', function () {
-    return view('welcome');
-});
+// LOGOUT
+Route::get('/logout', [AuthController::class, 'logout']);
 
-Route::get('/login', function() {
-    return view('login');
-});
+// OUTRAS TELAS
+Route::get('/avaliar', fn() => view('avaliacao'));
+Route::get('/cadastroMercadoria', fn() => view('cadastromercadoria'));
+Route::get('/chat', fn() => view('chat'))->name('chat');
 
-Route::get('/accont', function() {
-    return view('createAccount');
-});
 
-Route::get('/avaliar', function() {
-    return view('avaliacao');
-});
+// Tela de rastreamento de veiculo
+Route::get('/antifraude', fn() => view('antifraude'));
+Route::get('/ia-antifraude', [IAController::class, 'antifraude']);
 
-Route::get('/cadastroMercadoria', function() {
-    return view('cadastromercadoria');
-});
 
-Route::get('/chat', function () {
-    return view('chat');
-})->name('chat');
+// Routes do arquivo service.blade.php
+Route::post('/configuracoes', [ProfileController::class, 'update']);

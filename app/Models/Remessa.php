@@ -19,4 +19,12 @@ class Remessa extends Model {
     public function usuario(){
         return $this->belongsTo(Usuario::class);
     }
+
+    public function alerta(){
+        return $this->hasMany(Alerta::class);
+    }
+
+    public function localizacao(){
+        return $this->hasOne(Localizacao::class);
+    }
 }

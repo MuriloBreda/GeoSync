@@ -1,52 +1,173 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoSync Login</title>
-    <link href="{{ asset('css/estiloTelalogin.css') }}" rel="stylesheet">
+    <title>GeoSync - Login</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            background: url('/img/imagemFundo.png') no-repeat center center/cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 31, 54, 0.7);
+        }
+
+        .container {
+            z-index: 1;
+        }
+
+        .card {
+            background: #fff;
+            width: 550px;
+            height: 550px;
+            padding: 20px;
+            border-radius: 14px;
+            text-align: center;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card h1 {
+            color: #1C3F6E;
+            font-size: 22px;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            text-align: left;
+        }
+
+        .full {
+            grid-column: span 2;
+        }
+
+        label {
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            font-size: 13px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px
+        }
+
+        input:focus {
+            outline: none;
+            border: 1px solid #2F6FB2;
+        }
+
+        button {
+            grid-column: span 2;
+            padding: 12px;
+            font-size: 14px;
+            background: #1C3F6E;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2F6FB2;
+        }
+
+        .btn-login {
+            display: block;
+            margin-top: 5px;
+            padding: 10px;
+            background: #1342a8;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .btn-login:hover {
+            background: #2f54b2;
+        }
+
+        .msg {
+            grid-column: span 2;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .erro {
+            color: red;
+        }
+
+        .sucesso {
+            color: green;
+        }
+    </style>
 </head>
+
 <body>
 
-    <div class="container">
-        <img src="{{ asset('img/Logo.png') }}" alt="Logo GeoSync" class="logo">
+<div class="container">
+    <div class="card">
 
-        <h1>GeoSync</h1>
-        <h2>Bem-vindo ao <span class="destaque">GeoSync</span></h2>
-        <p>Faça login para continuar</p>
+        <h1>Tela de Login</h1>
 
-        <form onsubmit="return validarLogin()" action="/service" method="GET">
+        <img src="{{ asset('img/Logo.png') }}" alt="Logo GeoSync" style="width: 160px; margin: 5px auto">
 
-            <label class="label-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
-                </svg>
-                Usuário:
-            </label>
-            <input type="text" id="usuario" name="usuario" required>
+        <form action="/login" method="POST">
+            @csrf
 
-            <br><br>
+            <div class="full">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="Seu email" required>
+            </div>
 
-            <label class="label-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M8 0a4 4 0 0 1 4 4v2.05a2.5 2.5 0 0 1 2 2.45v5a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 2 13.5v-5a2.5 2.5 0 0 1 2-2.45V4a4 4 0 0 1 4-4"/>
-                </svg>
-                Senha:
-            </label>
-            <input type="password" id="senha" name="senha">
+            <div class="full">
+                <label>Senha</label>
+                <input type="password" name="password" placeholder="Senha" required>
+            </div>
 
-            <br><br>
+            <!-- mensagens -->
+            @if(session('error'))
+                <div class="msg erro">{{ session('error') }}</div>
+            @endif
+
+            @if(session('success'))
+                <div class="msg sucesso">{{ session('success') }}</div>
+            @endif
 
             <button type="submit">Entrar</button>
 
-            <br><br>
-
-            <p>Não tenho conta, <a href="/accont" style="color: blue">Criar uma conta</a></p>
-
         </form>
-    </div>
 
-    <script src="validacao.js"></script>
+        <span style="margin: 5px">Não tem conta?</span>
+        <a href="/register" class="btn-login">Criar conta</a>
+
+    </div>
+</div>
 
 </body>
 </html>

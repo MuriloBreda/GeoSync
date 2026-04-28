@@ -7,7 +7,7 @@ class Usuario extends Model {
     protected $fillable = [
         'nome',
         'email',
-        'senha',
+        'password',
     ];
 
     public function remessa(){

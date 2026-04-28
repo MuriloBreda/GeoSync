@@ -43,6 +43,7 @@ body{
     margin-left:12px;
     cursor:pointer;
     transition:0.3s;
+    color:white
 }
 
 .top-icons i:hover{
@@ -71,11 +72,21 @@ body{
 .menu{
     display:flex;
     gap:30px;
+
 }
 
 .menu a{
     text-decoration:none;
     color:var(--azul-institucional);
+    color: #0B1F36;
+    font-weight: 500;
+    font-weight: 700;
+}
+
+/* mnjvcsihfvbshfvbsfvbhsbchbshfvbsf */
+.menu a:hover{
+    color: var(--secondary);
+    color: #2F6FB2;
 }
 
 .btn{
@@ -155,6 +166,12 @@ iframe{
     border:1px solid #d0d7e2;
     font-size:14px;
     box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif
+}
+
+.input:focus{
+    border-color: #1e3e63;
+    outline: none;
 }
 
 .textarea{
@@ -345,6 +362,7 @@ iframe{
                 <a href="/about">Sobre</a>
                 <a href="/service">Serviços</a>
                 <a href="/contact">Contato</a>
+                <a href="/avaliar">Feedback</a>
             </div>
             <div class="footer-col">
                 <h3>Contato</h3>

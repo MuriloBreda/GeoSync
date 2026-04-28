@@ -59,6 +59,24 @@
         /* Grid do Dashboard */
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
         .dashboard-main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; }
+
+        .dark-mode {
+            background-color: #121212 !important;
+            color: white !important;
+        }
+
+        .dark-mode .custom-card {
+            background: #1e1e1e;
+            color: white;
+        }
+
+        .custom-card {
+            transition: 0.3s;
+        }
+
+        .custom-card:hover {
+            transform: translateY(-3px);
+        }
     </style>
 </head>
 
@@ -67,16 +85,31 @@
         <nav class="sidebar">
             {{-- fazer o link volta pra tela de inicio --}}
             <div class="sidebar-header"><a href="/" style="color: white;">GeoSync</a></div>
+
+            {{-- <div style="padding: 15px; border-bottom: 1px solid #2e2e45; text-align: center;">
+                @auth
+                    <div style="font-size: 13px; color: #b3b3b3;">Logado como</div>
+                    <div style="font-weight: bold;">{{ Auth::user()->name }}</div>
+                @endauth
+            </div> --}}
+
             <ul id="main-menu">
                 <li class="active" onclick="changeTab('dashboard', this)"><a><i class="fas fa-th-large mr-2"></i> Dashboard</a></li>
                 <li onclick="changeTab('entregas', this)"><a><i class="fas fa-truck mr-2"></i> Entregas</a></li>
                 <li onclick="changeTab('produtos', this)"><a><i class="fas fa-box mr-2"></i> Produtos</a></li>
                 <li onclick="changeTab('motoristas', this)"><a><i class="fas fa-users mr-2"></i> Motoristas</a></li>
                 <li onclick="changeTab('configuracoes', this)"><a><i class="fas fa-cog mr-2"></i> Configurações</a></li>
+
+                <li>
+                    <a href="/logout" style="color: #ff6b6b;">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Sair
+                    </a>
+                </li>
             </ul>
         </nav>
 
         <main class="content-area">
+            @auth
             
             <section id="dashboard" class="page-section active">
                 <h2 class="font-weight-bold mb-4">Dashboard</h2>
@@ -100,6 +133,9 @@
                         </div>
                     </div>
                 </div>
+                <a href="/cadastroMercadoria" class="btn btn-primary mb-3" style="padding: 10px; width: 100%;">
+                    Cadastrar Mercadoria
+                </a>
             </section>
 
             <section id="entregas" class="page-section">
@@ -172,24 +208,119 @@
             </section>
 
             <section id="configuracoes" class="page-section">
-                <h2 class="font-weight-bold mb-4">Configurações</h2>
-                <div class="custom-card col-md-6">
-                    <form>
+                <h2 class="font-weight-bold mb-4">⚙️ Configurações</h2>
+
+                <div class="row">
+
+                    <!-- PERFIL -->
+                    <div class="custom-card col-md-6">
+
+                        <h5 class="mb-4">👤 Meu Perfil</h5>
+
+                        <form action="/configuracoes" method="POST" enctype="multipart/form-data">
+                            @csrf
+
+                            <!-- FOTO -->
+                            <div style="text-align:center; margin-bottom:20px;">
+                                <label for="fotoInput" style="cursor:pointer;">
+                                    <img id="previewFoto"
+                                        src="{{ Auth::user()->foto ? asset('storage/' . Auth::user()->foto) : asset('img/user.png') }}"
+                                        style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid #3b82f6;">
+                                </label>
+
+                                <input type="file" name="foto" id="fotoInput" style="display:none;">
+                                <p style="font-size:12px; color:gray;">Clique na imagem para alterar</p>
+                            </div>
+
+                            <!-- NOME -->
+                            <div class="form-group">
+                                <label>Nome</label>
+                                <input type="text" name="name" class="form-control"
+                                    value="{{ Auth::user()->name }}">
+                            </div>
+
+                            <!-- EMAIL -->
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" name="email" class="form-control"
+                                    value="{{ Auth::user()->email }}">
+                            </div>
+
+                            <!-- SENHA -->
+                            <div class="form-group">
+                                <label>Nova Senha</label>
+                                <input type="password" name="password" class="form-control" placeholder="Opcional">
+                            </div>
+
+                            <button class="btn btn-primary btn-block">Salvar Alterações</button>
+
+                            @if(session('success'))
+                                <p style="color:green; margin-top:10px; text-align:center;">
+                                    {{ session('success') }}
+                                </p>
+                            @endif
+
+                        </form>
+                    </div>
+
+                    <!-- ACESSIBILIDADE -->
+                    <div class="custom-card col-md-6">
+
+                        <h5 class="mb-4">♿ Acessibilidade</h5>
+
                         <div class="form-group">
-                            <label>Nome da Empresa</label>
-                            <input type="text" class="form-control" value="GeoSync Logística LTDA">
+                            <label style="display:flex; justify-content:space-between;">
+                                Modo Escuro
+                                <input type="checkbox" id="darkMode">
+                            </label>
                         </div>
+
                         <div class="form-group">
-                            <label>E-mail de Notificações</label>
-                            <input type="email" class="form-control" value="admin@geosync.com">
+                            <label>Tamanho da Fonte</label>
+                            <select id="fontSize" class="form-control">
+                                <option value="normal">Normal</option>
+                                <option value="grande">Grande</option>
+                            </select>
                         </div>
-                        <button type="button" class="btn btn-primary">Salvar Alterações</button>
-                    </form>
+
+                    </div>
+
                 </div>
             </section>
 
+            @endauth
+
+            @guest
+                <script>window.location.href = "/login";</script>
+            @endguest
+
         </main>
     </div>
+
+    <script>
+        // DARK MODE
+        document.getElementById('darkMode')?.addEventListener('change', function() {
+            document.body.classList.toggle('dark-mode', this.checked);
+        });
+
+        // FONTE
+        document.getElementById('fontSize')?.addEventListener('change', function() {
+            if (this.value === 'grande') {
+                document.body.style.fontSize = '18px';
+            } else {
+                document.body.style.fontSize = '14px';
+            }
+        });
+    </script>
+
+    <script>
+        document.getElementById('fotoInput').addEventListener('change', function(e) {
+            const [file] = e.target.files;
+            if (file) {
+                document.getElementById('previewFoto').src = URL.createObjectURL(file);
+            }
+        });
+    </script>
 
     <script>
         function changeTab(tabId, element) {

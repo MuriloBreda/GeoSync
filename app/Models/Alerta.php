@@ -10,4 +10,8 @@ class Alerta extends Model {
         'data_hora',
         'id_remessa'
     ];
+
+    public function remessa(){
+        return $this->belongsTo(Remessa::class);
+    }
 }

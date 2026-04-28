@@ -29,6 +29,7 @@ header {
     font-weight: 600;
     letter-spacing: 0.5px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    
 }
 
 /* CONTAINER */
@@ -86,6 +87,7 @@ input, textarea {
     font-size: 14px;
     background: #f8fafc;
     transition: 0.25s;
+    font-family: Arial, Helvetica, sans-serif
 }
 
 input::placeholder,
@@ -166,7 +168,7 @@ button:active {
 
 <body>
 
-<header>GeoSync</header>
+<header><a href="/" style="text-decoration: none; color: white;">GeoSync</a></header>
 
 <div class="container">
     <h1>Feedback do Cliente</h1>
