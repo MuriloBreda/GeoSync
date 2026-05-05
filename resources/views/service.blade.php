@@ -1,346 +1,432 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-
+<html lang="pt-br">
 <head>
-    <meta charset="utf-8">
-    <title>GeoSync | Sistema de Gestão</title>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+<meta charset="UTF-8">
+<title>GeoSync | Dashboard</title>
 
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
 
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+<style>
+:root{
+--primary:#2563eb;
+--bg:#f1f5f9;
+--dark:#0f172a;
+--radius:12px;
+}
 
-    <link href="{{ asset('lib/owlcarousel/assets/owl.carousel.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/modificacoes.css') }}" rel="stylesheet">
+body{margin:0;font-family:'Poppins';background:var(--bg);transition:.3s;}
+.main{display:flex;}
 
-    <style>
-        :root {
-            --sidebar-color: #1a1a2e;
-            --bg-body: #f8fafc;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --radius: 12px;
-            --primary: #3b82f6;
-        }
+/* SIDEBAR */
+.sidebar{
+width:250px;
+background:var(--dark);
+color:white;
+min-height:100vh;
+}
 
-        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-body); margin: 0; overflow-x: hidden; }
-        .main-wrapper { display: flex; min-height: 100vh; }
+.sidebar h2{
+text-align:center;
+padding:20px;
+border-bottom:1px solid #1e293b;
+}
 
-        /* Sidebar */
-        .sidebar { width: 260px; background: var(--sidebar-color); color: #fff; position: sticky; top: 0; height: 100vh; transition: 0.3s; }
-        .sidebar-header { padding: 25px; text-align: center; font-weight: bold; font-size: 1.4rem; border-bottom: 1px solid #2e2e45; }
-        .sidebar ul { list-style: none; padding: 20px 0; margin: 0; }
-        .sidebar ul li { cursor: pointer; }
-        .sidebar ul li a { color: #b3b3b3; text-decoration: none; display: block; padding: 15px 25px; transition: 0.3s; }
-        .sidebar ul li:hover a, .sidebar ul li.active a { background: var(--primary); color: #fff; border-radius: 0 25px 25px 0; margin-right: 15px; }
+.menu-item{
+padding:15px 20px;
+cursor:pointer;
+display:flex;
+gap:10px;
+color:#cbd5f5;
+}
 
-        /* Área de Conteúdo */
-        .content-area { flex: 1; display: flex; flex-direction: column; padding: 30px; }
-        
-        /* Controle de Telas (Esconder/Mostrar) */
-        .page-section { display: none; }
-        .page-section.active { display: block; animation: fadeIn 0.3s ease; }
+.menu-item:hover,.menu-item.active{
+background:var(--primary);
+color:white;
+}
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+/* CONTENT */
+.content{flex:1;padding:30px;}
+.page{display:none;}
+.page.active{display:block;}
 
-        /* Estilização Geral de Caixas */
-        .custom-card { background: #fff; padding: 25px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid #edf2f7; margin-bottom: 25px; }
-        .table-ui { width: 100%; border-collapse: collapse; }
-        .table-ui th { padding: 12px; color: #64748b; font-size: 0.85rem; text-transform: uppercase; border-bottom: 2px solid #f1f5f9; text-align: left; }
-        .table-ui td { padding: 15px 12px; border-bottom: 1px solid #f1f5f9; color: #1e293b; font-size: 0.9rem; }
+.card{
+background:white;
+padding:20px;
+border-radius:var(--radius);
+margin-bottom:20px;
+box-shadow:0 4px 10px rgba(0,0,0,0.05);
+transition:.2s;
+}
+.card:hover{transform:translateY(-3px);}
 
-        /* Badges de Status */
-        .badge-status { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-        .status-entregue { background: #dcfce7; color: #15803d; }
-        .status-transito { background: #dbeafe; color: #1d4ed8; }
-        .status-atrasado { background: #fee2e2; color: #b91c1c; }
+/* GRID */
+.stats{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:20px;
+}
 
-        /* Grid do Dashboard */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
-        .dashboard-main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; }
+.grid{
+display:grid;
+grid-template-columns:2fr 1fr;
+gap:20px;
+}
 
-        .dark-mode {
-            background-color: #121212 !important;
-            color: white !important;
-        }
+/* ALERT */
+.alert{padding:10px;border-radius:8px;margin-bottom:10px;}
+.alert-danger{background:#fee2e2;color:#991b1b;}
+.alert-info{background:#dbeafe;color:#1e3a8a;}
 
-        .dark-mode .custom-card {
-            background: #1e1e1e;
-            color: white;
-        }
+/* TABLE */
+table{width:100%;border-collapse:collapse;}
+th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;}
 
-        .custom-card {
-            transition: 0.3s;
-        }
+.badge{padding:5px 10px;border-radius:20px;font-size:12px;}
+.entregue{background:#dcfce7;color:#15803d;}
+.transito{background:#dbeafe;color:#1d4ed8;}
+.atrasado{background:#fee2e2;color:#b91c1c;}
 
-        .custom-card:hover {
-            transform: translateY(-3px);
-        }
-    </style>
+/* BUTTON */
+.btn{
+display:inline-block;
+background:var(--primary);
+color:white;
+padding:10px;
+border-radius:8px;
+text-decoration:none;
+border:none;
+cursor:pointer;
+}
+
+.btn-mini{
+padding:5px 8px;
+font-size:12px;
+border-radius:6px;
+background:#2563eb;
+color:white;
+border:none;
+}
+
+.btn-mini.danger{background:#ef4444;}
+
+input,select,textarea{
+width:100%;
+padding:10px;
+margin-bottom:10px;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+/* PRODUTO CARD */
+.produto{
+padding:10px;
+background:#e2e8f0;
+border-radius:8px;
+margin-top:10px;
+display:flex;
+justify-content:space-between;
+}
+
+/* CONFIG */
+.perfil{
+text-align:center;
+}
+.perfil img{
+width:90px;
+height:90px;
+border-radius:50%;
+margin-bottom:10px;
+border:3px solid var(--primary);
+}
+
+/* DARK */
+.dark{
+background:#0f172a;
+color:white;
+}
+.dark .card{background:#1e293b;}
+.dark .sidebar{background:#020617;}
+
+</style>
 </head>
 
 <body>
-    <div class="main-wrapper">
-        <nav class="sidebar">
-            {{-- fazer o link volta pra tela de inicio --}}
-            <div class="sidebar-header"><a href="/" style="color: white;">GeoSync</a></div>
 
-            {{-- <div style="padding: 15px; border-bottom: 1px solid #2e2e45; text-align: center;">
-                @auth
-                    <div style="font-size: 13px; color: #b3b3b3;">Logado como</div>
-                    <div style="font-weight: bold;">{{ Auth::user()->name }}</div>
-                @endauth
-            </div> --}}
+<div class="main">
 
-            <ul id="main-menu">
-                <li class="active" onclick="changeTab('dashboard', this)"><a><i class="fas fa-th-large mr-2"></i> Dashboard</a></li>
-                <li onclick="changeTab('entregas', this)"><a><i class="fas fa-truck mr-2"></i> Entregas</a></li>
-                <li onclick="changeTab('produtos', this)"><a><i class="fas fa-box mr-2"></i> Produtos</a></li>
-                <li onclick="changeTab('motoristas', this)"><a><i class="fas fa-users mr-2"></i> Motoristas</a></li>
-                <li onclick="changeTab('configuracoes', this)"><a><i class="fas fa-cog mr-2"></i> Configurações</a></li>
+<!-- SIDEBAR -->
+<div class="sidebar">
+<h2>GeoSync</h2>
 
-                <li>
-                    <a href="/logout" style="color: #ff6b6b;">
-                        <i class="fas fa-sign-out-alt mr-2"></i> Sair
-                    </a>
-                </li>
-            </ul>
-        </nav>
+<div class="menu-item active" onclick="changePage('dashboard',this)">
+<i class="fas fa-chart-line"></i> Dashboard
+</div>
 
-        <main class="content-area">
-            @auth
-            
-            <section id="dashboard" class="page-section active">
-                <h2 class="font-weight-bold mb-4">Dashboard</h2>
-                <div class="stats-grid">
-                    <div class="custom-card text-center"><h6>Total Entregas</h6><h2>145</h2></div>
-                    <div class="custom-card text-center"><h6>Em Trânsito</h6><h2 style="color: #3b82f6;">47</h2></div>
-                    <div class="custom-card text-center"><h6>Entregues</h6><h2 style="color: #10b981;">98</h2></div>
-                    <div class="custom-card text-center" style="background: #fff1f2;"><h6>Atrasadas</h6><h2 style="color: #ef4444;">10</h2></div>
-                </div>
-                <div class="dashboard-main-grid">
-                    <div class="custom-card" style="padding: 10px; height: 450px;">
-                        <iframe src="https://www.google.com/maps?q=100%20R.%20Bela%20Vista,%20Tambaú,%20Brasil&output=embed" style="width:100%; height:100%; border:0; border-radius:8px;"></iframe>
-                    </div>
-                    <div class="custom-card">
-                        <h5 class="font-weight-bold mb-3"><i class="fas fa-bell text-danger mr-2"></i>Alertas</h5>
-                        <div style="padding:10px; background:#f8fafc; border-radius:8px; margin-bottom:10px; border-left:4px solid #ef4444;">
-                            <strong>Atraso detectado</strong><br><small>Veículo Placa ABC-1234</small>
-                        </div>
-                        <div style="padding:10px; background:#f8fafc; border-radius:8px; border-left:4px solid #3b82f6;">
-                            <strong>Nova Rota</strong><br><small>Motorista João Silva iniciou curso</small>
-                        </div>
-                    </div>
-                </div>
-                <a href="/cadastroMercadoria" class="btn btn-primary mb-3" style="padding: 10px; width: 100%;">
-                    Cadastrar Mercadoria
-                </a>
-            </section>
+<div class="menu-item" onclick="changePage('entregas',this)">
+<i class="fas fa-truck"></i> Entregas
+</div>
 
-            <section id="entregas" class="page-section">
-                <h2 class="font-weight-bold mb-4">Gerenciamento de Entregas</h2>
-                <div class="custom-card">
-                    <table class="table-ui">
-                        <thead>
-                            <tr>
-                                <th>Cód. Pedido</th>
-                                <th>Cliente</th>
-                                <th>Destino</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>#88420</td>
-                                <td>Supermercado Gricki</td>
-                                <td>Tambaú - SP</td>
-                                <td><span class="badge-status status-entregue">Concluído</span></td>
-                                <td><button class="btn btn-sm btn-outline-primary">Ver Detalhes</button></td>
-                            </tr>
-                            <tr>
-                                <td>#88421</td>
-                                <td>Loja Minatel</td>
-                                <td>Santa Rosa - SP</td>
-                                <td><span class="badge-status status-transito">Em Rota</span></td>
-                                <td><button class="btn btn-sm btn-outline-primary">Rastrear</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+<div class="menu-item" onclick="changePage('produtos',this)">
+<i class="fas fa-box"></i> Produtos
+</div>
 
-            <section id="produtos" class="page-section">
-                <h2 class="font-weight-bold mb-4">Catálogo de Produtos</h2>
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="custom-card text-center">
-                            <i class="fas fa-boxes fa-3x mb-3 text-muted"></i>
-                            <h5>Carga Seca</h5>
-                            <p class="text-muted">452 itens em estoque</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="custom-card text-center">
-                            <i class="fas fa-snowflake fa-3x mb-3 text-info"></i>
-                            <h5>Congelados</h5>
-                            <p class="text-muted">120 itens em estoque</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+<div class="menu-item" onclick="changePage('config',this)">
+<i class="fas fa-cog"></i> Config
+</div>
 
-            <section id="motoristas" class="page-section">
-                <h2 class="font-weight-bold mb-4">Equipe de Condutores</h2>
-                <div class="custom-card">
-                    <div class="d-flex align-items-center p-3 border-bottom">
-                        <div style="width:50px; height:50px; background:#e2e8f0; border-radius:50%; margin-right:15px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-user text-secondary"></i></div>
-                        <div><strong>Ricardo Oliveira</strong><br><small>CNH: 123456789 • Caminhão Scania</small></div>
-                        <div class="ml-auto text-success"><i class="fas fa-circle mr-1" style="font-size: 8px;"></i> Disponível</div>
-                    </div>
-                    <div class="d-flex align-items-center p-3">
-                        <div style="width:50px; height:50px; background:#e2e8f0; border-radius:50%; margin-right:15px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-user text-secondary"></i></div>
-                        <div><strong>Ana Paula Souza</strong><br><small>CNH: 987654321 • Van Ducato</small></div>
-                        <div class="ml-auto text-primary"><i class="fas fa-truck mr-1" style="font-size: 8px;"></i> Em Viagem</div>
-                    </div>
-                </div>
-            </section>
+<div class="menu-item" onclick="window.location='/logout'" style="color:#ef4444;">
+<i class="fas fa-sign-out-alt"></i> Sair
+</div>
+</div>
 
-            <section id="configuracoes" class="page-section">
-                <h2 class="font-weight-bold mb-4">⚙️ Configurações</h2>
+<!-- CONTENT -->
+<div class="content">
 
-                <div class="row">
+<!-- DASHBOARD -->
+<div id="dashboard" class="page active">
 
-                    <!-- PERFIL -->
-                    <div class="custom-card col-md-6">
+<h2>Dashboard</h2>
 
-                        <h5 class="mb-4">👤 Meu Perfil</h5>
+<div class="stats">
+<div class="card"><h4>Total</h4><h2>{{ $total }}</h2></div>
+<div class="card"><h4>Transito</h4><h2>{{ $transito }}</h2></div>
+<div class="card"><h4>Entregues</h4><h2>{{ $entregues }}</h2></div>
+<div class="card"><h4>Atrasadas</h4><h2>{{ $atrasadas }}</h2></div>
+</div>
 
-                        <form action="/configuracoes" method="POST" enctype="multipart/form-data">
-                            @csrf
+<div class="grid">
 
-                            <!-- FOTO -->
-                            <div style="text-align:center; margin-bottom:20px;">
-                                <label for="fotoInput" style="cursor:pointer;">
-                                    <img id="previewFoto"
-                                        src="{{ Auth::user()->foto ? asset('storage/' . Auth::user()->foto) : asset('img/user.png') }}"
-                                        style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid #3b82f6;">
-                                </label>
+<div class="card" style="height:400px;">
+<div id="map" style="height:100%;"></div>
+</div>
 
-                                <input type="file" name="foto" id="fotoInput" style="display:none;">
-                                <p style="font-size:12px; color:gray;">Clique na imagem para alterar</p>
-                            </div>
+<div>
 
-                            <!-- NOME -->
-                            <div class="form-group">
-                                <label>Nome</label>
-                                <input type="text" name="name" class="form-control"
-                                    value="{{ Auth::user()->name }}">
-                            </div>
+<div class="card">
+<h3>Alertas</h3>
 
-                            <!-- EMAIL -->
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input type="email" name="email" class="form-control"
-                                    value="{{ Auth::user()->email }}">
-                            </div>
+@foreach($alertas as $a)
+<div class="alert {{ $a->tipo_alerta == 'Atraso' ? 'alert-danger':'alert-info' }}">
+<strong>{{ $a->tipo_alerta }}</strong><br>
+{{ $a->descricao }}
+</div>
+@endforeach
+</div>
 
-                            <!-- SENHA -->
-                            <div class="form-group">
-                                <label>Nova Senha</label>
-                                <input type="password" name="password" class="form-control" placeholder="Opcional">
-                            </div>
+<div class="card">
+<h3>📍 Localização</h3>
 
-                            <button class="btn btn-primary btn-block">Salvar Alterações</button>
+<form action="{{ route('localizacao.store') }}" method="POST">
+@csrf
+<input type="number" step="0.000001" name="latitude" placeholder="Latitude">
+<input type="number" step="0.000001" name="longitude" placeholder="Longitude">
 
-                            @if(session('success'))
-                                <p style="color:green; margin-top:10px; text-align:center;">
-                                    {{ session('success') }}
-                                </p>
-                            @endif
+<select name="remessa_id">
+@foreach($remessas as $r)
+<option value="{{ $r->id }}">{{ $r->codigo_rastreio }}</option>
+@endforeach
+</select>
 
-                        </form>
-                    </div>
+<button class="btn">Salvar</button>
+</form>
+</div>
 
-                    <!-- ACESSIBILIDADE -->
-                    <div class="custom-card col-md-6">
+<div class="card">
+<h3>🔔 Novo Alerta</h3>
 
-                        <h5 class="mb-4">♿ Acessibilidade</h5>
+<form action="{{ route('alerta.store') }}" method="POST">
+@csrf
 
-                        <div class="form-group">
-                            <label style="display:flex; justify-content:space-between;">
-                                Modo Escuro
-                                <input type="checkbox" id="darkMode">
-                            </label>
-                        </div>
+<select name="tipo_alerta">
+<option value="Atraso">Atraso</option>
+<option value="Rota">Mudança de rota</option>
+<option value="Entrega">Entrega</option>
+</select>
 
-                        <div class="form-group">
-                            <label>Tamanho da Fonte</label>
-                            <select id="fontSize" class="form-control">
-                                <option value="normal">Normal</option>
-                                <option value="grande">Grande</option>
-                            </select>
-                        </div>
+<input type="text" name="descricao" placeholder="Descrição">
 
-                    </div>
+<select name="remessa_id">
+@foreach($remessas as $r)
+<option value="{{ $r->id }}">{{ $r->codigo_rastreio }}</option>
+@endforeach
+</select>
 
-                </div>
-            </section>
+<button class="btn">Criar</button>
+</form>
+</div>
 
-            @endauth
+</div>
+</div>
+</div>
 
-            @guest
-                <script>window.location.href = "/login";</script>
-            @endguest
+<!-- ENTREGAS -->
+<div id="entregas" class="page">
 
-        </main>
-    </div>
+<h2>Entregas</h2>
 
-    <script>
-        // DARK MODE
-        document.getElementById('darkMode')?.addEventListener('change', function() {
-            document.body.classList.toggle('dark-mode', this.checked);
-        });
+<a href="{{ route('remessas.create') }}" class="btn" style="margin-bottom:20px;">+ Nova Remessa</a>
 
-        // FONTE
-        document.getElementById('fontSize')?.addEventListener('change', function() {
-            if (this.value === 'grande') {
-                document.body.style.fontSize = '18px';
-            } else {
-                document.body.style.fontSize = '14px';
-            }
-        });
-    </script>
+<div class="card">
+<table>
+<tr>
+<th>Código</th>
+<th>Origem</th>
+<th>Destino</th>
+<th>Tipo</th>
+<th>Peso</th>
+<th>Entrega</th>
+<th>Status</th>
+<th></th>
+</tr>
 
-    <script>
-        document.getElementById('fotoInput').addEventListener('change', function(e) {
-            const [file] = e.target.files;
-            if (file) {
-                document.getElementById('previewFoto').src = URL.createObjectURL(file);
-            }
-        });
-    </script>
+@foreach($remessas as $r)
+<tr>
+<td>{{ $r->codigo_rastreio }}</td>
+<td>{{ $r->origem }}</td>
+<td>{{ $r->destino }}</td>
+<td>{{ $r->tipo_carga }}</td>
+<td>{{ $r->peso }}</td>
+<td>{{ $r->previsao_entrega }}</td>
 
-    <script>
-        function changeTab(tabId, element) {
-            // Esconde todas as seções
-            document.querySelectorAll('.page-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            // Remove 'active' de todos os itens do menu
-            document.querySelectorAll('#main-menu li').forEach(li => {
-                li.classList.remove('active');
-            });
+<td>
+<span class="badge 
+{{ $r->status=='Entregue'?'entregue':'' }}
+{{ $r->status=='Em transporte'?'transito':'' }}
+{{ $r->status=='Atrasado'?'atrasado':'' }}">
+{{ $r->status }}
+</span>
+</td>
 
-            // Mostra a seção clicada
-            document.getElementById(tabId).classList.add('active');
-            // Ativa o item no menu
-            element.classList.add('active');
-        }
-    </script>
+<td>
+<a href="{{ route('remessas.show',$r->id) }}" class="btn-mini">Ver</a>
+</td>
+</tr>
+@endforeach
 
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+</table>
+</div>
+
+</div>
+
+<!-- PRODUTOS -->
+<div id="produtos" class="page">
+
+<div class="card">
+<h3>Produtos</h3>
+
+<input id="nome" placeholder="Nome do produto">
+<button class="btn" onclick="addProduto()">Cadastrar</button>
+
+<div id="lista"></div>
+
+</div>
+</div>
+
+<!-- CONFIG -->
+<div id="config" class="page">
+
+<div class="card perfil">
+<h3>Perfil</h3>
+
+<form method="POST" action="/configuracoes" enctype="multipart/form-data">
+@csrf
+
+<img id="preview"
+src="{{ Auth::user()->foto ? asset('storage/'.Auth::user()->foto) : asset('img/user.png') }}">
+
+<input type="file" name="foto" id="fotoInput">
+
+<input type="text" name="name" value="{{ Auth::user()->name }}">
+<input type="email" name="email" value="{{ Auth::user()->email }}">
+<input type="password" name="password" placeholder="Nova senha">
+
+<button class="btn">Salvar</button>
+
+</form>
+</div>
+
+<div class="card">
+<h3>Acessibilidade</h3>
+
+<label>
+<input type="checkbox" onchange="toggleDark()"> Modo escuro
+</label>
+
+<select onchange="changeFont(this.value)">
+<option value="normal">Fonte normal</option>
+<option value="grande">Fonte grande</option>
+</select>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+<script>
+function changePage(id,el){
+document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+
+document.querySelectorAll('.menu-item').forEach(i=>i.classList.remove('active'));
+el.classList.add('active');
+}
+
+function addProduto(){
+let nome = document.getElementById('nome').value;
+if(!nome) return;
+
+document.getElementById('lista').innerHTML += `
+<div class="produto">
+${nome}
+<button class="btn-mini danger" onclick="this.parentElement.remove()">X</button>
+</div>
+`;
+}
+
+function toggleDark(){
+document.body.classList.toggle('dark');
+}
+
+function changeFont(v){
+document.body.style.fontSize = v === 'grande' ? '18px':'14px';
+}
+
+document.getElementById('fotoInput').addEventListener('change', e=>{
+const file = e.target.files[0];
+if(file){
+document.getElementById('preview').src = URL.createObjectURL(file);
+}
+});
+</script>
+
+<!-- MAPA -->
+<script>
+window.initMap = function(){
+
+let lat = -21.7041;
+let lng = -47.2708;
+
+@if(isset($remessa) && $remessa && $remessa->localizacoes->count())
+lat = {{ $remessa->localizacoes->last()->latitude }};
+lng = {{ $remessa->localizacoes->last()->longitude }};
+@endif
+
+const map = new google.maps.Map(document.getElementById("map"),{
+zoom:13,
+center:{lat:lat,lng:lng}
+});
+
+new google.maps.Marker({
+position:{lat:lat,lng:lng},
+map:map
+});
+}
+</script>
+
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=SUA_API_KEY&callback=initMap"></script>
+
 </body>
 </html>

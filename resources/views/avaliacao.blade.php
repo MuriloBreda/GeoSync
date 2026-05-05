@@ -6,6 +6,9 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+<!-- ICONES -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
 <style>
 * {
     margin: 0;
@@ -29,7 +32,10 @@ header {
     font-weight: 600;
     letter-spacing: 0.5px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 /* CONTAINER */
@@ -44,6 +50,10 @@ h1 {
     font-size: 34px;
     font-weight: 700;
     margin-bottom: 8px;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .subtext {
@@ -73,7 +83,9 @@ label {
     font-size: 13px;
     font-weight: 600;
     margin-bottom: 6px;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     color: #334155;
 }
 
@@ -139,9 +151,14 @@ button {
     font-size: 15px;
     font-weight: 600;
     color: white;
-    background: linear-gradient(135deg, #3e75bc, #3b82f6);
+    background: linear-gradient(135deg, #3e75bc);
     cursor: pointer;
     transition: all 0.25s ease;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 
 button:hover {
@@ -151,6 +168,12 @@ button:hover {
 
 button:active {
     transform: scale(0.97);
+}
+
+/* ICONES */
+.fa-solid,
+.fa-regular {
+    color: #3b82f6;
 }
 
 /* RESPONSIVO */
@@ -168,20 +191,48 @@ button:active {
 
 <body>
 
-<header><a href="/" style="text-decoration: none; color: white;">GeoSync</a></header>
+<header>
+    <i class="fa-solid fa-location-dot" style="color: white;"></i>
+
+    <a href="/" style="text-decoration: none; color: white;">
+        GeoSync
+    </a>
+</header>
 
 <div class="container">
-    <h1>Feedback do Cliente</h1>
-    <p class="subtext">Sua voz ajuda a melhora das nossas entregas e fluxos </p>
+
+    <h1>
+        <i class="fa-solid fa-chart-line"></i>
+        Feedback do Cliente
+    </h1>
+
+    <p class="subtext">
+        Sua voz ajuda a melhora das nossas entregas e fluxos
+    </p>
 
     <div class="card">
-        <h2 style="margin-bottom: 10px;">Compartilhe sua experiência</h2>
-        <p class="subtext">Preencha os dados abaixo e avalie sua experiência.</p>
 
-        <label>Nome</label>
+        <h2 style="margin-bottom: 10px; display:flex; align-items:center; gap:10px;">
+            <i class="fa-regular fa-message"></i>
+            Compartilhe sua experiência
+        </h2>
+
+        <p class="subtext">
+            Preencha os dados abaixo e avalie sua experiência.
+        </p>
+
+        <label>
+            <i class="fa-regular fa-user"></i>
+            Nome
+        </label>
+
         <input type="text" placeholder="Seu nome completo">
 
-        <label>Nota</label>
+        <label>
+            <i class="fa-solid fa-star"></i>
+            Nota
+        </label>
+
         <div class="stars" id="stars">
             <span data-value="1">★</span>
             <span data-value="2">★</span>
@@ -190,10 +241,18 @@ button:active {
             <span data-value="5">★</span>
         </div>
 
-        <label>Observações</label>
+        <label>
+            <i class="fa-regular fa-pen-to-square"></i>
+            Observações
+        </label>
+
         <textarea placeholder="Conte-nos sobre sua experiência..."></textarea>
 
-        <button onclick="enviar()">Enviar Avaliação</button>
+        <button onclick="enviar()">
+            <i class="fa-solid fa-paper-plane" style="color: white;"></i>
+            Enviar Avaliação
+        </button>
+
     </div>
 </div>
 

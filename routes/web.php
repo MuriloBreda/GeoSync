@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\IAController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RemessaController;
+use App\Http\Controllers\AlertaController;
+use App\Http\Controllers\LocalizacaoController;
 
 // Página inicial
 Route::get('/', function () {
@@ -13,8 +16,8 @@ Route::get('/', function () {
 // Páginas
 Route::get('/about', fn() => view('about'));
 Route::get('/contact', fn() => view('contact'));
-Route::get('/service', fn() => view('service'));
-Route::get('/welcome', fn() => view('welcome'));
+Route::get('/service', [RemessaController::class, 'dashboard'])->middleware('auth');
+Route::get('/welcome', fn() => view('welcome')); // Tela do laravel
 Route::get('/faq', fn() => view('faq'));
 
 // AUTH
@@ -40,4 +43,23 @@ Route::get('/ia-antifraude', [IAController::class, 'antifraude']);
 
 
 // Routes do arquivo service.blade.php
-Route::post('/configuracoes', [ProfileController::class, 'update']);
+Route::get('/configuracoes', [ProfileController::class, 'update']);
+
+
+// CRUD DE REMESSAS
+Route::resource('remessas', RemessaController::class)->middleware('auth');
+Route::resource('alertas', AlertaController::class)->middleware('auth');
+Route::resource('localizacoes', LocalizacaoController::class)->middleware('auth');
+
+Route::get('/service', [RemessaController::class, 'dashboard'])->middleware('auth');
+
+Route::post('/localizacao', [LocalizacaoController::class, 'store'])
+    ->name('localizacao.store');
+
+Route::post('/alerta', [AlertaController::class, 'store'])
+    ->name('alerta.store');
+
+// MOTORISTA 
+Route::get('/motorista', function () {
+    return view('motorista');
+});

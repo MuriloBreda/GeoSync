@@ -2,16 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-class Alerta extends Model {
+
+class Alerta extends Model
+{
+    use HasFactory;
+
+    protected $table = 'alertas';
+
     protected $fillable = [
         'tipo_alerta',
         'descricao',
-        'data_hora',
-        'id_remessa'
+        'remessa_id'
     ];
 
-    public function remessa(){
+    // Relacionamento com remessa
+    public function remessa()
+    {
         return $this->belongsTo(Remessa::class);
     }
 }

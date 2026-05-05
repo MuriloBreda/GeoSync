@@ -71,4 +71,35 @@ CREATE TABLE localizacoes (
         ON UPDATE CASCADE
 );
 
+CREATE TABLE pagamentos (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED,
+    valor DECIMAL(10,2),
+    status VARCHAR(50),
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE avaliacoes (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED,
+    nota INT,
+    comentario VARCHAR(255),
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE contatos (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100),
+    email VARCHAR(100),
+    mensagem TEXT,
+    created_at TIMESTAMP NULL
+);
+
 select * from users;
+select * from remessas;

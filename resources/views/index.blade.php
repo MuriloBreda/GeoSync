@@ -47,10 +47,12 @@ padding:8px 0;
 font-size:14px;
 }
 
+/* Icones do index */
 .top-icons i{
 margin-left:12px;
 cursor:pointer;
 transition:0.3s;
+color: white
 }
 
 .top-icons i:hover{
@@ -86,6 +88,7 @@ color:white;
 padding:10px 20px;
 border-radius:4px;
 text-decoration:none;
+background-color: #022553
 }
 
 /* HEADER */

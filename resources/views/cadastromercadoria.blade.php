@@ -1,309 +1,326 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>GeoSync - Cadastro</title>
+    <meta charset="UTF-8">
+    <title>GeoSync - Nova Remessa</title>
 
-  <style>
-  /* Reset básico */
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
+    <style>
+        :root {
+            --azul-institucional:#1C3F6E;
+            --azul-tech:#2F6FB2;
+            --azul-profundo:#0B1F36;
+            --azul-claro:#E6EEF8;
+            --azul-cinza:#7B92AD;
+        }
 
-  body {
-    background-color: #f4f6f8;
-    color: #333;
-  }
+        * {
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Poppins', sans-serif;
+        }
 
-  /* Navbar */
-  .navbar {
-    background: linear-gradient(90deg, #4b6cb7, #182848);
-    color: white;
-    padding: 15px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  }
+        body {
+            background:linear-gradient(180deg,#f5f7fb,#eef3f9);
+        }
 
-  .navbar h1 {
-    font-size: 22px;
-    font-weight: bold;
-  }
+        /* NAVBAR */
+        .navbar {
+            background:white;
+            padding:15px 30px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            border-bottom:1px solid #eee;
+        }
 
-  .menu {
-    display: flex;
-    gap: 20px;
-  }
+        .logo {
+            font-size:22px;
+            font-weight:bold;
+            color:var(--azul-institucional);
+        }
 
-  .menu a {
-    color: white;
-    text-decoration: none;
-    font-weight: 500;
-    padding: 6px 12px;
-    border-radius: 4px;
-    transition: background 0.3s;
-  }
+        .menu a {
+            margin-left:20px;
+            text-decoration:none;
+            color:var(--azul-institucional);
+            font-weight:500;
+            position:relative;
+        }
 
-  .menu a:hover {
-    background: rgba(255,255,255,0.2);
-  }
+        .menu a::after {
+            content:"";
+            position:absolute;
+            width:0%;
+            height:2px;
+            bottom:-4px;
+            left:0;
+            background:var(--azul-tech);
+            transition:0.3s;
+        }
 
-  .menu .active {
-    background: rgba(255,255,255,0.3);
-  }
+        .menu a:hover::after {
+            width:100%;
+        }
 
-  /* Container principal */
-  .container {
-    padding: 40px 20px;
-    max-width: 900px;
-    margin: auto;
-  }
+        /* CONTAINER */
+        .container {
+            width:90%;
+            max-width:900px;
+            margin:40px auto;
+        }
 
-  h2 {
-    margin-bottom: 25px;
-    color: #1f2d3d;
-    font-size: 28px;
-  }
+        /* CARD */
+        .card {
+            background:white;
+            padding:30px;
+            border-radius:12px;
+            box-shadow:0 8px 20px rgba(0,0,0,0.05);
+            border:1px solid #eef1f5;
+        }
 
-  /* Card do formulário */
-  .card {
-    background: #fff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    margin-bottom: 30px;
-  }
+        /* TITULOS */
+        h2 {
+            color:var(--azul-institucional);
+            font-size:28px;
+            margin-bottom:5px;
+        }
 
-  .card h3 {
-    margin-bottom: 10px;
-    color: #4b6cb7;
-  }
+        .subtitle {
+            color:var(--azul-cinza);
+            margin-bottom:25px;
+            font-size:14px;
+        }
 
-  .card p {
-    margin-bottom: 20px;
-    color: #666;
-  }
+        .section {
+            margin-bottom:25px;
+            padding-bottom:15px;
+            border-bottom:1px solid #eee;
+        }
 
-  /* Formulário */
-  .form-row {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 15px;
-  }
+        .section h3 {
+            font-size:16px;
+            margin-bottom:10px;
+            color:var(--azul-tech);
+        }
 
-  .form-group {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
+        /* GRID */
+        .form-grid {
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:15px;
+        }
 
-  label {
-    margin-bottom: 6px;
-    font-weight: 600;
-    color: #555;
-  }
+        .full {
+            grid-column:1 / -1;
+        }
 
-  input, textarea {
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    background: #f9f9f9;
-    transition: all 0.3s;
-    font-size: 14px;
-  }
+        /* INPUTS */
+        .form-group {
+            display:flex;
+            flex-direction:column;
+        }
 
-  input:focus, textarea:focus {
-    outline: none;
-    border-color: #4b6cb7;
-    background: #fff;
-    box-shadow: 0 0 5px rgba(75,108,183,0.2);
-  }
+        label {
+            font-weight:600;
+            margin-bottom:5px;
+            color:var(--azul-institucional);
+        }
 
-  textarea {
-    resize: none;
-    height: 100px;
-  }
+        input, select {
+            padding:14px;
+            border-radius:10px;
+            border:1px solid #ddd;
+            background:#f9fbff;
+            transition:0.3s;
+        }
 
-  button {
-    margin-top: 15px;
-    background: #4b6cb7;
-    color: white;
-    border: none;
-    padding: 14px 22px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    transition: all 0.3s;
-  }
+        input::placeholder, select::placeholder {
+            color:#aaa;
+        }
 
-  .produto-item button.btn-excluir {
-    margin-top: 8px;
-    background: #e74c3c;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    transition: all 0.3s;
-  }
+        input:focus, select:focus {
+            outline:none;
+            border-color:var(--azul-tech);
+            background:white;
+            box-shadow:0 0 5px rgba(47,111,178,0.2);
+        }
 
-  .produto-item button.btn-excluir:hover {
-    background: #c0392b;
-  }
+        /* BOTÃO */
+        button {
+            width:100%;
+            margin-top:20px;
+            background:var(--azul-tech);
+            color:white;
+            border:none;
+            padding:14px;
+            border-radius:8px;
+            cursor:pointer;
+            font-size:16px;
+            font-weight:600;
+            letter-spacing:0.5px;
+            box-shadow:0 4px 10px rgba(47,111,178,0.3);
+            transition:0.3s;
+        }
 
-  button:hover {
-    background: #182848;
-  }
+        button:hover {
+            background:#1d4f85;
+            transform:translateY(-1px);
+        }
 
-  /* Lista de produtos */
-  #lista-produtos {
-    margin-top: 20px;
-  }
+        /* ALERTAS */
+        .alert {
+            padding:12px;
+            border-radius:6px;
+            margin-bottom:15px;
+        }
 
-  #lista-produtos .produto-item {
-    background: #fff;
-    padding: 18px 20px;
-    border-radius: 10px;
-    margin-bottom: 12px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
-    transition: transform 0.2s;
-  }
+        .success {
+            background:#d4edda;
+            color:#155724;
+            border-left:5px solid #28a745;
+        }
 
-  #lista-produtos .produto-item:hover {
-    transform: translateY(-2px);
-  }
+        .error {
+            background:#f8d7da;
+            color:#721c24;
+            border-left:5px solid #dc3545;
+        }
 
-  #lista-produtos strong {
-    color: #4b6cb7;
-    font-size: 16px;
-  }
+        /* RESPONSIVO */
+        @media(max-width:700px) {
+            .form-grid {
+                grid-template-columns:1fr;
+            }
 
-  #lista-produtos span {
-    color: #555;
-    font-size: 14px;
-  }
+            .container {
+                width:95%;
+            }
 
-  /* Responsivo */
-  @media (max-width: 600px) {
-    .form-row {
-      flex-direction: column;
-    }
-  }
-</style>
+            .card {
+                padding:20px;
+            }
+
+            h2 {
+                font-size:22px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-  <!-- Navbar -->
-  <div class="navbar">
-    <h1><a href="/" style="text-decoration: none; color: white;">GeoSync</a></h1>
-    <div class="menu">
-      <a href="/avaliar">Avaliação</a>
-      <a href="/service" class="active">Mercadorias</a>
+    <div class="navbar">
+        <div class="logo">
+            <a href="/" style="text-decoration:none;">GeoSync</a>
+        </div>
+
+        <div class="menu">
+            <a href="{{ route('remessas.index') }}">Remessas</a>
+        </div>
     </div>
-  </div>
 
-  <!-- Conteúdo -->
-  <div class="container">
-    <h2>Cadastro de Mercadorias</h2>
+    <div class="container">
+        <div class="card">
 
-    <div class="card">
+            <h2>Cadastro de Remessa</h2>
+            <p class="subtitle">Preencha os dados para registrar uma nova entrega</p>
 
-      <h3>Nova Mercadoria</h3>
-      <p style="margin-bottom:15px; color:#666;">Adicione um novo produto ao estoque.</p>
+            {{-- ERROS --}}
+            @if($errors->any())
+                <div class="alert error">
+                    <ul>
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-      <div class="form-row">
-        <div class="form-group">
-          <label>Nome</label>
-          <input type="text" id="nome" placeholder="Nome do produto">
+            {{-- SUCESSO --}}
+            @if(session('success'))
+                <div class="alert success">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            <form action="{{ route('remessas.store') }}" method="POST">
+                @csrf
+
+                <!-- DADOS -->
+                <div class="section">
+                    <h3>📦 Dados da Remessa</h3>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Código de Rastreio</label>
+                            <input type="text" name="codigo_rastreio" value="{{ old('codigo_rastreio') }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select name="status" required id="status">
+                                <option value="">Selecione o status</option>
+                                <option value="Em transporte">🚚 Em transporte</option>
+                                <option value="Entregue">✅ Entregue</option>
+                                <option value="Atrasado">⚠️ Atrasado</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LOGÍSTICA -->
+                <div class="section">
+                    <h3>🚚 Logística</h3>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Origem</label>
+                            <input type="text" name="origem" value="{{ old('origem') }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Destino</label>
+                            <input type="text" name="destino" value="{{ old('destino') }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tipo de Carga</label>
+                            <input type="text" name="tipo_carga" value="{{ old('tipo_carga') }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Peso (kg)</label>
+                            <input type="number" step="0.01" name="peso" value="{{ old('peso') }}" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ENTREGA -->
+                <div class="section">
+                    <h3>📅 Entrega</h3>
+
+                    <div class="form-grid">
+                        <div class="form-group full">
+                            <label>Previsão de Entrega</label>
+                            <input type="date" name="previsao_entrega" value="{{ old('previsao_entrega') }}" required>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit">Cadastrar Remessa</button>
+
+            </form>
         </div>
-
-        <div class="form-group">
-          <label>Código</label>
-          <input type="text" id="codigo" placeholder="Ex: PRD-001">
-        </div>
-      </div>
-
-        <div class="form-group">
-            <label>Preço (R$)</label>
-            <input type="text" id="preco" placeholder="R$ 0,00">
-        </div>
-
-        <div class="form-group">
-          <label>Quantidade</label>
-          <input type="number" id="quantidade" placeholder="0">
-        </div>
-      
-      <div class="form-group">
-        <label>Descrição</label>
-        <textarea id="descricao" placeholder="Descrição do produto..."></textarea>
-      </div>
-
-      <button onclick="cadastrar()">+ Cadastrar</button>
-      <h3 style="margin-top:30px;">Produtos Cadastrados</h3>
-
-      <div id="lista-produtos" style="margin-top:10px;"></div>
-
     </div>
-  </div>
 
-<script>
-function cadastrar() {
-  const produto = {
-    nome: document.getElementById('nome').value,
-    codigo: document.getElementById('codigo').value,
-    preco: document.getElementById('preco').value,
-    quantidade: document.getElementById('quantidade').value,
-    descricao: document.getElementById('descricao').value
-  };
-
-  if (!produto.nome || !produto.codigo) {
-    alert("Preencha nome e código!");
-    return;
-  }
-
-  // 🔥 Adiciona na tela imediatamente
-  adicionarNaLista(produto);
-
-  alert("Produto cadastrado com sucesso!");
-
-  limparCampos();
-}
-
-// 🔹 Função que mostra o produto na tela
-function adicionarNaLista(produto) {
-  const lista = document.getElementById('lista-produtos');
-
-  const item = document.createElement('div');
-  item.style.background = '#fff';
-  item.style.padding = '15px';
-  item.style.marginBottom = '10px';
-  item.style.borderRadius = '8px';
-  item.style.border = '1px solid #ccc';
-
-  item.innerHTML = `
-    <strong>${produto.nome}</strong><br>
-    Código: ${produto.codigo}<br>
-    Preço: R$ ${produto.preco}<br>
-    Quantidade: ${produto.quantidade}<br>
-    Descrição: ${produto.descricao}
-  `;
-
-  lista.appendChild(item);
-}
-
-// 🔹 Limpar campos
-function limparCampos() {
-  document.querySelectorAll("input, textarea").forEach(el => el.value = "");
-}
-</script>
+    <script>
+        document.querySelector("form").addEventListener("submit", function(){
+            const btn = this.querySelector("button");
+            btn.innerText = "Salvando...";
+            btn.disabled = true;
+        });
+    </script>
 
 </body>
 </html>
