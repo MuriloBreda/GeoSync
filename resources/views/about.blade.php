@@ -25,6 +25,65 @@
             overflow-x: hidden;
         }
 
+        /* CSS FORÇADO PARA PADRONIZAÇÃO */
+
+.topbar {
+    background: #0B1F36 !important;
+    color: white !important;
+    padding: 8px 0 !important;
+    font-size: 14px !important;
+    display: block !important;
+}
+
+.top-icons i {
+    margin-left: 12px !important;
+    color: white !important;
+    transition: 0.3s !important;
+}
+
+.navbar {
+    background: #f1f1f1 !important;
+    padding: 15px 0 !important;
+    border-bottom: 1px solid #e1e1e1 !important;
+}
+
+.logo {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    font-size: 26px !important;
+    font-weight: bold !important;
+    color: #1C3F6E !important;
+    text-decoration: none !important;
+}
+
+.logo img {
+    width: 65px !important;
+    height: auto !important;
+}
+
+.menu {
+    display: flex !important;
+    gap: 30px !important;
+}
+
+.menu a {
+    text-decoration: none !important;
+    color: #1C3F6E !important;
+    font-size: 15px !important;
+    font-weight: 700 !important; /* Peso igual ao seu index */
+}
+
+.btn {
+    background-color: #022553 !important;
+    color: white !important;
+    padding: 10px 20px !important;
+    border-radius: 8px !important; /* Arredondamento solicitado */
+    text-decoration: none !important;
+    display: inline-block !important;
+    font-weight: 600 !important;
+}
+
         /* NAVBAR */
         .navbar-custom {
             background: #fff;
@@ -119,7 +178,7 @@
         /* FOOTER ESTILIZADO */
         .footer {
             background: var(--primary);
-            color: white;
+            color: #0B1F36;
             padding: 60px 0 20px;
             margin-top: 50px;
         }
@@ -136,19 +195,19 @@
         }
 
         .footer h3 {
-            color: white;
+            color: #2f6fb2;
             font-size: 20px;
             margin-bottom: 20px;
         }
 
         .footer p {
-            color: #d1d1d1;
+            color: #7b92ad;
             font-size: 14px;
         }
 
         .footer a {
             display: block;
-            color: #d1d1d1;
+            color: #7b92ad;
             margin-bottom: 10px;
             text-decoration: none;
             font-size: 14px;
@@ -201,22 +260,119 @@
             color: #aaa;
             font-size: 13px;
         }
+
+        /* CONTAINER */
+.container{
+width:90%;
+margin:auto;
+}
+
+/* FLEX */
+.flex{
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+}
+
+/* TOPBAR */
+.topbar{
+background: var(--primary);
+color:white;
+padding:8px 0;
+font-size:14px;
+}
+
+/* ICONES */
+.top-icons i{
+margin-left:12px;
+cursor:pointer;
+transition:0.3s;
+color:white;
+}
+
+.top-icons i:hover{
+color:var(--secondary);
+}
+
+/* NAVBAR */
+.navbar{
+background:#f1f1f1;
+padding:15px 0;
+}
+
+.logo{
+font-size:26px;
+font-weight:bold;
+color:var(--primary);
+}
+
+.menu{
+display:flex;
+gap:30px;
+}
+
+.menu a{
+text-decoration:none;
+color:var(--primary);
+font-size:15px;
+font-weight:500;
+transition:0.3s;
+}
+
+.menu a:hover{
+color:var(--secondary);
+}
+
+/* BOTÃO */
+.btn{
+background:var(--primary);
+color:white;
+padding:10px 20px;
+border-radius:4px;
+text-decoration:none;
+background-color:#022553;
+transition:0.3s;
+}
+
+.btn:hover{
+background:var(--secondary);
+color:white;
+}
+
+
     </style>
 </head>
 
 <body>
 
-<div class="navbar-custom">
-    <div class="container d-flex justify-content-between align-items-center">
-        <div class="logo">
-            <i class="fa fa-truck"></i> GeoSync
+<!-- TOPBAR -->
+<div class="topbar">
+    <div class="container flex">
+        <div><i class="fas fa-phone-alt"></i> +55 (19) 99401-0744 | <i class="fas fa-envelope"></i> contact@geosync.com</div>
+        <div class="top-icons">
+            <a href="https://www.facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://x.com" target="_blank"><i class="fab fa-twitter"></i></a>
+            <a href="https://br.linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+            <a href="https://www.instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
         </div>
-        <div class="menu d-none d-md-block">
-            <a href="/">Início</a>
-            <a href="/about">Sobre</a>
-            <a href="/contact">Contato</a>
+    </div>
+</div>
+
+<div class="navbar">
+    <div class="container flex">
+        <a href="/" class="logo" style="text-decoration:none; display:flex; align-items:center; gap:12px;">
+            <img src="{{ asset('img/Logo.png') }}" alt="Logo" style="width: 65px;">
+            <span>GeoSync</span>
+        </a>
+
+        <div class="menu">
+            <a href="/" style="font-weight:600;">Início</a>
+            <a href="/about" style="font-weight:600;">Sobre</a>
+            <a href="/contact" style="font-weight:600;">Contato</a>
         </div>
-        <a href="/login" class="btn-custom">Solicitar Serviço</a>
+
+        <a href="/login" class="btn" style="border-radius: 8px; background-color: #022553; font-weight:600;">Solicitar um Serviço</a>
     </div>
 </div>
 
@@ -250,7 +406,7 @@
     <div class="row">
         <div class="col-md-4 mb-4">
             <div class="team card shadow">
-                <img src="https://randomuser.me/api/portraits/women/11.jpg" class="card-img-top" alt="Maria Clara">
+                <img src="{{ asset('img/mariaClara.png') }}" class="card-img-top" alt="Maria Clara">
                 <div class="team-text">
                     <h5>Maria Clara</h5>
                     <small>Front-End / Banco de Dados</small>
@@ -259,7 +415,7 @@
         </div>
         <div class="col-md-4 mb-4">
             <div class="team card shadow">
-                <img src="https://randomuser.me/api/portraits/men/32.jpg" class="card-img-top" alt="Murilo">
+                <img src="{{ asset('img/murilo.jpg') }}" class="card-img-top" alt="Murilo">
                 <div class="team-text">
                     <h5>Murilo</h5>
                     <small>Full Stack Developer</small>
@@ -268,7 +424,7 @@
         </div>
         <div class="col-md-4 mb-4">
             <div class="team card shadow">
-                <img src="https://randomuser.me/api/portraits/men/45.jpg" class="card-img-top" alt="Lucas">
+                <img src="{{ asset('img/lucas.png') }}" class="card-img-top" alt="Lucas">
                 <div class="team-text">
                     <h5>Lucas</h5>
                     <small>Back-End Developer</small>
@@ -277,7 +433,7 @@
         </div>
         <div class="col-md-4 mb-4">
             <div class="team card shadow">
-                <img src="https://randomuser.me/api/portraits/men/22.jpg" class="card-img-top" alt="Mickael">
+                <img src="{{ asset('img/mickael.png') }}" class="card-img-top" alt="Mickael">
                 <div class="team-text">
                     <h5>Mickael</h5>
                     <small>Front-End / Banco de Dados</small>
@@ -286,7 +442,7 @@
         </div>
         <div class="col-md-4 mb-4">
             <div class="team card shadow">
-                <img src="https://randomuser.me/api/portraits/women/44.jpg" class="card-img-top" alt="Thayla">
+                <img src="{{ asset('img/thayla.png') }}" class="card-img-top" alt="Thayla">
                 <div class="team-text">
                     <h5>Thayla</h5>
                     <small>Back-End Developer</small>
@@ -295,7 +451,7 @@
         </div>
         <div class="col-md-4 mb-4">
             <div class="team card shadow">
-                <img src="https://randomuser.me/api/portraits/men/15.jpg" class="card-img-top" alt="Théo">
+                <img src="{{ asset('img/theo.png') }}" class="card-img-top" alt="Théo">
                 <div class="team-text">
                     <h5>Théo</h5>
                     <small>Front-End / Banco de Dados</small>
@@ -324,13 +480,14 @@
                 <a href="/about">Sobre</a>
                 <a href="/login">Serviços</a>
                 <a href="/contact">Contato</a>
+                <a href="/pagamento">Planos</a>
                 <a href="/avaliar">Feedback</a>
             </div>
             <div class="footer-col">
                 <h3>Contato</h3>
-                <p>📍 Tambaú - SP</p>
-                <p>📞 (19) 99401-0744</p>
-                <p>📧 contact@geosync.com</p>
+                <p>R. Cap. David, 56 - Centro, Tambaú - SP, 13710-000</p>
+                <p>(19) 99401-0744</p>
+                <p>contact@geosync.com</p>
             </div>
             <div class="footer-col">
                 <h3>Newsletter</h3>

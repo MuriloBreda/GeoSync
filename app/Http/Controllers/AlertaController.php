@@ -12,7 +12,7 @@ class AlertaController extends Controller
     public function index()
     {
         $alertas = Alerta::with('remessa')->latest()->get();
-        return view('alertas.index', compact('alertas'));
+        return view('alertas', compact('alertas'));
     }
 
     // ➕ FORM

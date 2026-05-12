@@ -25,6 +25,65 @@ body{
     overflow-x: hidden; /* Remove rolagem lateral */
 }
 
+/* CSS FORÇADO PARA PADRONIZAÇÃO */
+
+.topbar {
+    background: #0B1F36 !important;
+    color: white !important;
+    padding: 8px 0 !important;
+    font-size: 14px !important;
+    display: block !important;
+}
+
+.top-icons i {
+    margin-left: 12px !important;
+    color: white !important;
+    transition: 0.3s !important;
+}
+
+.navbar {
+    background: #f1f1f1 !important;
+    padding: 15px 0 !important;
+    border-bottom: 1px solid #e1e1e1 !important;
+}
+
+.logo {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    font-size: 26px !important;
+    font-weight: bold !important;
+    color: #1C3F6E !important;
+    text-decoration: none !important;
+}
+
+.logo img {
+    width: 65px !important;
+    height: auto !important;
+}
+
+.menu {
+    display: flex !important;
+    gap: 30px !important;
+}
+
+.menu a {
+    text-decoration: none !important;
+    color: #1C3F6E !important;
+    font-size: 15px !important;
+    font-weight: 700 !important; /* Peso igual ao seu index */
+}
+
+.btn {
+    background-color: #022553 !important;
+    color: white !important;
+    padding: 10px 20px !important;
+    border-radius: 8px !important; /* Arredondamento solicitado */
+    text-decoration: none !important;
+    display: inline-block !important;
+    font-weight: 600 !important;
+}
+
 .container{
     width:90%;
     max-width: 1200px; /* Limite para telas grandes */
@@ -291,28 +350,30 @@ iframe{
 
 <div class="topbar">
     <div class="container flex">
-        <div>
-            <i class="fa fa-phone-alt"></i> +55 (19) 99401-0744 | 
-            <i class="fa fa-envelope"></i> contact@geosync.com
-        </div>
+        <div><i class="fas fa-phone-alt"></i> +55 (19) 99401-0744 | <i class="fas fa-envelope"></i> contact@geosync.com</div>
         <div class="top-icons">
-            <a href="https://www.facebook.com/?locale=pt_BR" target="_blank"><i class="fab fa-facebook-f"></i></a>
-            <a href="https://x.com/?lang=pt" target="_blank"><i class="fab fa-twitter"></i></a>
-            <a href="https://br.linkedin.com/?mcid=6821526239111716925&src=go-pa&trk=sem-ga_campid.12619604099_asid.149519181115_crid.725790844702_kw.linkedin_d.c_tid.kwd-148086543_n.g_mt.e_geo.1032087&cid=&gclsrc=aw.ds&gad_source=1&gad_campaignid=12619604099&gbraid=0AAAAABhL5JN4wzyXHl9v3KlEu0Ue8Qcgx&gclid=Cj0KCQjwy_fOBhC6ARIsAHKFB7-eoK4pgfFGsLmdO-reXead95oZ4BqlwNmRZrwmbZPk-SWcKZa35ykaAtqrEALw_wcB" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-            <a href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://x.com" target="_blank"><i class="fab fa-twitter"></i></a>
+            <a href="https://br.linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+            <a href="https://www.instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
         </div>
     </div>
 </div>
 
 <div class="navbar">
     <div class="container flex">
-        <div class="logo"><i class="fa fa-truck"></i> GEOSYNC</div>
+        <a href="/" class="logo" style="text-decoration:none; display:flex; align-items:center; gap:12px;">
+            <img src="{{ asset('img/Logo.png') }}" alt="Logo" style="width: 65px;">
+            <span>GeoSync</span>
+        </a>
+
         <div class="menu">
-            <a href="/">Início</a>
-            <a href="/about">Sobre</a>
-            <a href="/contact">Contato</a>
+            <a href="/" style="font-weight:600;">Início</a>
+            <a href="/about" style="font-weight:600;">Sobre</a>
+            <a href="/contact" style="font-weight:600;">Contato</a>
         </div>
-        <a href="/login" class="btn">Solicite um Serviço</a>
+
+        <a href="/login" class="btn" style="border-radius: 8px; background-color: #022553; font-weight:600;">Solicitar um Serviço</a>
     </div>
 </div>
 
@@ -331,13 +392,14 @@ iframe{
         </div>
 
         <div class="contact-card">
-            <form action="/chat" method="GET">
+            <form action="{{ route('contato.store') }}" method="POST">
+                @csrf
                 <h2>Envie uma mensagem</h2>
-                <input type="text" placeholder="Seu nome" class="input" required>
-                <input type="email" placeholder="Seu email" class="input" required>
-                <input type="text" placeholder="Assunto" class="input" required>
-                <textarea placeholder="Mensagem" class="input textarea" required></textarea>
-                <button class="btn-enviar">Enviar Mensagem</button>
+                <input type="text" name="nome" placeholder="Seu nome" class="input" required>
+                <input type="email" name="email" placeholder="Seu email" class="input" required>
+                <input type="text" name="assunto" placeholder="Assunto" class="input" required>
+                <textarea name="mensagem" placeholder="Mensagem" class="input textarea" required></textarea>
+                <button type="submit" class="btn-enviar">Enviar Mensagem</button>
             </form>
         </div>
     </div>
@@ -362,13 +424,14 @@ iframe{
                 <a href="/about">Sobre</a>
                 <a href="/service">Serviços</a>
                 <a href="/contact">Contato</a>
+                <a href="/pagamento">Planos</a>
                 <a href="/avaliar">Feedback</a>
             </div>
             <div class="footer-col">
                 <h3>Contato</h3>
-                <p>📍 Tambaú - SP</p>
-                <p>📞 (19) 99401-0744</p>
-                <p>📧 contact@geosync.com</p>
+                <p>R. Cap. David, 56 - Centro, Tambaú - SP, 13710-000</p>
+                <p>(19) 99401-0744</p>
+                <p>contact@geosync.com</p>
             </div>
             <div class="footer-col">
                 <h3>Newsletter</h3>

@@ -130,7 +130,7 @@
 
         <h1>Tela de Cadastro</h1>
 
-        <img src="{{ asset('img/Logo.png') }}" alt="Logo GeoSync" style="width: 150px; margin: auto">
+        <a href="/"><img src="{{ asset('img/Logo.png') }}" alt="Logo GeoSync" style="width: 150px; margin: auto"></a>
 
         <form action="/register" method="POST">
 

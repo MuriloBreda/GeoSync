@@ -103,3 +103,8 @@ CREATE TABLE contatos (
 
 select * from users;
 select * from remessas;
+select * from alertas;
+select * from localizacoes;
+select * from pagamentos;
+select * from avaliacoes;
+select * from contatos;

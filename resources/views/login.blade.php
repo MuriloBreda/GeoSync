@@ -135,7 +135,7 @@
 
         <h1>Tela de Login</h1>
 
-        <img src="{{ asset('img/Logo.png') }}" alt="Logo GeoSync" style="width: 160px; margin: 5px auto">
+        <a href="/"><img src="{{ asset('img/Logo.png') }}" alt="Logo GeoSync" style="width: 160px; margin: 5px auto"></a>
 
         <form action="/login" method="POST">
             @csrf

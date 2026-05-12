@@ -14,10 +14,11 @@ class User extends Authenticatable
      * Campos que podem ser preenchidos
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    'name',
+    'email',
+    'password',
+    'foto', // Adicione esta linha
+];
 
     /**
      * Campos ocultos (segurança)
@@ -32,7 +33,6 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
     ];
 
     /**

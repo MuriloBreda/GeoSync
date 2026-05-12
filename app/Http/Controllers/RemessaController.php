@@ -80,29 +80,15 @@ class RemessaController extends Controller
         return view('remessaShow', compact('remessa'));
     }
 
-    public function edit($id)
-    {
-        $remessa = Remessa::findOrFail($id);
-        return view('remessas.edit', compact('remessa'));
-    }
-
     public function update(Request $request, $id)
-    {
-        $request->validate([
-            'codigo_rastreio' => 'required|max:100',
-            'origem' => 'required|max:100',
-            'destino' => 'required|max:100',
-            'tipo_carga' => 'required|max:100',
-            'peso' => 'required|numeric',
-            'previsao_entrega' => 'required|date',
-            'status' => 'required|max:50'
-        ]);
+{
+    $remessa = Remessa::findOrFail($id);
 
-        $remessa = Remessa::findOrFail($id);
-        $remessa->update($request->all());
+    $remessa->update($request->all());
 
-        return redirect('/service')->with('success', 'Remessa atualizada!');
-    }
+    return redirect('/service')
+        ->with('success', 'Remessa atualizada!');
+}
 
     public function destroy($id)
     {
@@ -110,5 +96,11 @@ class RemessaController extends Controller
         $remessa->delete();
 
         return redirect('/service')->with('success', 'Remessa removida!');
+    }
+
+    public function edit($id){
+        $remessa = Remessa::findOrFail($id);
+
+        return view('remessaEdit', compact('remessa'));
     }
 }

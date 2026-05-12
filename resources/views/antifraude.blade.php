@@ -8,6 +8,15 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 <style>
+    :root {
+            --primary: #072051; /* Azul Escuro Institucional */
+            --secondary: #328CC1; /* Azul Mais Claro */
+            --accent: #D9B310;
+            --light: #F4F7FA;
+            --dark: #1B1B1B;
+            --azul-cinza: #7B92AD;
+        }
+
     body {
         margin: 0;
         font-family: 'Segoe UI', Arial, sans-serif;
@@ -15,7 +24,7 @@
     }
 
     header {
-        background: rgb(0, 0, 139);
+        background: var(--primary);
         color: white;
         padding: 20px;
         text-align: center;
@@ -166,10 +175,12 @@
 <body>
 
 <header>
-    <h1>
-        <i class="fa-solid fa-shield-halved"></i>
-        Sistema de Monitoramento de Cargas
-    </h1>
+    <a href="/" style="text-decoration: none; color: white;">
+        <h1>
+            <i class="fa-solid fa-shield-halved"></i>
+            GeoSync - Antifraude
+        </h1>
+    </a>
 </header>
 
 <div class="container">

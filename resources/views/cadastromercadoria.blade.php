@@ -212,11 +212,11 @@
 
     <div class="navbar">
         <div class="logo">
-            <a href="/" style="text-decoration:none;">GeoSync</a>
+            <a href="/" style="text-decoration:none; color:var(--azul-institucional);">GeoSync</a>
         </div>
 
         <div class="menu">
-            <a href="{{ route('remessas.index') }}">Remessas</a>
+            <a href="{{ route('remessas.index') }}">Dashboard</a>
         </div>
     </div>
 

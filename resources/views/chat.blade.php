@@ -103,7 +103,7 @@ button{
 <div class="app">
 
     <div class="header">
-        <strong>🚚 Central Logística</strong>
+        <a href="/" style="text-decoration: none; color: var(--secondary)"><strong>🚚 GeoSync</strong></a>
     </div>
 
     <div id="chat" class="chat"></div>

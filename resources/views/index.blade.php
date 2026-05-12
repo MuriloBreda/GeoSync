@@ -26,6 +26,65 @@ background: #f5f7fb;
 overflow-x: hidden;
 }
 
+/* CSS FORÇADO PARA PADRONIZAÇÃO */
+
+.topbar {
+    background: #0B1F36 !important;
+    color: white !important;
+    padding: 8px 0 !important;
+    font-size: 14px !important;
+    display: block !important;
+}
+
+.top-icons i {
+    margin-left: 12px !important;
+    color: white !important;
+    transition: 0.3s !important;
+}
+
+.navbar {
+    background: #f1f1f1 !important;
+    padding: 15px 0 !important;
+    border-bottom: 1px solid #e1e1e1 !important;
+}
+
+.logo {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    font-size: 26px !important;
+    font-weight: bold !important;
+    color: #1C3F6E !important;
+    text-decoration: none !important;
+}
+
+.logo img {
+    width: 65px !important;
+    height: auto !important;
+}
+
+.menu {
+    display: flex !important;
+    gap: 30px !important;
+}
+
+.menu a {
+    text-decoration: none !important;
+    color: #1C3F6E !important;
+    font-size: 15px !important;
+    font-weight: 700 !important; /* Peso igual ao seu index */
+}
+
+.btn {
+    background-color: #022553 !important;
+    color: white !important;
+    padding: 10px 20px !important;
+    border-radius: 8px !important; /* Arredondamento solicitado */
+    text-decoration: none !important;
+    display: inline-block !important;
+    font-weight: 600 !important;
+}
+
 .container{
 width:90%;
 margin:auto;
@@ -65,10 +124,29 @@ background:#f1f1f1;
 padding:15px 0;
 }
 
-.logo{
+/* .logo{
 font-size:26px;
 font-weight:bold;
 color:var(--azul-institucional);
+} */
+
+.logo{
+display:flex;
+align-items:center;
+gap:12px;
+font-size:26px;
+font-weight:bold;
+color:var(--azul-institucional);
+}
+
+.logo img{
+width:70px;
+height:auto;
+display:block;
+}
+
+.logo span{
+margin-top:2px;
 }
 
 .menu{
@@ -293,37 +371,42 @@ font-size:14px;
 color:var(--azul-cinza);
 }
 
+.footer-col p {
+    color: rgb(174, 170, 170)
+}
+
 </style>
 </head>
 
 <body>
 
-<!-- TOPBAR -->
 <div class="topbar">
-<div class="container flex">
-<div>+55 (19) 99401-0744 | contact@geosync.com</div>
-<div class="top-icons">
-<a href="https://www.facebook.com/?locale=pt_BR" target="_blank"><i class="fab fa-facebook-f"></i></a>
-<a href="https://x.com/?lang=pt" target="_blank"><i class="fab fa-twitter"></i></a>
-<a href="https://br.linkedin.com/?mcid=6821526239111716925&src=go-pa&trk=sem-ga_campid.12619604099_asid.149519181115_crid.725790844702_kw.linkedin_d.c_tid.kwd-148086543_n.g_mt.e_geo.1032087&cid=&gclsrc=aw.ds&gad_source=1&gad_campaignid=12619604099&gbraid=0AAAAABhL5JN4wzyXHl9v3KlEu0Ue8Qcgx&gclid=Cj0KCQjwy_fOBhC6ARIsAHKFB7-eoK4pgfFGsLmdO-reXead95oZ4BqlwNmRZrwmbZPk-SWcKZa35ykaAtqrEALw_wcB" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-<a href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i></a>
-</div>
-</div>
+    <div class="container flex">
+        <div><i class="fas fa-phone-alt"></i> +55 (19) 99401-0744 | <i class="fas fa-envelope"></i> contact@geosync.com</div>
+        <div class="top-icons">
+            <a href="https://www.facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://x.com" target="_blank"><i class="fab fa-twitter"></i></a>
+            <a href="https://br.linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+            <a href="https://www.instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </div>
 </div>
 
-<!-- NAVBAR -->
 <div class="navbar">
-<div class="container flex">
-<div class="logo"><i class="fa fa-truck"></i> GeoSync</div>
+    <div class="container flex">
+        <a href="/" class="logo" style="text-decoration:none; display:flex; align-items:center; gap:12px;">
+            <img src="{{ asset('img/Logo.png') }}" alt="Logo" style="width: 65px;">
+            <span>GeoSync</span>
+        </a>
 
-<div class="menu">
-<a href="/">Início</a>
-<a href="/about">Sobre</a>
-<a href="/contact">Contato</a>
-</div>
+        <div class="menu">
+            <a href="/" style="font-weight:600;">Início</a>
+            <a href="/about" style="font-weight:600;">Sobre</a>
+            <a href="/contact" style="font-weight:600;">Contato</a>
+        </div>
 
-<a href="/login" class="btn" style="border-radius: 8px;">Solicitar um Serviço</a>
-</div>
+        <a href="/login" class="btn" style="border-radius: 8px; background-color: #022553; font-weight:600;">Solicitar um Serviço</a>
+    </div>
 </div>
 
 <!-- HEADER -->
@@ -381,12 +464,12 @@ Trabalhamos com foco em resultados, buscando constantemente melhorias para entre
 Acreditamos que a união entre conhecimento técnico e visão estratégica é essencial para transformar desafios logísticos em oportunidades de crescimento.</p>
 
 <div class="team">
-<div class="member"><img src="https://randomuser.me/api/portraits/men/1.jpg"></div>
-<div class="member"><img src="https://randomuser.me/api/portraits/women/2.jpg"></div>
-<div class="member"><img src="https://randomuser.me/api/portraits/men/3.jpg"></div>
-<div class="member"><img src="https://randomuser.me/api/portraits/women/4.jpg"></div>
-<div class="member"><img src="https://randomuser.me/api/portraits/men/5.jpg"></div>
-<div class="member"><img src="https://randomuser.me/api/portraits/women/6.jpg"></div>
+<div class="member"><img src="{{ asset('img/murilo.jpg') }}" alt="Murilo"></div>
+<div class="member"><img src="{{ asset('img/thayla.png') }}" alt="Thayla"></div>
+<div class="member"><img src="{{ asset('img/lucas.png') }}" alt="Lucas"></div>
+<div class="member"><img src="{{ asset('img/theo.png') }}" alt="Théo"></div>
+<div class="member"><img src="{{ asset('img/mickael.png') }}" alt="Mickael"></div>
+<div class="member"><img src="{{ asset('img/mariaClara.png') }}" alt="Maria Clara"></div>
 </div>
 
 </div>
@@ -415,18 +498,19 @@ Acreditamos que a união entre conhecimento técnico e visão estratégica é es
 <a href="/about">Sobre</a>
 <a href="/login">Serviços</a>
 <a href="/contact">Contato</a>
+<a href="/pagamento">Planos</a>
 <a href="/avaliar">Feedback</a>
 </div>
 
 <div class="footer-col">
 <h3>Contato</h3>
-<p>📍 Tambaú - SP</p>
-<p>📞 (19) 99401-0744</p>
-<p>📧 contact@geosync.com</p>
+<p> R. Cap. David, 56 - Centro, Tambaú - SP, 13710-000</p>
+<p>(19) 99401-0744</p>
+<p>contact@geosync.com</p>
 </div>
 
 <div class="footer-col">
-<h3>Newsletter</h3>
+<h3>Boletim informativo</h3>
 <p>Receba novidades da plataforma</p>
 <div class="newsletter">
 <input type="text" placeholder="Seu email">
