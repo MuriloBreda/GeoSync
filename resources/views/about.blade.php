@@ -10,135 +10,178 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
+
+        /* =========================
+           VARIÁVEIS UNIFICADAS
+        ========================= */
         :root {
-            --primary: #072051; /* Azul Escuro Institucional */
-            --secondary: #328CC1; /* Azul Mais Claro */
+            --azul-institucional: #1C3F6E;
+            --azul-tech: #2F6FB2;
+            --azul-profundo: #0B1F36;
+            --azul-claro: #E6EEF8;
+            --azul-cinza: #7B92AD;
+
+            --primary: #072051;
+            --secondary: #328CC1;
             --accent: #D9B310;
             --light: #F4F7FA;
             --dark: #1B1B1B;
-            --azul-cinza: #7B92AD;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: var(--light);
+            background: #f5f7fb;
             overflow-x: hidden;
+            color: var(--dark);
         }
 
-        /* CSS FORÇADO PARA PADRONIZAÇÃO */
+        /* =========================
+           CONTAINER / FLEX
+        ========================= */
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: auto;
+        }
 
-.topbar {
-    background: #0B1F36 !important;
-    color: white !important;
-    padding: 8px 0 !important;
-    font-size: 14px !important;
-    display: block !important;
-}
+        .flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
 
-.top-icons i {
-    margin-left: 12px !important;
-    color: white !important;
-    transition: 0.3s !important;
-}
-
-.navbar {
-    background: #f1f1f1 !important;
-    padding: 15px 0 !important;
-    border-bottom: 1px solid #e1e1e1 !important;
-}
-
-.logo {
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-    font-size: 26px !important;
-    font-weight: bold !important;
-    color: #1C3F6E !important;
-    text-decoration: none !important;
-}
-
-.logo img {
-    width: 65px !important;
-    height: auto !important;
-}
-
-.menu {
-    display: flex !important;
-    gap: 30px !important;
-}
-
-.menu a {
-    text-decoration: none !important;
-    color: #1C3F6E !important;
-    font-size: 15px !important;
-    font-weight: 700 !important; /* Peso igual ao seu index */
-}
-
-.btn {
-    background-color: #022553 !important;
-    color: white !important;
-    padding: 10px 20px !important;
-    border-radius: 8px !important; /* Arredondamento solicitado */
-    text-decoration: none !important;
-    display: inline-block !important;
-    font-weight: 600 !important;
-}
-
-        /* NAVBAR */
-        .navbar-custom {
-            background: #fff;
-            padding: 15px 0;
+        /* =========================
+           TOPBAR
+        ========================= */
+        .topbar {
+            background: linear-gradient(90deg, var(--azul-profundo), var(--azul-institucional));
+            padding: 10px 0;
+            color: white;
+            font-size: 14px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         }
 
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .menu a {
-            margin: 0 15px;
-            color: var(--primary);
+        .topbar a {
+            color: white;
             text-decoration: none;
-            font-weight: 500;
             transition: 0.3s;
         }
 
-        .menu a:hover {
-            color: var(--secondary);
+        .topbar a:hover {
+            color: #7fb7ff;
         }
 
-        .btn-custom {
-            background: var(--primary);
-            color: white !important;
-            padding: 10px 25px;
-            border-radius: 8px;
+        .top-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .top-icons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .top-icons a {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: 0.3s;
+            color: white;
+        }
+
+        .top-icons a:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-3px);
+        }
+
+        /* =========================
+           NAVBAR
+        ========================= */
+        .navbar {
+            background: #ffffff;
+            padding: 15px 0;
+            border-bottom: 1px solid #e8e8e8;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--azul-institucional);
+            text-decoration: none;
+        }
+
+        .logo img {
+            width: 65px;
+        }
+
+        .menu {
+            display: flex;
+            gap: 35px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: var(--azul-institucional);
+            font-size: 15px;
+            font-weight: 700;
+            transition: 0.3s;
+            padding-bottom: 5px;
+        }
+
+        .menu a:hover {
+            color: var(--azul-tech);
+        }
+
+        .btn {
+            background: linear-gradient(90deg, #0B3B7A, #022553);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
             text-decoration: none;
             font-weight: 600;
             transition: 0.3s;
         }
 
-        .btn-custom:hover {
-            background: var(--secondary);
-            transform: scale(1.05);
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
 
-        /* HEADER */
+        /* =========================
+           HEADER
+        ========================= */
         .jumbotron {
-            background: linear-gradient(rgba(7, 32, 81, 0.9), rgba(7, 32, 81, 0.9)),
-            url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d');
+            background:
+                linear-gradient(rgba(11,31,54,0.85), rgba(11,31,54,0.85)),
+                url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d');
             background-size: cover;
             background-position: center;
             color: white;
-            border-radius: 0;
-            padding: 80px 0;
+            padding: 90px 0;
             margin-bottom: 0;
         }
 
-        h1, h2, h3 { font-weight: 700; }
-
-        /* NOVA CLASSE PARA CAIXA SOBRE NÓS */
+        /* =========================
+           ABOUT
+        ========================= */
         .about-card {
             background: white;
             border-radius: 12px;
@@ -147,17 +190,19 @@
         }
 
         .text-primary-custom {
-            color: var(--primary) !important;
+            color: var(--primary);
         }
 
-        /* TEAM CARDS - Fundo Branco */
+        /* =========================
+           TEAM
+        ========================= */
         .team {
             border-radius: 12px;
             overflow: hidden;
             transition: 0.3s;
-            border: none;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            background: white; /* Garante o fundo branco */
+            background: white;
+            height: 100%;
         }
 
         .team:hover {
@@ -165,20 +210,29 @@
             box-shadow: 0 12px 30px rgba(0,0,0,0.12);
         }
 
+        .team img {
+            height: 280px;
+            object-fit: cover;
+            width: 100%;
+        }
+
         .team-text {
-            background: var(--primary); /* Mantém o azul escuro para o texto */
+            background: var(--primary);
             color: white;
             padding: 20px;
             text-align: center;
         }
 
-        .team-text h5 { font-weight: 600; margin-bottom: 5px; }
-        .team-text small { color: var(--secondary); font-weight: 500; }
+        .team-text small {
+            color: var(--secondary);
+        }
 
-        /* FOOTER ESTILIZADO */
+        /* =========================
+           FOOTER (UNIFICADO)
+        ========================= */
         .footer {
             background: var(--primary);
-            color: #0B1F36;
+            color: #bfcbdd;
             padding: 60px 0 20px;
             margin-top: 50px;
         }
@@ -195,27 +249,21 @@
         }
 
         .footer h3 {
-            color: #2f6fb2;
-            font-size: 20px;
+            color: var(--secondary);
             margin-bottom: 20px;
         }
 
-        .footer p {
-            color: #7b92ad;
-            font-size: 14px;
-        }
-
+        .footer p,
         .footer a {
-            display: block;
-            color: #7b92ad;
-            margin-bottom: 10px;
-            text-decoration: none;
+            color: #a3b8cc;
             font-size: 14px;
-            transition: 0.3s;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 10px;
         }
 
         .footer a:hover {
-            color: var(--secondary);
+            color: white;
             padding-left: 5px;
         }
 
@@ -223,12 +271,6 @@
             display: flex;
             gap: 15px;
             margin-top: 15px;
-        }
-
-        .social a {
-            display: inline-block;
-            color: white;
-            font-size: 18px;
         }
 
         .newsletter {
@@ -241,6 +283,7 @@
             padding: 10px;
             border: none;
             border-radius: 4px 0 0 4px;
+            outline: none;
         }
 
         .newsletter button {
@@ -249,7 +292,7 @@
             color: white;
             padding: 10px 15px;
             border-radius: 0 4px 4px 0;
-            font-weight: 600;
+            cursor: pointer;
         }
 
         .copy {
@@ -257,89 +300,29 @@
             padding-top: 20px;
             margin-top: 40px;
             border-top: 1px solid rgba(255,255,255,0.1);
-            color: #aaa;
+            color: #7b92ad;
             font-size: 13px;
         }
 
-        /* CONTAINER */
-.container{
-width:90%;
-margin:auto;
-}
+        /* =========================
+           RESPONSIVO
+        ========================= */
+        @media (max-width: 768px) {
+            .flex {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
 
-/* FLEX */
-.flex{
-display:flex;
-justify-content:space-between;
-align-items:center;
-flex-wrap:wrap;
-}
+            .menu {
+                flex-direction: column;
+                gap: 10px;
+            }
 
-/* TOPBAR */
-.topbar{
-background: var(--primary);
-color:white;
-padding:8px 0;
-font-size:14px;
-}
-
-/* ICONES */
-.top-icons i{
-margin-left:12px;
-cursor:pointer;
-transition:0.3s;
-color:white;
-}
-
-.top-icons i:hover{
-color:var(--secondary);
-}
-
-/* NAVBAR */
-.navbar{
-background:#f1f1f1;
-padding:15px 0;
-}
-
-.logo{
-font-size:26px;
-font-weight:bold;
-color:var(--primary);
-}
-
-.menu{
-display:flex;
-gap:30px;
-}
-
-.menu a{
-text-decoration:none;
-color:var(--primary);
-font-size:15px;
-font-weight:500;
-transition:0.3s;
-}
-
-.menu a:hover{
-color:var(--secondary);
-}
-
-/* BOTÃO */
-.btn{
-background:var(--primary);
-color:white;
-padding:10px 20px;
-border-radius:4px;
-text-decoration:none;
-background-color:#022553;
-transition:0.3s;
-}
-
-.btn:hover{
-background:var(--secondary);
-color:white;
-}
-
+            .about-card {
+                padding: 20px;
+            }
+        }
 
     </style>
 </head>
@@ -370,6 +353,7 @@ color:white;
             <a href="/" style="font-weight:600;">Início</a>
             <a href="/about" style="font-weight:600;">Sobre</a>
             <a href="/contact" style="font-weight:600;">Contato</a>
+            <a href="/pagamento" style="font-weight:600;">Planos</a>
         </div>
 
         <a href="/login" class="btn" style="border-radius: 8px; background-color: #022553; font-weight:600;">Solicitar um Serviço</a>

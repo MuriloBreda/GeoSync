@@ -13,12 +13,13 @@
         }
 
         body {
-            height: 100vh;
+            min-height: 100vh;
             background: url('/img/imagemFundo.png') no-repeat center center/cover;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
+            padding: 20px;
         }
 
         body::before {
@@ -31,12 +32,15 @@
 
         .container {
             z-index: 1;
+            width: 100%;
+            display: flex;
+            justify-content: center;
         }
 
         .card {
             background: #fff;
             width: 550px;
-            height: 550px;
+            min-height: 550px;
             padding: 20px;
             border-radius: 14px;
             text-align: center;
@@ -44,7 +48,7 @@
 
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            gap: 15px;
         }
 
         .card h1 {
@@ -52,17 +56,18 @@
             font-size: 22px;
         }
 
-        .card h2 {
-            font-size: 16px;
+        .logo {
+            width: 150px;
+            margin: 0 auto;
+            display: block;
         }
 
         form {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 6px;
+            gap: 12px;
             text-align: left;
-            font-family:Arial, Helvetica, sans-serif;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .full {
@@ -70,7 +75,9 @@
         }
 
         label {
-            font-size: 11px;
+            font-size: 14px;
+            margin-bottom: 4px;
+            display: block;
         }
 
         input {
@@ -95,6 +102,7 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
+            transition: 0.3s;
         }
 
         button:hover {
@@ -103,22 +111,55 @@
 
         .btn-login {
             display: block;
-            margin-top: 5px;
             padding: 12px;
             background: #1342a8;
             color: white;
             text-decoration: none;
             border-radius: 6px;
             font-size: 15px;
-            font-family: Arial, Helvetica, sans-serif;
-        }
-
-        label{
-            font-size: 14px
         }
 
         .btn-login:hover {
             background: #397bc3;
+        }
+
+        .errors {
+            grid-column: span 2;
+            background: #ffe5e5;
+            border: 1px solid #ffb3b3;
+            color: #cc0000;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .errors ul {
+            padding-left: 18px;
+        }
+
+        span {
+            font-size: 13px;
+            color: #333;
+        }
+
+        @media(max-width: 600px) {
+            .card {
+                width: 100%;
+            }
+
+            form {
+                grid-template-columns: 1fr;
+            }
+
+            .full,
+            button,
+            .errors {
+                grid-column: span 1;
+            }
+        }
+
+        #imagemLogo:hover {
+            transform: scale(1.05);
+            transition: 0.3s;
         }
     </style>
 </head>
@@ -126,68 +167,95 @@
 <body>
 
 <div class="container">
+
     <div class="card">
 
         <h1>Tela de Cadastro</h1>
 
-        <a href="/"><img src="{{ asset('img/Logo.png') }}" alt="Logo GeoSync" style="width: 150px; margin: auto"></a>
+        <a href="/">
+            <img src="{{ asset('img/Logo.png') }}" class="logo" alt="Logo GeoSync" id="imagemLogo">
+        </a>
 
         <form action="/register" method="POST">
 
-    @csrf
-    
-    @if($errors->any())
-    <div style="color: red">
-        <ul>
-            @foreach ($errors->all() as $erro)
-                <li>{{$erro}}</li>
-            @endforeach
-        </ul>
-    </div>
-    @endif
+            @csrf
 
-    <div class="full">
-        <label>Nome</label>
-        <input type="text" name="name" placeholder="Seu nome" required>
-    </div>
+            @if($errors->any())
+                <div class="errors">
+                    <ul>
+                        @foreach ($errors->all() as $erro)
+                            <li>{{ $erro }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-    <div class="full">
-        <label>Email</label>
-        <input type="email" name="email" placeholder="Seu email" required>
-    </div>
+            <div class="full">
+                <label>Nome</label>
+                <input type="text" name="name" placeholder="Seu nome" required>
+            </div>
 
-    <div>
-        <label>Senha</label>
-        <input type="password" name="password" placeholder="Senha" required>
-    </div>
+            <div class="full">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="Seu email" required>
+            </div>
 
-    <div>
-        <label>Confirmar</label>
-        <input type="password" name="password_confirmation" placeholder="Confirmar senha" required>
-    </div>
+            <div>
+                <label>Senha</label>
+                <input type="password" name="password" placeholder="Senha" required>
+            </div>
 
-    <button type="submit">Cadastrar</button>
+            <div>
+                <label>Confirmar</label>
+                <input type="password" name="password_confirmation" placeholder="Confirmar senha" required>
+            </div>
 
-</form>
+            <button type="submit">Cadastrar</button>
 
-        <span style="margin: 5px">Já tem conta?</span>
+        </form>
+
+        <span>Já tem conta?</span>
+
         <a href="/login" class="btn-login">Entrar</a>
 
     </div>
+
 </div>
 
+<!-- VLibras -->
 <div vw class="enabled">
     <div vw-access-button class="active"></div>
     <div vw-plugin-wrapper>
-      <div class="vw-plugin-top-wrapper"></div>
+        <div class="vw-plugin-top-wrapper"></div>
     </div>
-  </div>
+</div>
 
 <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
-
 <script>
     new window.VLibras.Widget('https://vlibras.gov.br/app');
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@if($errors->any())
+<script>
+Swal.fire({
+    icon: 'error',
+    title: 'Erro no cadastro',
+    html: `{!! implode('<br>', $errors->all()) !!}`
+});
+</script>
+@endif
+
+@if(session('error'))
+<script>
+Swal.fire({
+    icon: 'error',
+    title: 'Erro',
+    text: @json(session('error'))
+});
+</script>
+@endif
 
 </body>
 </html>

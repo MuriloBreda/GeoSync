@@ -125,6 +125,11 @@
         .sucesso {
             color: green;
         }
+
+        #imagemLogo:hover {
+            transform: scale(1.05);
+            transition: 0.3s;
+        }
     </style>
 </head>
 
@@ -135,7 +140,7 @@
 
         <h1>Tela de Login</h1>
 
-        <a href="/"><img src="{{ asset('img/Logo.png') }}" alt="Logo GeoSync" style="width: 160px; margin: 5px auto"></a>
+        <a href="/"><img src="{{ asset('img/Logo.png') }}" alt="Logo GeoSync" style="width: 160px; margin: 5px auto" id="imagemLogo"></a>
 
         <form action="/login" method="POST">
             @csrf
@@ -174,13 +179,111 @@
     <div vw-plugin-wrapper>
       <div class="vw-plugin-top-wrapper"></div>
     </div>
-  </div>
+  </div>    
 
 <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
 
 <script>
     new window.VLibras.Widget('https://vlibras.gov.br/app');
 </script>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const form = document.querySelector('form');
+
+    form.addEventListener('submit', function (e) {
+
+        const email = document.querySelector('input[name="email"]').value.trim();
+        const password = document.querySelector('input[name="password"]').value.trim();
+
+        if (!email || !password) {
+            e.preventDefault();
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: 'Preencha todos os campos'
+            });
+        }
+
+    });
+
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const form = document.querySelector('form');
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault(); // bloqueia o aviso padrão do navegador
+
+        const email = document.querySelector('input[name="email"]').value.trim();
+        const password = document.querySelector('input[name="password"]').value.trim();
+
+        // EMAIL vazio
+        if (!email) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campo obrigatório',
+                text: 'Preencha o email'
+            });
+            return;
+        }
+
+        // SENHA vazia
+        if (!password) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campo obrigatório',
+                text: 'Preencha a senha'
+            });
+            return;
+        }
+
+        // se tudo ok → envia o form
+        Swal.fire({
+            icon: 'question',
+            title: 'Entrando...',
+            text: 'Verificando dados',
+            timer: 1800,
+            showConfirmButton: false,
+            willClose: () => {
+                form.submit();
+            }
+        });
+
+    });x
+
+});
+</script>
+
+@if(session('success'))
+<script>
+Swal.fire({
+    icon: 'success',
+    title: 'Bem-vindo!',
+    text: @json(session('success'))
+});
+</script>
+@endif
+
+@if(session('error'))
+<script>
+Swal.fire({
+    icon: 'error',
+    title: 'Erro',
+    text: @json(session('error'))
+});
+</script>
+@endif
 
 </body>
 </html>

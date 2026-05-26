@@ -35,7 +35,7 @@ class AuthController extends Controller
         $credenciais = $request->only('email', 'password');
 
         if (Auth::attempt($credenciais)) {
-            return redirect('/service');
+            return redirect('/service')->with('success', 'Login realizado com sucesso!');
         }
 
         return back()->with('error', 'Email ou senha inválidos');

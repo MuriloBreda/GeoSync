@@ -10,7 +10,10 @@
 
 <style>
 
-/* PALETA */
+/* =========================
+PALETA
+========================= */
+
 :root{
 --azul-institucional:#1C3F6E;
 --azul-tech:#2F6FB2;
@@ -19,78 +22,27 @@
 --azul-cinza:#7B92AD;
 }
 
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
 body{
-margin: 0;
-font-family: 'Poppins', sans-serif;
-background: #f5f7fb;
-overflow-x: hidden;
+font-family:'Poppins', sans-serif;
+background:#f5f7fb;
+overflow-x:hidden;
 }
 
-/* CSS FORÇADO PARA PADRONIZAÇÃO */
-
-.topbar {
-    background: #0B1F36 !important;
-    color: white !important;
-    padding: 8px 0 !important;
-    font-size: 14px !important;
-    display: block !important;
-}
-
-.top-icons i {
-    margin-left: 12px !important;
-    color: white !important;
-    transition: 0.3s !important;
-}
-
-.navbar {
-    background: #f1f1f1 !important;
-    padding: 15px 0 !important;
-    border-bottom: 1px solid #e1e1e1 !important;
-}
-
-.logo {
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-    font-size: 26px !important;
-    font-weight: bold !important;
-    color: #1C3F6E !important;
-    text-decoration: none !important;
-}
-
-.logo img {
-    width: 65px !important;
-    height: auto !important;
-}
-
-.menu {
-    display: flex !important;
-    gap: 30px !important;
-}
-
-.menu a {
-    text-decoration: none !important;
-    color: #1C3F6E !important;
-    font-size: 15px !important;
-    font-weight: 700 !important; /* Peso igual ao seu index */
-}
-
-.btn {
-    background-color: #022553 !important;
-    color: white !important;
-    padding: 10px 20px !important;
-    border-radius: 8px !important; /* Arredondamento solicitado */
-    text-decoration: none !important;
-    display: inline-block !important;
-    font-weight: 600 !important;
-}
+/* =========================
+CONTAINER
+========================= */
 
 .container{
 width:90%;
 margin:auto;
 }
 
-/* FLEX */
 .flex{
 display:flex;
 justify-content:space-between;
@@ -98,190 +50,357 @@ align-items:center;
 flex-wrap:wrap;
 }
 
-/* TOPBAR */
+/* =========================
+TOPBAR
+========================= */
+
 .topbar{
-background: var(--azul-profundo);
+background:linear-gradient(90deg,#0B1F36,#1C3F6E);
+padding:10px 0;
 color:white;
-padding:8px 0;
 font-size:14px;
+box-shadow:0 2px 10px rgba(0,0,0,0.08);
 }
 
-/* Icones do index */
-.top-icons i{
-margin-left:12px;
-cursor:pointer;
+.topbar a{
+color:white;
+text-decoration:none;
 transition:0.3s;
-color: white
 }
 
-.top-icons i:hover{
-color:var(--azul-tech);
+.topbar a:hover{
+color:#7fb7ff;
 }
 
-/* NAVBAR */
+.top-info{
+display:flex;
+gap:20px;
+align-items:center;
+}
+
+.top-icons{
+display:flex;
+gap:10px;
+align-items:center;
+}
+
+.top-icons a{
+width:34px;
+height:34px;
+display:flex;
+align-items:center;
+justify-content:center;
+border-radius:50%;
+transition:0.3s;
+}
+
+.top-icons a:hover{
+background:rgba(255,255,255,0.15);
+transform:translateY(-3px);
+}
+
+/* =========================
+NAVBAR
+========================= */
+
 .navbar{
-background:#f1f1f1;
+background:#ffffff;
 padding:15px 0;
+border-bottom:1px solid #e8e8e8;
+position:sticky;
+top:0;
+z-index:1000;
 }
-
-/* .logo{
-font-size:26px;
-font-weight:bold;
-color:var(--azul-institucional);
-} */
 
 .logo{
 display:flex;
 align-items:center;
 gap:12px;
-font-size:26px;
-font-weight:bold;
+font-size:28px;
+font-weight:700;
 color:var(--azul-institucional);
+text-decoration:none;
 }
 
 .logo img{
-width:70px;
-height:auto;
-display:block;
-}
-
-.logo span{
-margin-top:2px;
+width:65px;
 }
 
 .menu{
 display:flex;
-gap:30px;
+gap:35px;
 }
 
 .menu a{
+position:relative;
 text-decoration:none;
 color:var(--azul-institucional);
 font-size:15px;
+font-weight:700;
+transition:0.3s;
+padding-bottom:5px;
+}
+
+.menu a::after{
+content:"";
+position:absolute;
+left:0;
+bottom:0;
+width:0%;
+height:2px;
+background:#2F6FB2;
+transition:0.4s;
+border-radius:10px;
+}
+
+.menu a:hover{
+color:#2F6FB2;
+}
+
+.menu a:hover::after{
+width:100%;
 }
 
 .btn{
-background:var(--azul-institucional);
+background:linear-gradient(90deg,#0B3B7A,#022553);
 color:white;
-padding:10px 20px;
-border-radius:4px;
+padding:12px 24px;
+border-radius:10px;
 text-decoration:none;
-background-color: #022553
+font-weight:600;
+transition:0.3s;
 }
 
-/* HEADER */
+.btn:hover{
+transform:translateY(-3px);
+box-shadow:0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* =========================
+HEADER
+========================= */
+
 .header{
 background:
 linear-gradient(rgba(11,31,54,0.85), rgba(11,31,54,0.85)),
 url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
 background-size:cover;
 background-position:center;
-padding:120px 20px;
+padding:140px 20px;
 text-align:center;
 color:white;
 }
 
 .header h1{
-font-size:40px;
-}
-
-/* SEÇÕES */
-.section{
-padding:35px 0;
-}
-
-/* BLOCO */
-.block{
-background:white;
-border-radius:10px;
-padding:30px;
-box-shadow:0 5px 15px rgba(0,0,0,0.05);
+font-size:58px;
 margin-bottom:15px;
+}
+
+.header p{
+font-size:22px;
 text-align:center;
 }
 
-.block-left{
-text-align:left;
+/* =========================
+SEÇÕES
+========================= */
+
+.section{
+padding:70px 0;
+}
+
+/* =========================
+BLOCOS
+========================= */
+
+.block{
+background:white;
+border-radius:20px;
+padding:35px;
+box-shadow:0 8px 25px rgba(0,0,0,0.06);
+margin-bottom:20px;
 }
 
 .block img{
 width:100%;
-max-height:180px;
+max-height:250px;
 object-fit:cover;
-border-radius:10px;
-margin-bottom:15px;
+border-radius:15px;
+margin-bottom:25px;
 }
 
-/* TEXTOS */
+/* =========================
+TEXTOS
+========================= */
+
 h2{
-font-size:28px;
-margin-bottom:10px;
+font-size:40px;
+margin-bottom:20px;
+color:#0B1F36;
 }
 
 h3{
-font-size:22px;
+font-size:26px;
+margin-bottom:15px;
 }
 
 p{
 font-size:18px;
-line-height:1.6;
+line-height:1.9;
+text-align:justify;
+color:#444;
 }
 
 .texto-grande{
 font-size:20px;
-line-height:1.8;
+line-height:1.9;
+text-align:justify;
 }
 
-/* SERVIÇOS */
+/* =========================
+SERVIÇOS
+========================= */
+
 .services{
 display:flex;
-gap:10px;
+gap:25px;
 flex-wrap:wrap;
 }
 
 .service{
 flex:1;
-min-width:250px;
+min-width:300px;
 }
 
-/* EQUIPE */
-.team{
+.service .block{
+transition:0.4s;
+cursor:pointer;
+}
+
+.service .block:hover{
+transform:translateY(-10px);
+box-shadow:0 15px 35px rgba(0,0,0,0.12);
+}
+
+/* =========================
+DIFERENCIAIS
+========================= */
+
+.diferenciais-topo{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:40px;
+flex-wrap:wrap;
+margin-bottom:60px;
+}
+
+.diferenciais-texto{
+flex:1;
+min-width:320px;
+}
+
+.diferenciais-texto span{
+color:#2F6FB2;
+font-weight:700;
+letter-spacing:1px;
+font-size:15px;
+}
+
+.diferenciais-texto h2{
+font-size:60px;
+line-height:1.1;
+margin:20px 0;
+}
+
+.diferenciais-texto h2 span{
+font-size:60px;
+}
+
+.diferenciais-imagem{
+flex:1;
+min-width:320px;
+}
+
+.diferenciais-imagem img{
+width:100%;
+height:500px;
+object-fit:cover;
+border-radius:25px;
+box-shadow:0 10px 30px rgba(0,0,0,0.12);
+}
+
+/* CARDS */
+
+.cards{
 display:flex;
 justify-content:center;
-gap:20px;
+gap:30px;
 flex-wrap:wrap;
-margin-top:25px;
 }
 
-.member{
-text-align:center;
+.card{
+width:320px;
+padding:35px;
+border-radius:25px;
+transition:0.4s;
+cursor:pointer;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+.card:hover{
+transform:translateY(-10px);
+box-shadow:0 15px 35px rgba(0,0,0,0.18);
+}
+
+.card.azul{
+background:linear-gradient(180deg,#0B3B7A,#022553);
+color:white;
+}
+
+.card.branco{
 background:white;
-padding:15px;
-border-radius:10px;
-width:160px;
-box-shadow:0 5px 15px rgba(0,0,0,0.05);
-transition:0.3s;
 }
 
-.member:hover{
-transform:translateY(-8px);
-}
-
-.member img{
-width:100px;
-height:100px;
+.icon-circle{
+width:85px;
+height:85px;
 border-radius:50%;
-object-fit:cover;
-border:3px solid var(--azul-tech);
+display:flex;
+align-items:center;
+justify-content:center;
+margin-bottom:25px;
+background:white;
 }
 
-/* ===== FOOTER MELHORADO ===== */
+.icon-circle.borda{
+border:2px solid #2F6FB2;
+}
+
+.icon-circle i{
+font-size:38px;
+color:#0B3B7A;
+}
+
+.card p{
+font-size:18px;
+line-height:1.8;
+text-align:justify;
+}
+
+.card.azul p{
+color:#f1f1f1;
+}
+
+/* =========================
+FOOTER
+========================= */
 
 .footer{
-background: linear-gradient(180deg,#0B1F36,#08192c);
+background:linear-gradient(180deg,#0B1F36,#08192c);
 color:white;
-padding:60px 0 20px;
-margin-top:40px;
+padding:70px 0 20px;
+margin-top:50px;
 }
 
 .footer-grid{
@@ -296,53 +415,51 @@ min-width:250px;
 }
 
 .footer h3{
-color:var(--azul-tech);
+color:#2F6FB2;
 margin-bottom:15px;
 }
 
 .footer p{
-color:var(--azul-claro);
+color:#c7d2df;
 font-size:15px;
 }
 
 .footer a{
 display:block;
-color:var(--azul-cinza);
-margin-bottom:8px;
+color:#a7b4c5;
+margin-bottom:10px;
 text-decoration:none;
 transition:0.3s;
 }
 
 .footer a:hover{
-color:var(--azul-tech);
+color:#2F6FB2;
 padding-left:5px;
 }
 
-/* SOCIAL */
 .social{
 display:flex;
 gap:10px;
-margin-top:10px;
+margin-top:15px;
 }
 
-.social i{
-width:35px;
-height:35px;
+.social a{
+width:38px;
+height:38px;
 display:flex;
 align-items:center;
 justify-content:center;
 border-radius:50%;
-border:1px solid var(--azul-cinza);
-cursor:pointer;
+border:1px solid #7B92AD;
 transition:0.3s;
 }
 
-.social i:hover{
-background:var(--azul-tech);
-border-color:var(--azul-tech);
+.social a:hover{
+background:#2F6FB2;
+border-color:#2F6FB2;
+transform:translateY(-3px);
 }
 
-/* NEWSLETTER */
 .newsletter{
 display:flex;
 margin-top:15px;
@@ -353,26 +470,23 @@ flex:1;
 padding:12px;
 border:none;
 outline:none;
+border-radius:8px 0 0 8px;
 }
 
 .newsletter button{
-background:var(--azul-tech);
+background:#2F6FB2;
 border:none;
 color:white;
 padding:0 20px;
 cursor:pointer;
+border-radius:0 8px 8px 0;
 }
 
-/* COPYRIGHT */
 .copy{
 text-align:center;
-margin-top:30px;
+margin-top:40px;
 font-size:14px;
-color:var(--azul-cinza);
-}
-
-.footer-col p {
-    color: rgb(174, 170, 170)
+color:#9db0c7;
 }
 
 </style>
@@ -380,149 +494,280 @@ color:var(--azul-cinza);
 
 <body>
 
+<!-- TOPBAR -->
+
 <div class="topbar">
-    <div class="container flex">
-        <div><i class="fas fa-phone-alt"></i> +55 (19) 99401-0744 | <i class="fas fa-envelope"></i> contact@geosync.com</div>
-        <div class="top-icons">
-            <a href="https://www.facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
-            <a href="https://x.com" target="_blank"><i class="fab fa-twitter"></i></a>
-            <a href="https://br.linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-            <a href="https://www.instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
-        </div>
-    </div>
+<div class="container flex">
+
+<div class="top-info">
+
+<a href="#">
+<i class="fas fa-phone-alt"></i>
++55 (19) 99401-0744
+</a>
+
+<a href="#">
+<i class="fas fa-envelope"></i>
+contact@geosync.com
+</a>
+
 </div>
 
+<div class="top-icons">
+
+<a href="https://www.facebook.com" target="_blank">
+<i class="fab fa-facebook-f"></i>
+</a>
+
+<a href="https://x.com" target="_blank">
+<i class="fab fa-twitter"></i>
+</a>
+
+<a href="https://br.linkedin.com" target="_blank">
+<i class="fab fa-linkedin-in"></i>
+</a>
+
+<a href="https://www.instagram.com" target="_blank">
+<i class="fab fa-instagram"></i>
+</a>
+
+</div>
+
+</div>
+</div>
+
+<!-- NAVBAR -->
+
 <div class="navbar">
-    <div class="container flex">
-        <a href="/" class="logo" style="text-decoration:none; display:flex; align-items:center; gap:12px;">
-            <img src="{{ asset('img/Logo.png') }}" alt="Logo" style="width: 65px;">
-            <span>GeoSync</span>
-        </a>
+<div class="container flex">
 
-        <div class="menu">
-            <a href="/" style="font-weight:600;">Início</a>
-            <a href="/about" style="font-weight:600;">Sobre</a>
-            <a href="/contact" style="font-weight:600;">Contato</a>
-        </div>
+<a href="/" class="logo">
+<img src="{{ asset('img/Logo.png') }}" alt="Logo">
+<span>GeoSync</span>
+</a>
 
-        <a href="/login" class="btn" style="border-radius: 8px; background-color: #022553; font-weight:600;">Solicitar um Serviço</a>
-    </div>
+<div class="menu">
+<a href="/">Início</a>
+<a href="/about">Sobre</a>
+<a href="/contact">Contato</a>
+<a href="/pagamento">Planos</a>
+</div>
+
+<a href="/login" class="btn">
+Solicitar um Serviço
+</a>
+
+</div>
 </div>
 
 <!-- HEADER -->
+
 <div class="header">
 <h1>Rastreamento Inteligente</h1>
-<p>Controle total da sua logística em tempo real</p>
+<p style="color: white">Controle total da sua logística em tempo real</p>
 </div>
 
 <!-- SOBRE -->
+
 <div class="container section">
+
 <div class="block">
+
 <img src="https://images.unsplash.com/photo-1553413077-190dd305871c">
+
 <h2>Sobre a GeoSync</h2>
+
 <p class="texto-grande">
 A GeoSync é uma plataforma inteligente de rastreamento e monitoramento logístico desenvolvida para oferecer total controle sobre operações de transporte e armazenamento.
 Com tecnologia moderna e interface intuitiva, nossa solução permite acompanhar veículos, cargas e rotas em tempo real, garantindo mais segurança, eficiência e transparência em toda a cadeia logística.
 Nosso objetivo é transformar a forma como empresas gerenciam sua logística, reduzindo custos operacionais, otimizando processos e aumentando a confiabilidade nas entregas.
 </p>
+
 </div>
+
 </div>
 
 <!-- SERVIÇOS -->
+
 <div class="container section">
+
 <div class="services">
 
 <div class="service">
 <div class="block">
+
 <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7">
+
 <h3>Transporte Terrestre</h3>
-<p class="texto-grande">O módulo de transporte terrestre da GeoSync permite o gerenciamento completo da sua frota com rastreamento em tempo real.
-Acompanhe rotas, monitore paradas, identifique desvios e tenha acesso a dados estratégicos que ajudam na tomada de decisões mais rápidas e eficientes.
-Com mais controle e visibilidade, sua operação se torna mais segura, reduzindo riscos e garantindo entregas dentro do prazo.</p>
+
+<p class="texto-grande">
+O módulo de transporte terrestre da GeoSync permite o gerenciamento completo da sua frota com rastreamento em tempo real.
+Acompanhe rotas, monitore paradas, identifique desvios e tenha acesso a dados estratégicos.
+</p>
+
 </div>
 </div>
 
 <div class="service">
 <div class="block">
+
 <img src="https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc">
+
 <h3>Armazenamento</h3>
-<p class="texto-grande">A GeoSync também oferece soluções para controle de armazenamento, proporcionando organização e eficiência na gestão de estoques.
-Tenha total visibilidade sobre entradas, saídas e localização dos produtos, evitando perdas, retrabalho e falhas operacionais.
-Com integração logística, sua empresa ganha mais produtividade e controle em todas as etapas do processo.</p>
-</div>
-</div>
+
+<p class="texto-grande">
+A GeoSync também oferece soluções para controle de armazenamento, proporcionando organização e eficiência na gestão de estoques.
+</p>
 
 </div>
 </div>
 
-<!-- EQUIPE -->
+</div>
+
+</div>
+
+<!-- DIFERENCIAIS -->
+
 <div class="container section">
-<div class="block">
-<h2>Nossa equipe</h2>
-<p>Nossa equipe é formada por profissionais especializados em tecnologia, logística e análise de dados, comprometidos em desenvolver soluções eficientes e inovadoras.
-Trabalhamos com foco em resultados, buscando constantemente melhorias para entregar uma plataforma cada vez mais completa, segura e intuitiva.
-Acreditamos que a união entre conhecimento técnico e visão estratégica é essencial para transformar desafios logísticos em oportunidades de crescimento.</p>
 
-<div class="team">
-<div class="member"><img src="{{ asset('img/murilo.jpg') }}" alt="Murilo"></div>
-<div class="member"><img src="{{ asset('img/thayla.png') }}" alt="Thayla"></div>
-<div class="member"><img src="{{ asset('img/lucas.png') }}" alt="Lucas"></div>
-<div class="member"><img src="{{ asset('img/theo.png') }}" alt="Théo"></div>
-<div class="member"><img src="{{ asset('img/mickael.png') }}" alt="Mickael"></div>
-<div class="member"><img src="{{ asset('img/mariaClara.png') }}" alt="Maria Clara"></div>
-</div>
+<div class="diferenciais-topo">
 
-<div vw class="enabled">
-    <div vw-access-button class="active"></div>
-    <div vw-plugin-wrapper>
-      <div class="vw-plugin-top-wrapper"></div>
-    </div>
-  </div>
+<div class="diferenciais-texto">
+
+<span>NOSSOS DIFERENCIAIS</span>
+
+<h2>
+Por que escolher <br>
+<span style="color:#2F6FB2;">a GeoSync?</span>
+</h2>
+
+<p class="texto-grande">
+A GeoSync oferece soluções inteligentes para rastreamento e monitoramento logístico em tempo real.
+</p>
+
+<p class="texto-grande">
+Com tecnologia moderna e uma plataforma intuitiva, ajudamos empresas a otimizar processos e reduzir custos.
+</p>
 
 </div>
+
+<div class="diferenciais-imagem">
+<img src="https://images.unsplash.com/photo-1519003722824-194d4455a60c">
+</div>
+
+</div>
+
+<!-- CARDS -->
+
+<div class="cards">
+
+<div class="card azul">
+
+<div class="icon-circle">
+<i class="fas fa-shield-alt"></i>
+</div>
+
+<h3>Segurança</h3>
+
+<p>
+Monitoramento contínuo e proteção das operações logísticas.
+</p>
+
+</div>
+
+<div class="card branco">
+
+<div class="icon-circle borda">
+<i class="fas fa-chart-line"></i>
+</div>
+
+<h3>Eficiência</h3>
+
+<p>
+Mais produtividade e redução de custos através da tecnologia.
+</p>
+
+</div>
+
+<div class="card azul">
+
+<div class="icon-circle">
+<i class="fas fa-map-marker-alt"></i>
+</div>
+
+<h3>Rastreamento</h3>
+
+<p>
+Acompanhamento em tempo real de cargas, rotas e veículos.
+</p>
+
+</div>
+
+</div>
+
 </div>
 
 <!-- FOOTER -->
+
 <div class="footer">
+
 <div class="container">
 
 <div class="footer-grid">
 
 <div class="footer-col">
+
 <h3>GeoSync</h3>
-<p>Sistema inteligente de rastreamento e logística em tempo real.</p>
+
+<p>
+Sistema inteligente de rastreamento e logística em tempo real.
+</p>
+
 <div class="social">
-<a href="https://www.facebook.com/?locale=pt_BR" target="_blank"><i class="fab fa-facebook-f"></i></a>
-<a href="https://x.com/?lang=pt" target="_blank"><i class="fab fa-twitter"></i></a>
-<a href="https://br.linkedin.com/?mcid=6821526239111716925&src=go-pa&trk=sem-ga_campid.12619604099_asid.149519181115_crid.725790844702_kw.linkedin_d.c_tid.kwd-148086543_n.g_mt.e_geo.1032087&cid=&gclsrc=aw.ds&gad_source=1&gad_campaignid=12619604099&gbraid=0AAAAABhL5JN4wzyXHl9v3KlEu0Ue8Qcgx&gclid=Cj0KCQjwy_fOBhC6ARIsAHKFB7-eoK4pgfFGsLmdO-reXead95oZ4BqlwNmRZrwmbZPk-SWcKZa35ykaAtqrEALw_wcB" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-<a href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i></a>
+
+<a href="#"><i class="fab fa-facebook-f"></i></a>
+<a href="#"><i class="fab fa-twitter"></i></a>
+<a href="#"><i class="fab fa-linkedin-in"></i></a>
+<a href="#"><i class="fab fa-instagram"></i></a>
+
 </div>
+
 </div>
 
 <div class="footer-col">
+
 <h3>Links</h3>
+
 <a href="/">Início</a>
 <a href="/about">Sobre</a>
-<a href="/login">Serviços</a>
+<a href="/service">Serviço</a>
 <a href="/contact">Contato</a>
 <a href="/pagamento">Planos</a>
-<a href="/avaliar">Feedback</a>
+<a href="/avaliacao">Feedback</a>
+
 </div>
 
 <div class="footer-col">
+
 <h3>Contato</h3>
-<p> R. Cap. David, 56 - Centro, Tambaú - SP, 13710-000</p>
+
+<p>R. Cap. David, 56 - Centro, Tambaú - SP</p>
 <p>(19) 99401-0744</p>
 <p>contact@geosync.com</p>
+
 </div>
 
 <div class="footer-col">
+
 <h3>Boletim informativo</h3>
-<p>Receba novidades da plataforma</p>
+
+<p>Receba novidades da plataforma.</p>
+
 <div class="newsletter">
 <input type="text" placeholder="Seu email">
 <button>Enviar</button>
 </div>
+
 </div>
 
 </div>
@@ -532,12 +777,13 @@ Acreditamos que a união entre conhecimento técnico e visão estratégica é es
 </div>
 
 </div>
+
 </div>
 
 <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
 
 <script>
-    new window.VLibras.Widget('https://vlibras.gov.br/app');
+new window.VLibras.Widget('https://vlibras.gov.br/app');
 </script>
 
 </body>

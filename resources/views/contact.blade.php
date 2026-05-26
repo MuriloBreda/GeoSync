@@ -343,38 +343,385 @@ iframe{
     color: var(--azul-tech);
     padding-left: 5px; /* Efeito de destaque ao passar o mouse */
 }
+
+:root {
+            --azul-institucional: #1C3F6E;
+            --azul-tech: #2F6FB2;
+            --azul-profundo: #0B1F36;
+            --azul-claro: #E6EEF8;
+            --azul-cinza: #7B92AD;
+
+            --primary: #072051;
+            --secondary: #328CC1;
+            --accent: #D9B310;
+            --light: #F4F7FA;
+            --dark: #1B1B1B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f5f7fb;
+            overflow-x: hidden;
+            color: var(--dark);
+        }
+
+        /* =========================
+           CONTAINER / FLEX
+        ========================= */
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* =========================
+           TOPBAR
+        ========================= */
+        .topbar {
+            background: linear-gradient(90deg, var(--azul-profundo), var(--azul-institucional));
+            padding: 10px 0;
+            color: white;
+            font-size: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .topbar a {
+            color: white;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .topbar a:hover {
+            color: #7fb7ff;
+        }
+
+        .top-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .top-icons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .top-icons a {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: 0.3s;
+            color: white;
+        }
+
+        .top-icons a:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-3px);
+        }
+
+        /* =========================
+           NAVBAR
+        ========================= */
+        .navbar {
+            background: #ffffff;
+            padding: 15px 0;
+            border-bottom: 1px solid #e8e8e8;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--azul-institucional);
+            text-decoration: none;
+        }
+
+        .logo img {
+            width: 65px;
+        }
+
+        .menu {
+            display: flex;
+            gap: 35px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: var(--azul-institucional);
+            font-size: 15px;
+            font-weight: 700;
+            transition: 0.3s;
+            padding-bottom: 5px;
+        }
+
+        .menu a:hover {
+            color: var(--azul-tech);
+        }
+
+        .btn {
+            background: linear-gradient(90deg, #0B3B7A, #022553);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        /* =========================
+           HEADER
+        ========================= */
+        .jumbotron {
+            background:
+                linear-gradient(rgba(11,31,54,0.85), rgba(11,31,54,0.85)),
+                url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 90px 0;
+            margin-bottom: 0;
+        }
+
+        /* =========================
+           ABOUT
+        ========================= */
+        .about-card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .text-primary-custom {
+            color: var(--primary);
+        }
+
+        /* =========================
+           TEAM
+        ========================= */
+        .team {
+            border-radius: 12px;
+            overflow: hidden;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            background: white;
+            height: 100%;
+        }
+
+        .team:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        }
+
+        .team img {
+            height: 280px;
+            object-fit: cover;
+            width: 100%;
+        }
+
+        .team-text {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .team-text small {
+            color: var(--secondary);
+        }
+
+        /* =========================
+           FOOTER (UNIFICADO)
+        ========================= */
+        .footer {
+            background: var(--primary);
+            color: #bfcbdd;
+            padding: 60px 0 20px;
+            margin-top: 50px;
+        }
+
+        .footer-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .footer-col {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .footer h3 {
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+
+        .footer p,
+        .footer a {
+            color: #a3b8cc;
+            font-size: 14px;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .footer a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+
+        .social {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .newsletter {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        .newsletter input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 4px 0 0 4px;
+            outline: none;
+        }
+
+        .newsletter button {
+            background: var(--secondary);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+
+        .copy {
+            text-align: center;
+            padding-top: 20px;
+            margin-top: 40px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #7b92ad;
+            font-size: 13px;
+        }
+
+        /* =========================
+           RESPONSIVO
+        ========================= */
+        @media (max-width: 768px) {
+            .flex {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .menu {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .about-card {
+                padding: 20px;
+            }
+        }
 </style>
 </head>
 
 <body>
 
+<!-- TOPBAR -->
+
 <div class="topbar">
-    <div class="container flex">
-        <div><i class="fas fa-phone-alt"></i> +55 (19) 99401-0744 | <i class="fas fa-envelope"></i> contact@geosync.com</div>
-        <div class="top-icons">
-            <a href="https://www.facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
-            <a href="https://x.com" target="_blank"><i class="fab fa-twitter"></i></a>
-            <a href="https://br.linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-            <a href="https://www.instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
-        </div>
-    </div>
+<div class="container flex">
+
+<div class="top-info">
+
+<a href="#">
+<i class="fas fa-phone-alt"></i>
++55 (19) 99401-0744
+</a>
+
+<a href="#">
+<i class="fas fa-envelope"></i>
+contact@geosync.com
+</a>
+
 </div>
 
+<div class="top-icons">
+
+<a href="https://www.facebook.com" target="_blank">
+<i class="fab fa-facebook-f"></i>
+</a>
+
+<a href="https://x.com" target="_blank">
+<i class="fab fa-twitter"></i>
+</a>
+
+<a href="https://br.linkedin.com" target="_blank">
+<i class="fab fa-linkedin-in"></i>
+</a>
+
+<a href="https://www.instagram.com" target="_blank">
+<i class="fab fa-instagram"></i>
+</a>
+
+</div>
+
+</div>
+</div>
+
+<!-- NAVBAR -->
+
 <div class="navbar">
-    <div class="container flex">
-        <a href="/" class="logo" style="text-decoration:none; display:flex; align-items:center; gap:12px;">
-            <img src="{{ asset('img/Logo.png') }}" alt="Logo" style="width: 65px;">
-            <span>GeoSync</span>
-        </a>
+<div class="container flex">
 
-        <div class="menu">
-            <a href="/" style="font-weight:600;">Início</a>
-            <a href="/about" style="font-weight:600;">Sobre</a>
-            <a href="/contact" style="font-weight:600;">Contato</a>
-        </div>
+<a href="/" class="logo">
+<img src="{{ asset('img/Logo.png') }}" alt="Logo">
+<span>GeoSync</span>
+</a>
 
-        <a href="/login" class="btn" style="border-radius: 8px; background-color: #022553; font-weight:600;">Solicitar um Serviço</a>
-    </div>
+<div class="menu">
+<a href="/">Início</a>
+<a href="/about">Sobre</a>
+<a href="/contact">Contato</a>
+<a href="/pagamento">Planos</a>
+</div>
+
+<a href="/login" class="btn">
+Solicitar um Serviço
+</a>
+
+</div>
 </div>
 
 <div class="header">
@@ -392,7 +739,7 @@ iframe{
         </div>
 
         <div class="contact-card">
-            <form action="{{ route('contato.store') }}" method="POST">
+            <form action="{{ route('contato.store') }}" method="POST" id="contactForm">
                 @csrf
                 <h2>Envie uma mensagem</h2>
                 <input type="text" name="nome" placeholder="Seu nome" class="input" required>
@@ -460,6 +807,60 @@ iframe{
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const form = document.getElementById("contactForm");
+
+    if (!form) return;
+
+    form.addEventListener("submit", function (e) {
+
+        // 🔥 impede o reload imediato (ESSENCIAL)
+        e.preventDefault();
+
+        Swal.fire({
+            title: "Enviando mensagem...",
+            text: "Aguarde um momento",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // 🔥 espera 600ms pra UX e envia depois
+        setTimeout(() => {
+            form.submit();
+        }, 600);
+    });
+
+});
+</script>
+
+@if(session('success'))
+<script>
+Swal.fire({
+    icon: 'success',
+    title: 'Sucesso!',
+    text: "{{ session('success') }}",
+    confirmButtonColor: '#2F6FB2'
+});
+</script>
+@endif
+
+@if($errors->any())
+<script>
+Swal.fire({
+    icon: 'error',
+    title: 'Erro!',
+    text: 'Verifique os campos e tente novamente',
+    confirmButtonColor: '#d33'
+});
+</script>
+@endif
 
 </body>
 </html>

@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Feedback do Cliente - GeoSync</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
-        /* Mantenha todo o seu CSS original aqui */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #eef2f7, #dfe7f3); color: #1e293b; min-height: 100vh;}
         header { background: rgba(30, 58, 95, 0.95); backdrop-filter: blur(10px); color: white; padding: 20px 40px; font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
@@ -21,15 +24,18 @@
         .stars { display: flex; gap: 8px; font-size: 40px; cursor: pointer; margin-bottom: 25px; }
         .stars span { color: #cbd5e1; transition: 0.2s; }
         .stars span.active { color: #f59e0b; text-shadow: 0 0 10px rgba(245,158,11,0.5); }
-        button { width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; color: white; background: #3b82f6; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        button:hover { background: #2563eb; transform: translateY(-2px); }
+        button { width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; color: white; background: rgba(30, 58, 95, 0.95); cursor: pointer; }
+        button:hover { transform: translateY(-2px); }
     </style>
 </head>
+
 <body>
 
 <header>
-    <i class="fa-solid fa-location-dot" style="color: white;"></i>
-    <a href="/" style="text-decoration: none; color: white;">GeoSync</a>
+    <a href="/" class="logo" style="text-decoration:none; display:flex; align-items:center; gap:12px;">
+            <img src="{{ asset('img/Logo.png') }}" alt="Logo" style="width: 65px; background: white; padding: 8px; border-radius: 8px;">
+            <span style="color: white">GeoSync</span>
+    </a>
 </header>
 
 <div class="container">
@@ -43,6 +49,7 @@
 
         <form action="{{ route('avaliacao.store') }}" method="POST" id="formAvaliacao">
             @csrf
+
             <input type="hidden" name="nota" id="inputNota" value="0">
 
             <label><i class="fa-regular fa-user"></i> Nome</label>
@@ -57,28 +64,15 @@
                 <span data-value="5">★</span>
             </div>
 
-            <label><i class="fa-regular fa-pen-to-square"></i> Observações</label>
-            <textarea name="comentario" placeholder="Conte-nos sobre sua experiência..."></textarea>
+            <label><i class="fa-regular fa-comment"></i> Observações</label>
+            <input type="text" name="comentario" placeholder="Conte-nos sobre sua experiência...">
 
             <button type="button" onclick="validarEnvio()">
-                <i class="fa-solid fa-paper-plane" style="color: white;"></i> Enviar Avaliação
+                <i class="fa-solid fa-paper-plane"></i> Enviar Avaliação
             </button>
         </form>
     </div>
 </div>
-
-<div vw class="enabled">
-    <div vw-access-button class="active"></div>
-    <div vw-plugin-wrapper>
-      <div class="vw-plugin-top-wrapper"></div>
-    </div>
-  </div>
-
-<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
-
-<script>
-    new window.VLibras.Widget('https://vlibras.gov.br/app');
-</script>
 
 <script>
     const stars = document.querySelectorAll('#stars span');
@@ -87,7 +81,7 @@
     stars.forEach(star => {
         star.addEventListener('click', () => {
             let value = star.getAttribute('data-value');
-            inputNota.value = value; // Salva o valor no input oculto para o PHP ler
+            inputNota.value = value;
 
             stars.forEach(s => s.classList.remove('active'));
             for (let i = 0; i < value; i++) {
@@ -98,15 +92,30 @@
 
     function validarEnvio() {
         if (inputNota.value == "0") {
-            alert("Por favor, selecione uma nota de 1 a 5 estrelas! ⭐");
+            Swal.fire({
+                icon: 'warning',
+                title: 'Atenção!',
+                text: 'Por favor, selecione uma nota de 1 a 5 estrelas ⭐'
+            });
             return;
         }
+
         document.getElementById('formAvaliacao').submit();
     }
 </script>
 
 @if(session('success'))
-    <script>alert("{{ session('success') }}");</script>
+<script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Sucesso!',
+        text: "{{ session('success') }}",
+        timer: 2000,
+        showConfirmButton: false
+    }).then(() => {
+        window.location.href = "/chat";
+    });
+</script>
 @endif
 
 </body>

@@ -103,7 +103,10 @@ button{
 <div class="app">
 
     <div class="header">
-        <a href="/" style="text-decoration: none; color: var(--secondary)"><strong>🚚 GeoSync</strong></a>
+        <a href="/" class="logo" style="text-decoration:none; display:flex; align-items:center; gap:12px;">
+            <img src="{{ asset('img/Logo.png') }}" alt="Logo" style="width: 65px;">
+            <span>GeoSync</span>
+        </a>
     </div>
 
     <div id="chat" class="chat"></div>
