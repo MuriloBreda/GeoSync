@@ -11,15 +11,15 @@ class Alerta extends Model
 
     protected $table = 'alertas';
 
+    // Alinhado com o banco de dados final e o Controller
     protected $fillable = [
-        'tipo_alerta',
-        'descricao',
+        'tipo',
+        'mensagem',
         'remessa_id'
     ];
-
-    // Relacionamento com remessa
+    
     public function remessa()
     {
-        return $this->belongsTo(Remessa::class);
+        return $this->belongsTo(Remessa::class, 'remessa_id');
     }
 }

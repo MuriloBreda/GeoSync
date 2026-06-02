@@ -245,72 +245,131 @@
             @endif
 
             <form action="{{ route('remessas.store') }}" method="POST">
-                @csrf
+    @csrf
 
-                <!-- DADOS -->
-                <div class="section">
-                    <h3>📦 Dados da Remessa</h3>
+    <!-- DADOS -->
+    <div class="section">
+        <h3>📦 Dados da Remessa</h3>
 
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Código de Rastreio</label>
-                            <input type="text" name="codigo_rastreio" value="{{ old('codigo_rastreio') }}" required>
-                        </div>
+        <div class="form-grid">
 
-                        <div class="form-group">
-                            <label>Status</label>
-                            <select name="status" required id="status">
-                                <option value="">Selecione o status</option>
-                                <option value="Em transporte">🚚 Em transporte</option>
-                                <option value="Entregue">✅ Entregue</option>
-                                <option value="Atrasado">⚠️ Atrasado</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+            <div class="form-group">
+                <label>Código de Rastreio</label>
+                <input
+                    type="text"
+                    name="codigo_rastreio"
+                    value="{{ old('codigo_rastreio') }}"
+                    placeholder="Ex: GS-001"
+                    required
+                >
+            </div>
 
-                <!-- LOGÍSTICA -->
-                <div class="section">
-                    <h3>🚚 Logística</h3>
+            <div class="form-group">
+                <label>Status</label>
+                <select name="status" required>
+                    <option value="">Selecione</option>
+                    <option value="Em Rota">🚚 Em Rota</option>
+                    <option value="Entregue">✅ Entregue</option>
+                    <option value="Atrasado">⚠️ Atrasado</option>
+                </select>
+            </div>
 
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Origem</label>
-                            <input type="text" name="origem" value="{{ old('origem') }}" required>
-                        </div>
+            <div class="form-group full">
+                <label>Motorista Responsável</label>
 
-                        <div class="form-group">
-                            <label>Destino</label>
-                            <input type="text" name="destino" value="{{ old('destino') }}" required>
-                        </div>
+                <select name="motorista_id">
+                    <option value="">Selecione um motorista</option>
 
-                        <div class="form-group">
-                            <label>Tipo de Carga</label>
-                            <input type="text" name="tipo_carga" value="{{ old('tipo_carga') }}" required>
-                        </div>
+                    @foreach($motoristas as $motorista)
+                        <option
+                            value="{{ $motorista->id }}"
+                            {{ old('motorista_id') == $motorista->id ? 'selected' : '' }}
+                        >
+                            {{ $motorista->name }}
+                        </option>
+                    @endforeach
 
-                        <div class="form-group">
-                            <label>Peso (kg)</label>
-                            <input type="number" step="0.01" name="peso" value="{{ old('peso') }}" required>
-                        </div>
-                    </div>
-                </div>
+                </select>
+            </div>
 
-                <!-- ENTREGA -->
-                <div class="section">
-                    <h3>📅 Entrega</h3>
+        </div>
+    </div>
 
-                    <div class="form-grid">
-                        <div class="form-group full">
-                            <label>Previsão de Entrega</label>
-                            <input type="date" name="previsao_entrega" value="{{ old('previsao_entrega') }}" required>
-                        </div>
-                    </div>
-                </div>
+    <!-- LOGÍSTICA -->
+    <div class="section">
+        <h3>🚚 Logística</h3>
 
-                <button type="submit">Cadastrar Remessa</button>
+        <div class="form-grid">
 
-            </form>
+            <div class="form-group">
+                <label>Origem</label>
+                <input
+                    type="text"
+                    name="origem"
+                    value="{{ old('origem') }}"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Destino</label>
+                <input
+                    type="text"
+                    name="destino"
+                    value="{{ old('destino') }}"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Tipo de Carga</label>
+                <input
+                    type="text"
+                    name="tipo_carga"
+                    value="{{ old('tipo_carga') }}"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Peso (kg)</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    name="peso"
+                    value="{{ old('peso') }}"
+                    required
+                >
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ENTREGA -->
+    <div class="section">
+        <h3>📅 Entrega</h3>
+
+        <div class="form-grid">
+
+            <div class="form-group full">
+                <label>Previsão de Entrega</label>
+
+                <input
+                    type="date"
+                    name="previsao_entrega"
+                    value="{{ old('previsao_entrega') }}"
+                    required
+                >
+            </div>
+
+        </div>
+    </div>
+
+    <button type="submit">
+        Cadastrar Remessa
+    </button>
+
+</form>
         </div>
     </div>
 

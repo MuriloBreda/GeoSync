@@ -101,9 +101,92 @@ CREATE TABLE contatos (
     created_at TIMESTAMP NULL
 );
 
+
+ALTER TABLE users
+ADD tipo ENUM(
+    'admin',
+    'cliente',
+    'motorista'
+) DEFAULT 'cliente';
+
+ALTER TABLE users
+ADD telefone VARCHAR(20) NULL;
+
+ALTER TABLE users
+ADD cpf VARCHAR(14) NULL;
+
+ALTER TABLE users
+ADD dark_mode BOOLEAN DEFAULT FALSE;
+
+
+ALTER TABLE remessas
+ADD cliente_id BIGINT UNSIGNED NULL,
+ADD motorista_id BIGINT UNSIGNED NULL;
+
+
+ALTER TABLE remessas
+ADD CONSTRAINT fk_cliente
+FOREIGN KEY (cliente_id)
+REFERENCES users(id);
+
+ALTER TABLE remessas
+ADD CONSTRAINT fk_motorista
+FOREIGN KEY (motorista_id)
+REFERENCES users(id);
+
+ALTER TABLE remessas
+DROP FOREIGN KEY remessas_ibfk_1;
+
+ALTER TABLE remessas
+DROP COLUMN user_id;
+
+ALTER TABLE remessas
+ADD cliente_id BIGINT UNSIGNED NULL,
+ADD motorista_id BIGINT UNSIGNED NULL;
+
+ALTER TABLE remessas
+ADD CONSTRAINT fk_cliente
+FOREIGN KEY (cliente_id)
+REFERENCES users(id)
+ON DELETE SET NULL;
+
+ALTER TABLE remessas
+ADD CONSTRAINT fk_motorista
+FOREIGN KEY (motorista_id)
+REFERENCES users(id)
+ON DELETE SET NULL;
+
+
+CREATE TABLE ocorrencias (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    remessa_id BIGINT UNSIGNED NOT NULL,
+    motorista_id BIGINT UNSIGNED NOT NULL,
+
+    tipo VARCHAR(100) NOT NULL,
+    descricao TEXT NOT NULL,
+
+    nivel ENUM('Baixo','Médio','Alto','Crítico') DEFAULT 'Baixo',
+
+    created_at TIMESTAMP NULL DEFAULT NULL,
+    updated_at TIMESTAMP NULL DEFAULT NULL,
+
+    CONSTRAINT fk_ocorrencia_remessa
+        FOREIGN KEY (remessa_id)
+        REFERENCES remessas(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_ocorrencia_motorista
+        FOREIGN KEY (motorista_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+
 select * from users;
 select * from remessas;
 select * from alertas;
+select * from ocorrencias;
 select * from localizacoes;
 select * from pagamentos;
 select * from avaliacoes;

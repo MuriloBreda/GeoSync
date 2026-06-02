@@ -28,10 +28,39 @@ padding:0;
 box-sizing:border-box;
 }
 
+html{
+    scroll-behavior:smooth;
+}
+
 body{
-font-family:'Poppins', sans-serif;
-background:#f5f7fb;
-overflow-x:hidden;
+    font-family:'Poppins', sans-serif;
+    background:#f5f7fb;
+    overflow-x:hidden;
+    position:relative;
+}
+
+/* Glow Background */
+
+body::before{
+    content:"";
+    position:fixed;
+    width:700px;
+    height:700px;
+    background:radial-gradient(circle,#2F6FB220 0%,transparent 70%);
+    top:-250px;
+    right:-250px;
+    z-index:-1;
+}
+
+body::after{
+    content:"";
+    position:fixed;
+    width:600px;
+    height:600px;
+    background:radial-gradient(circle,#0B3B7A15 0%,transparent 70%);
+    bottom:-250px;
+    left:-250px;
+    z-index:-1;
 }
 
 /* =========================
@@ -104,26 +133,39 @@ NAVBAR
 ========================= */
 
 .navbar{
-background:#ffffff;
-padding:15px 0;
-border-bottom:1px solid #e8e8e8;
-position:sticky;
-top:0;
-z-index:1000;
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    padding:18px 0;
+    position:sticky;
+    top:0;
+    z-index:9999;
+    border-bottom:1px solid rgba(255,255,255,0.4);
+    box-shadow:0 8px 30px rgba(0,0,0,.05);
 }
 
 .logo{
-display:flex;
-align-items:center;
-gap:12px;
-font-size:28px;
-font-weight:700;
-color:var(--azul-institucional);
-text-decoration:none;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:30px;
+    font-weight:700;
+    color:var(--azul-institucional);
+    text-decoration:none;
+    transition:.4s;
+}
+
+.logo:hover{
+    transform:scale(1.04);
 }
 
 .logo img{
-width:65px;
+    width:65px;
+    transition:.5s;
+}
+
+.logo:hover img{
+    transform:rotate(-8deg) scale(1.08);
 }
 
 .menu{
@@ -132,13 +174,18 @@ gap:35px;
 }
 
 .menu a{
-position:relative;
-text-decoration:none;
-color:var(--azul-institucional);
-font-size:15px;
-font-weight:700;
-transition:0.3s;
-padding-bottom:5px;
+    position:relative;
+    text-decoration:none;
+    color:var(--azul-institucional);
+    font-size:15px;
+    font-weight:700;
+    transition:.3s;
+    padding-bottom:6px;
+}
+
+.menu a:hover{
+    color:#2F6FB2;
+    transform:translateY(-2px);
 }
 
 .menu a::after{
@@ -153,28 +200,56 @@ transition:0.4s;
 border-radius:10px;
 }
 
-.menu a:hover{
-color:#2F6FB2;
-}
 
 .menu a:hover::after{
 width:100%;
 }
 
 .btn{
-background:linear-gradient(90deg,#0B3B7A,#022553);
-color:white;
-padding:12px 24px;
-border-radius:10px;
-text-decoration:none;
-font-weight:600;
-transition:0.3s;
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(
+        135deg,
+        #0B3B7A,
+        #1C5CC8
+    );
+    color:white;
+    padding:14px 28px;
+    border-radius:14px;
+    text-decoration:none;
+    font-weight:600;
+    transition:.4s;
+    box-shadow:
+    0 10px 25px rgba(47,111,178,.25);
 }
 
 .btn:hover{
-transform:translateY(-3px);
-box-shadow:0 8px 20px rgba(0,0,0,0.15);
+    transform:translateY(-4px);
+    box-shadow:
+    0 20px 40px rgba(47,111,178,.35);
 }
+
+.btn::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:-120%;
+    width:100%;
+    height:100%;
+    background:
+    linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,.4),
+        transparent
+    );
+    transition:.7s;
+}
+
+.btn:hover::before{
+    left:120%;
+}
+
 
 /* =========================
 HEADER
@@ -214,11 +289,22 @@ BLOCOS
 ========================= */
 
 .block{
-background:white;
-border-radius:20px;
-padding:35px;
-box-shadow:0 8px 25px rgba(0,0,0,0.06);
-margin-bottom:20px;
+    background:white;
+    border-radius:24px;
+    padding:35px;
+    margin-bottom:20px;
+
+    transition:.4s;
+
+    box-shadow:
+    0 12px 30px rgba(0,0,0,.06);
+}
+
+.block:hover{
+    transform:translateY(-8px);
+
+    box-shadow:
+    0 25px 50px rgba(0,0,0,.12);
 }
 
 .block img{
@@ -340,17 +426,46 @@ flex-wrap:wrap;
 }
 
 .card{
-width:320px;
-padding:35px;
-border-radius:25px;
-transition:0.4s;
-cursor:pointer;
-box-shadow:0 10px 25px rgba(0,0,0,0.08);
+    width:320px;
+    padding:35px;
+    border-radius:25px;
+    transition:.5s;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+
+    box-shadow:
+    0 15px 35px rgba(0,0,0,.08);
+}
+
+.card::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:-100%;
+    width:100%;
+    height:100%;
+    background:
+    linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.25),
+    transparent
+    );
+    transition:.7s;
+}
+
+.card:hover::before{
+    left:120%;
 }
 
 .card:hover{
-transform:translateY(-10px);
-box-shadow:0 15px 35px rgba(0,0,0,0.18);
+    transform:
+    translateY(-12px)
+    scale(1.03);
+
+    box-shadow:
+    0 30px 50px rgba(0,0,0,.15);
 }
 
 .card.azul{
@@ -363,14 +478,26 @@ background:white;
 }
 
 .icon-circle{
-width:85px;
-height:85px;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-margin-bottom:25px;
-background:white;
+    width:90px;
+    height:90px;
+    border-radius:50%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:white;
+
+    box-shadow:
+    0 10px 25px rgba(47,111,178,.18);
+
+    margin-bottom:25px;
+
+    transition:.4s;
+}
+
+.card:hover .icon-circle{
+    transform:rotate(10deg) scale(1.1);
 }
 
 .icon-circle.borda{
@@ -397,10 +524,33 @@ FOOTER
 ========================= */
 
 .footer{
-background:linear-gradient(180deg,#0B1F36,#08192c);
-color:white;
-padding:70px 0 20px;
-margin-top:50px;
+    background:
+    linear-gradient(
+    180deg,
+    #08192c,
+    #050f1c
+    );
+
+    color:white;
+    padding:90px 0 20px;
+    position:relative;
+}
+
+.footer::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:1px;
+
+    background:
+    linear-gradient(
+    90deg,
+    transparent,
+    #2F6FB2,
+    transparent
+    );
 }
 
 .footer-grid{
@@ -487,6 +637,21 @@ text-align:center;
 margin-top:40px;
 font-size:14px;
 color:#9db0c7;
+}
+
+@keyframes fadeUp{
+    from{
+        opacity:0;
+        transform:translateY(40px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+.section{
+    animation:fadeUp 1s ease;
 }
 
 </style>
@@ -740,10 +905,10 @@ Sistema inteligente de rastreamento e logística em tempo real.
 
 <a href="/">Início</a>
 <a href="/about">Sobre</a>
-<a href="/service">Serviço</a>
+<a href="/login">Serviço</a>
 <a href="/contact">Contato</a>
 <a href="/pagamento">Planos</a>
-<a href="/avaliacao">Feedback</a>
+<a href="/avaliar">Feedback</a>
 
 </div>
 

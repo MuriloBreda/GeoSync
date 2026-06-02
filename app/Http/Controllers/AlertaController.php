@@ -26,14 +26,18 @@ class AlertaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'tipo_alerta' => 'required|max:100',
-            'descricao' => 'required|max:255',
-            'remessa_id' => 'required|exists:remessas,id'
+            'remessa_id' => 'required|exists:remessas,id',
+            'tipo'       => 'required|max:100',
+            'mensagem'   => 'required'
         ]);
 
-        Alerta::create($request->all());
+        Alerta::create([
+            'remessa_id' => $request->remessa_id,
+            'tipo'       => $request->tipo,
+            'mensagem'   => $request->mensagem,
+        ]);
 
-        return redirect()->back()->with('success', 'Alerta criado!');
+        return back()->with('success', 'Alerta enviado com sucesso!');
     }
 
     // 🔍 MOSTRAR
@@ -48,23 +52,25 @@ class AlertaController extends Controller
     {
         $alerta = Alerta::findOrFail($id);
         $remessas = Remessa::all();
-
         return view('alertas.edit', compact('alerta', 'remessas'));
     }
 
     // 🔄 ATUALIZAR
     public function update(Request $request, $id)
     {
+        // Corrigido para validar os campos corretos da tabela
         $request->validate([
-            'tipo_alerta' => 'required|max:100',
-            'descricao' => 'required|max:255'
+            'tipo'     => 'required|max:100',
+            'mensagem' => 'required'
         ]);
 
         $alerta = Alerta::findOrFail($id);
-        $alerta->update($request->all());
+        $alerta->update([
+            'tipo'     => $request->tipo,
+            'mensagem' => $request->mensagem,
+        ]);
 
-        return redirect()->route('alertas.index')
-            ->with('success', 'Alerta atualizado!');
+        return redirect()->route('alertas.index')->with('success', 'Alerta atualizado!');
     }
 
     // ❌ EXCLUIR
@@ -72,7 +78,6 @@ class AlertaController extends Controller
     {
         $alerta = Alerta::findOrFail($id);
         $alerta->delete();
-
         return redirect()->back()->with('success', 'Alerta removido!');
     }
 }

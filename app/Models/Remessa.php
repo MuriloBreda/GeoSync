@@ -2,15 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Remessa extends Model
 {
-    use HasFactory;
-
-    protected $table = 'remessas';
-
     protected $fillable = [
         'codigo_rastreio',
         'origem',
@@ -19,24 +14,27 @@ class Remessa extends Model
         'peso',
         'previsao_entrega',
         'status',
-        'user_id'
+        'cliente_id',
+        'motorista_id'
     ];
 
-    // Relacionamento com usuário
-    public function user()
+    public function cliente()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,'cliente_id');
     }
 
-    // Relacionamento com alertas
-    public function alertas()
+    public function motorista()
     {
-        return $this->hasMany(Alerta::class);
+        return $this->belongsTo(User::class,'motorista_id');
     }
 
-    // Relacionamento com localizações
     public function localizacoes()
     {
         return $this->hasMany(Localizacao::class);
+    }
+
+    public function alertas()
+    {
+        return $this->hasMany(Alerta::class);
     }
 }

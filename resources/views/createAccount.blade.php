@@ -88,7 +88,20 @@
             border: 1px solid #ccc;
         }
 
+        select {
+            width: 100%;
+            padding: 10px;
+            font-size: 13px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
         input:focus {
+            outline: none;
+            border: 1px solid #2F6FB2;
+        }
+
+        select:focus {
             outline: none;
             border: 1px solid #2F6FB2;
         }
@@ -192,12 +205,31 @@
 
             <div class="full">
                 <label>Nome</label>
-                <input type="text" name="name" placeholder="Seu nome" required>
+                <input type="text" name="name" value="{{ old('name') }}" placeholder="Seu nome" required>
             </div>
 
             <div class="full">
                 <label>Email</label>
-                <input type="email" name="email" placeholder="Seu email" required>
+                <input type="email" name="email" value="{{ old('email') }}" placeholder="Seu email" required>
+            </div>
+
+            <div class="full">
+                <label>Tipo de Conta</label>
+                <select name="tipo" required>
+                    <option value="">Selecione...</option>
+                    <option value="cliente" {{ old('tipo') == 'cliente' ? 'selected' : '' }}>Cliente</option>
+                    <option value="motorista" {{ old('tipo') == 'motorista' ? 'selected' : '' }}>Motorista</option>
+                </select>
+            </div>
+
+            <div>
+                <label>CPF</label>
+                <input type="text" name="cpf" id="cpf" value="{{ old('cpf') }}" placeholder="000.000.000-00" required>
+            </div>
+
+            <div>
+                <label>Telefone</label>
+                <input type="text" name="telefone" id="telefone" value="{{ old('telefone') }}" placeholder="(00) 00000-0000" required>
             </div>
 
             <div>
@@ -222,7 +254,6 @@
 
 </div>
 
-<!-- VLibras -->
 <div vw class="enabled">
     <div vw-access-button class="active"></div>
     <div vw-plugin-wrapper>
@@ -236,6 +267,25 @@
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Máscara de CPF (000.000.000-00)
+    document.getElementById('cpf').addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, '');
+        value = value.replace(/^(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
+        value = value.replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4');
+        e.target.value = value.substring(0, 14);
+    });
+
+    // Máscara de Telefone ((00) 00000-0000)
+    document.getElementById('telefone').addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, '');
+        value = value.replace(/^(\d{2})(\d)/, '($1) $2');
+        value = value.replace(/(\d{5})(\d)/, '$1-$2');
+        e.target.value = value.substring(0, 15);
+    });
+</script>
 
 @if($errors->any())
 <script>

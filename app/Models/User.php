@@ -14,11 +14,16 @@ class User extends Authenticatable
      * Campos que podem ser preenchidos
      */
     protected $fillable = [
-    'name',
-    'email',
-    'password',
-    'foto', // Adicione esta linha
-];
+        'name',
+        'email',
+        'password',
+        'birth_date',
+        'foto',
+        'tipo',
+        'telefone', // Liberado para salvar
+        'cpf',      // Liberado para salvar
+        'dark_mode'
+    ];
 
     /**
      * Campos ocultos (segurança)
@@ -39,8 +44,13 @@ class User extends Authenticatable
      * RELACIONAMENTO COM REMESSAS
      * 1 usuário pode ter várias remessas
      */
-    public function remessas()
-    {
-        return $this->hasMany(Remessa::class);
-    }
+    public function remessasCliente()
+{
+    return $this->hasMany(Remessa::class,'cliente_id');
+}
+
+public function remessasMotorista()
+{
+    return $this->hasMany(Remessa::class,'motorista_id');
+}
 }
