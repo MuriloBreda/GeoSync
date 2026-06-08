@@ -59,6 +59,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/configuracoes', [ProfileController::class, 'update']);
     Route::post('/mudar-senha', [UserController::class, 'updatePassword'])->name('password.update');
 
+    Route::post('/profile/update', [ProfileController::class, 'update'])
+    ->middleware('auth')
+    ->name('profile.update');
+
     /* --- IA & ANTIFRAUDE --- */
     Route::get('/antifraude', fn() => view('antifraude'));
     Route::get('/ia-antifraude/{id?}', [IAController::class, 'antifraude']);

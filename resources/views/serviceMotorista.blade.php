@@ -47,6 +47,54 @@
             --sidebar: #030712;
         }
 
+        /* ALTO CONTRASTE */
+body.alto-contraste {
+    --bg: #000000 !important;
+    --card: #000000 !important;
+    --text-main: #ffff00 !important;
+    --text-muted: #ffffff !important;
+    --border: #ffff00 !important;
+    --input-bg: #000000 !important;
+    --sidebar: #000000 !important;
+    --primary: #ffff00 !important;
+    --primary-hover: #ffffff !important;
+}
+
+body.alto-contraste .content-card,
+body.alto-contraste .sidebar,
+body.alto-contraste .stat-card,
+body.alto-contraste .page {
+    background: #000000 !important;
+    color: #ffff00 !important;
+    border: 2px solid #ffff00 !important;
+}
+
+body.alto-contraste input,
+body.alto-contraste select,
+body.alto-contraste textarea {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: 2px solid #ffff00 !important;
+}
+
+body.alto-contraste .btn-salvar,
+body.alto-contraste button[type="submit"] {
+    background: #ffff00 !important;
+    color: #000000 !important;
+    font-weight: 900 !important;
+    border: 2px solid #ffffff !important;
+}
+
+body.alto-contraste .nav-link {
+    color: #ffffff !important;
+}
+
+body.alto-contraste .nav-link.active {
+    background: #000000 !important;
+    color: #ffff00 !important;
+    border: 2px solid #ffff00 !important;
+}
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body { 
@@ -162,7 +210,7 @@
         </a>
 
         <div class="user-card">
-            <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=2563eb&color=fff" alt="Perfil">
+            <img id="sidebarFoto" src="{{ Auth::user()->foto ? asset(Auth::user()->foto) : 'https://ui-avatars.com/api/?name='.urlencode(Auth::user()->name).'&background=2563eb&color=fff' }}" alt="Perfil">
             <div class="user-info">
                 <strong>{{ Auth::user()->name }}</strong>
                 <small>{{ ucfirst(Auth::user()->tipo) }}</small>
@@ -339,28 +387,161 @@
         </section>
 
         <section id="config" class="page">
-            <h1 style="margin-bottom: 1.5rem;">Configurações</h1>
-            <div class="charts-grid">
-                <div class="content-card">
-                    <h3>Perfil do Usuário</h3>
-                    <form action="/configuracoes" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <label>Nome Completo</label>
-                        <input type="text" name="name" value="{{ Auth::user()->name }}" required>
-                        <label>E-mail</label>
-                        <input type="email" name="email" value="{{ Auth::user()->email }}" required>
-                        <button type="submit" class="btn-salvar"><i class="fas fa-save"></i> Gravar Alterações</button>
-                    </form>
-                </div>
-                <div class="content-card">
-                    <h3>Acessibilidade e Visual</h3>
-                    <div class="toggle-item">
-                        <span><i class="fas fa-moon"></i> Modo Escuro</span>
-                        <input type="checkbox" id="darkToggle" onchange="toggleDark()" {{ Auth::user()->dark_mode ? 'checked' : '' }}>
+    <h1 style="margin-bottom: 1.5rem;">Configurações do Sistema</h1>
+
+    <div class="charts-grid" style="grid-template-columns: 2fr 1fr;">
+
+        <!-- PERFIL -->
+        <div class="content-card">
+            <h3>Perfil do Motorista</h3>
+
+            <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+
+                <div style="display:flex;gap:20px;align-items:center;margin-bottom:20px;background:var(--input-bg);padding:15px;border-radius:var(--radius-md);">
+
+                    <div style="position:relative;">
+                        <img id="previewFoto"
+                             src="{{ Auth::user()->foto ? asset(Auth::user()->foto) : 'https://ui-avatars.com/api/?name='.urlencode(Auth::user()->name).'&background=2563eb&color=fff' }}"
+                             style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--primary);">
+
+                        <label for="inputFoto"
+                               style="position:absolute;bottom:0;right:0;background:var(--primary);color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-top:0;">
+                            <i class="fas fa-camera"></i>
+                        </label>
+                    </div>
+
+                    <input type="file"
+                           id="inputFoto"
+                           name="foto"
+                           accept="image/*"
+                           style="display:none"
+                           onchange="previewImagem(this)">
+
+                    <div>
+                        <h4>Foto de Perfil</h4>
+                        <small style="color:var(--text-muted)">
+                            JPG ou PNG até 2MB
+                        </small>
                     </div>
                 </div>
+
+                <label>Nome Completo</label>
+                <input type="text"
+                       name="name"
+                       value="{{ Auth::user()->name }}"
+                       required>
+
+                <label>E-mail</label>
+                <input type="email"
+                       name="email"
+                       value="{{ Auth::user()->email }}"
+                       required>
+
+                <label>Telefone</label>
+                <input type="text"
+                       name="telefone"
+                       value="{{ Auth::user()->telefone ?? '' }}">
+
+                <div style="border-top:1px solid var(--border);margin-top:25px;padding-top:20px;">
+                    <h4 style="margin-bottom:15px;">
+                        <i class="fas fa-lock"></i>
+                        Alterar Senha
+                    </h4>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                        <div>
+                            <label>Nova Senha</label>
+                            <input type="password"
+                                   name="password"
+                                   placeholder="Minimo 6 caracteres">
+                        </div>
+
+                        <div>
+                            <label>Confirmar Senha</label>
+                            <input type="password"
+                                   name="password_confirmation">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit"
+                        class="btn-salvar"
+                        style="margin-top:15px;">
+                    <i class="fas fa-save"></i>
+                    Salvar Alterações
+                </button>
+
+            </form>
+        </div>
+
+        <!-- ACESSIBILIDADE -->
+        <div class="content-card">
+            <h3>Visual e Acessibilidade</h3>
+
+            <div class="toggle-item">
+                <span>
+                    <i class="fas fa-moon"></i>
+                    Modo Escuro
+                </span>
+
+                <input type="checkbox"
+                       id="darkToggle"
+                       onchange="toggleDark()"
+                       {{ Auth::user()->dark_mode ? 'checked' : '' }}>
             </div>
-        </section>
+
+            <div class="toggle-item">
+                <span>
+                    <i class="fas fa-circle-half-stroke"></i>
+                    Alto Contraste
+                </span>
+
+                <input type="checkbox"
+                       id="altoContrasteToggle"
+                       onchange="toggleAltoContraste()">
+            </div>
+
+            <div style="margin-top:20px;">
+                <label style="font-weight:600;">
+                    <i class="fas fa-text-height"></i>
+                    Tamanho do Texto
+                </label>
+
+                <div style="display:flex;gap:8px;margin-top:10px;">
+                    <button type="button"
+                            onclick="alterarFonte('diminuir')"
+                            style="flex:1;padding:10px;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;">
+                        A-
+                    </button>
+
+                    <button type="button"
+                            onclick="alterarFonte('normal')"
+                            style="flex:1;padding:10px;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;">
+                        Normal
+                    </button>
+
+                    <button type="button"
+                            onclick="alterarFonte('aumentar')"
+                            style="flex:1;padding:10px;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;">
+                        A+
+                    </button>
+                </div>
+            </div>
+
+            <div style="background:rgba(37,99,235,.08);
+                        padding:12px;
+                        border-radius:10px;
+                        margin-top:20px;
+                        border:1px dashed var(--primary);">
+
+                <i class="fas fa-info-circle"></i>
+                Recursos de acessibilidade disponíveis para facilitar a navegação.
+            </div>
+        </div>
+
+    </div>
+</section>
     </main>
 </div>
 
@@ -481,6 +662,47 @@ function configurarMarcadorMapa(lat, lon) {
 
     mapa.setView([lat, lon], 16);
     marcador.bindPopup("<b>Motorista</b><br>Posição atualizada.").openPopup();
+}
+
+function previewImagem(input) {
+    if (input.files && input.files[0]) {
+        let reader = new FileReader();
+
+        reader.onload = function(e) {
+            document.getElementById('previewFoto').src = e.target.result;
+        }
+
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+let tamanhoFonteAtual = 100;
+
+function alterarFonte(acao) {
+
+    if (acao === 'aumentar' && tamanhoFonteAtual < 130) {
+        tamanhoFonteAtual += 10;
+    }
+
+    if (acao === 'diminuir' && tamanhoFonteAtual > 85) {
+        tamanhoFonteAtual -= 10;
+    }
+
+    if (acao === 'normal') {
+        tamanhoFonteAtual = 100;
+    }
+
+    document.body.style.fontSize = tamanhoFonteAtual + '%';
+}
+
+function toggleAltoContraste() {
+    document.body.classList.toggle('alto-contraste');
+
+    if (document.body.classList.contains('alto-contraste')) {
+        localStorage.setItem('altoContraste', 'ativado');
+    } else {
+        localStorage.setItem('altoContraste', 'desativado');
+    }
 }
 </script>
 </body>

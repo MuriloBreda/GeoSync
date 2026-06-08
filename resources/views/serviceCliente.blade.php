@@ -388,7 +388,7 @@
                 
                 <div class="content-card">
                     <h3>Perfil do Usuário</h3>
-                    <form action="/configuracoes/atualizar" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         
                         <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px; background: var(--input-bg); padding: 15px; border-radius: var(--radius-md);">

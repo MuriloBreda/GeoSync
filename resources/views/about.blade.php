@@ -566,7 +566,7 @@ body::after{
             <a href="https://www.facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
             <a href="https://x.com" target="_blank"><i class="fab fa-twitter"></i></a>
             <a href="https://br.linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-            <a href="https://www.instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.instagram.com/geosync_tambau/" target="_blank"><i class="fab fa-instagram"></i></a>
         </div>
     </div>
 </div>
@@ -582,7 +582,7 @@ body::after{
             <a href="/" style="font-weight:600;">Início</a>
             <a href="/about" style="font-weight:600;">Sobre</a>
             <a href="/contact" style="font-weight:600;">Contato</a>
-            <a href="/pagamento" style="font-weight:600;">Planos</a>
+            {{-- <a href="/pagamento" style="font-weight:600;">Planos</a> --}}
         </div>
 
         <a href="/login" class="btn" style="border-radius: 8px; background-color: #022553; font-weight:600;">Solicitar um Serviço</a>
@@ -694,10 +694,10 @@ body::after{
                 <h3>GeoSync</h3>
                 <p>Sistema inteligente de rastreamento e logística em tempo real.</p>
                 <div class="social">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.facebook.com/geosync" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://x.com/geosync" target="_blank"><i class="fab fa-twitter"></i></a>
+                    <a href="https://br.linkedin.com/company/geosync" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="https://www.instagram.com/geosync_tambau/" target="_blank"><i class="fab fa-instagram"></i></a>
                 </div>
             </div>
             <div class="footer-col">

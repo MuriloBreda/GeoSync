@@ -692,7 +692,7 @@ contact@geosync.com
 <i class="fab fa-linkedin-in"></i>
 </a>
 
-<a href="https://www.instagram.com" target="_blank">
+<a href="https://www.instagram.com/geosync_tambau/" target="_blank">
 <i class="fab fa-instagram"></i>
 </a>
 
@@ -715,7 +715,7 @@ contact@geosync.com
 <a href="/">Início</a>
 <a href="/about">Sobre</a>
 <a href="/contact">Contato</a>
-<a href="/pagamento">Planos</a>
+{{-- <a href="/pagamento">Planos</a> --}}
 </div>
 
 <a href="/login" class="btn">
@@ -890,10 +890,10 @@ Sistema inteligente de rastreamento e logística em tempo real.
 
 <div class="social">
 
-<a href="#"><i class="fab fa-facebook-f"></i></a>
-<a href="#"><i class="fab fa-twitter"></i></a>
-<a href="#"><i class="fab fa-linkedin-in"></i></a>
-<a href="#"><i class="fab fa-instagram"></i></a>
+<a href="https://www.facebook.com/geosync" target="_blank"><i class="fab fa-facebook-f"></i></a>
+<a href="https://x.com/geosync" target="_blank"><i class="fab fa-twitter"></i></a>
+<a href="https://br.linkedin.com/company/geosync" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+<a href="https://www.instagram.com/geosync_tambau/" target="_blank"><i class="fab fa-instagram"></i></a>
 
 </div>
 

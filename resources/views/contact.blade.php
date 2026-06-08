@@ -427,7 +427,7 @@ contact@geosync.com
 <i class="fab fa-linkedin-in"></i>
 </a>
 
-<a href="https://www.instagram.com" target="_blank">
+<a href="https://www.instagram.com/geosync_tambau/" target="_blank">
 <i class="fab fa-instagram"></i>
 </a>
 
@@ -450,7 +450,7 @@ contact@geosync.com
 <a href="/">Início</a>
 <a href="/about">Sobre</a>
 <a href="/contact">Contato</a>
-<a href="/pagamento">Planos</a>
+{{-- <a href="/pagamento">Planos</a> --}}
 </div>
 
 <a href="/login" class="btn">
@@ -519,14 +519,14 @@ Solicitar um Serviço
                     <a href="https://www.facebook.com/?locale=pt_BR" target="_blank"><i class="fab fa-facebook-f"></i></a>
                     <a href="https://x.com/?lang=pt" target="_blank"><i class="fab fa-twitter"></i></a>
                     <a href="https://br.linkedin.com/?mcid=6821526239111716925&src=go-pa&trk=sem-ga_campid.12619604099_asid.149519181115_crid.725790844702_kw.linkedin_d.c_tid.kwd-148086543_n.g_mt.e_geo.1032087&cid=&gclsrc=aw.ds&gad_source=1&gad_campaignid=12619604099&gbraid=0AAAAABhL5JN4wzyXHl9v3KlEu0Ue8Qcgx&gclid=Cj0KCQjwy_fOBhC6ARIsAHKFB7-eoK4pgfFGsLmdO-reXead95oZ4BqlwNmRZrwmbZPk-SWcKZa35ykaAtqrEALw_wcB" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.instagram.com/geosync_tambau/" target="_blank"><i class="fab fa-instagram"></i></a>
                 </div>
             </div>
             <div class="footer-col">
                 <h3>Links</h3>
                 <a href="/">Início</a>
                 <a href="/about">Sobre</a>
-                <a href="/service">Serviços</a>
+                <a href="/login">Serviços</a>
                 <a href="/contact">Contato</a>
                 <a href="/pagamento">Planos</a>
                 <a href="/avaliar">Feedback</a>
