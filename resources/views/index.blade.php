@@ -830,7 +830,7 @@ Por que escolher <br>
 </h2>
 
 <p class="texto-grande">
-A GeoSync oferece soluções inteligentes para rastreamento e monitoramento logístico em tempo real.
+A GeoSync se destaca por integrar tecnologia IoT com inteligência preditiva, permitindo monitoramento em tempo real e identificação antecipada de falhas.
 </p>
 
 <p class="texto-grande">

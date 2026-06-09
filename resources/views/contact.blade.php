@@ -250,14 +250,13 @@ body::after{
 
 .header{
     background:
-    linear-gradient(rgba(11,31,54,.85),rgba(11,31,54,.85)),
+    linear-gradient(rgba(11,31,54,0.85), rgba(11,31,54,0.85)),
     url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
     background-size:cover;
     background-position:center;
-    color:white;
-    padding:90px 0;
-    margin-bottom:0;
+    padding:140px 20px;
     text-align:center;
+    color:white;
 }
 
 .header h1{

@@ -234,7 +234,7 @@
 
             <div>
                 <label>Senha</label>
-                <input type="password" name="password" placeholder="Senha" required>
+                <input type="password" name="password" placeholder="Mínimo 6 caracteres" required>
             </div>
 
             <div>

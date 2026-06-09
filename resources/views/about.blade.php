@@ -255,19 +255,12 @@ body::after{
 
 .jumbotron{
     background:
-    linear-gradient(
-    rgba(11,31,54,.88),
-    rgba(11,31,54,.88)
-    ),
-    url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d');
-
+    linear-gradient(rgba(11,31,54,0.85), rgba(11,31,54,0.85)),
+    url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
     background-size:cover;
     background-position:center;
-
-    padding:180px 0;
-
-    margin-bottom:0;
-
+    padding:140px 20px;
+    text-align:center;
     color:white;
 }
 
@@ -497,24 +490,6 @@ FOOTER
     margin-top:40px;
     font-size:14px;
     color:#9db0c7;
-}
-
-/* ANIMAÇÕES */
-
-@keyframes fadeUp{
-    from{
-        opacity:0;
-        transform:translateY(40px);
-    }
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
-}
-
-.about-card,
-.team{
-    animation:fadeUp .8s ease;
 }
 
 /* RESPONSIVO */

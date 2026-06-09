@@ -252,12 +252,11 @@ PLANOS
 
 .planos-hero{
     background:
-    linear-gradient(
-        135deg,
-        rgba(11,31,54,.95),
-        rgba(28,63,110,.95)
-    );
-    padding:120px 20px;
+    linear-gradient(rgba(11,31,54,0.85), rgba(11,31,54,0.85)),
+    url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
+    background-size:cover;
+    background-position:center;
+    padding:140px 20px;
     text-align:center;
     color:white;
 }
