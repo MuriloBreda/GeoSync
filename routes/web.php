@@ -28,6 +28,7 @@ Route::post('/contato/enviar', [ContatoController::class, 'store'])->name('conta
 
 Route::get('/chat', fn() => view('chat'))->name('chat');
 Route::get('/pagamento', fn() => view('pagamento'));
+Route::get('/planos', fn() => view('telaPlanos'));
 Route::get('/avaliar', fn() => view('avaliacao'));
 Route::post('/avaliacao/store', [AvaliacaoController::class, 'store'])->name('avaliacao.store');
 

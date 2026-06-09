@@ -32,6 +32,24 @@ min-height:100vh;padding:30px;color:#0f172a}
 .total{font-size:2rem;font-weight:700;color:#2563eb}
 #pixBox,#boletoBox,#sucesso{display:none;text-align:center}
 @media(max-width:900px){.checkout{grid-template-columns:1fr}.plans,.payments{grid-template-columns:1fr}}
+
+.btn-voltar{
+display:inline-flex;
+align-items:center;
+gap:8px;
+padding:10px 18px;
+background:#e2e8f0;
+color:#0f172a;
+text-decoration:none;
+border-radius:12px;
+margin-bottom:20px;
+font-weight:600;
+transition:.3s;
+}
+
+.btn-voltar:hover{
+background:#cbd5e1;
+}
 </style>
 </head>
 <body>
@@ -40,6 +58,9 @@ min-height:100vh;padding:30px;color:#0f172a}
 <div class="checkout">
 
 <div class="card">
+    <a href="/planos" class="btn-voltar">
+    <i class="fa-solid fa-arrow-left"></i> Voltar
+</a>
 <form id="mainForm" action="{{ route('pagamento.store') }}" method="POST">
 @csrf
 
@@ -49,14 +70,13 @@ min-height:100vh;padding:30px;color:#0f172a}
 
 <div id="conteudo">
 <div class="hero">
-<h1>Assine o GeoSync</h1>
-<p>Monitoramento e rastreamento em tempo real.</p>
+<h1>Planos GeoSync</h1>
+<p>Rastreamento, monitoramento e gerenciamento em tempo real.</p>
 </div>
 
 <div class="plans">
-<div class="plan active" onclick="selectPlan(this,'mensal',150)"><strong>Mensal</strong><br>R$150</div>
-<div class="plan" onclick="selectPlan(this,'semestral',420)"><strong>6 Meses</strong><br>R$420</div>
-<div class="plan destaque" onclick="selectPlan(this,'anual',840)"><strong>Anual</strong><br>R$840</div>
+<div class="plan active" onclick="selectPlan(this,'GeoSync Start',149.99)"><strong>GeoSync Start</strong><br>R$149,99</div>
+<div class="plan" onclick="selectPlan(this,'GeoSync Pro',599.99)"><strong>GeoSync Pro</strong><br>R$599,99</div>
 </div>
 
 <div class="payments">
@@ -82,13 +102,17 @@ min-height:100vh;padding:30px;color:#0f172a}
 <div id="pixBox">
 <h2>Pagamento PIX</h2>
 <div id="qrcode"></div>
-<button class="btn" onclick="finalizarNoBanco()">Já paguei</button>
+<button class="btn" onclick="finalizarNoBanco()">
+    Confirmar Pagamento PIX
+</button>
 </div>
 
 <div id="boletoBox">
 <h2>Boleto Gerado</h2>
 <code id="linhaBoleto"></code>
-<button class="btn" onclick="finalizarNoBanco()">Confirmar</button>
+<button class="btn" onclick="finalizarNoBanco()">
+    Confirmar Pagamento Boleto
+</button>
 </div>
 
 <div id="sucesso">
@@ -99,18 +123,20 @@ min-height:100vh;padding:30px;color:#0f172a}
 
 <div class="card summary">
 <h2>Resumo</h2>
-<div class="row"><span>Plano</span><strong id="txtPlano">Mensal</strong></div>
+<div class="row"><span>Plano</span><strong id="txtPlano">GeoSync Start</strong></div>
 <div class="row"><span>Total</span></div>
-<div class="total" id="txtTotal">R$ 150,00</div>
+<div class="total" id="txtTotal">R$ 149,99</div>
 <p style="margin-top:20px;color:#64748b">Pagamento protegido e criptografado.</p>
 </div>
 
 </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-let currentValor=150,currentMetodo='credito';
-updateParcelas(150);
+let currentValor=149.99,currentMetodo='credito';
+updateParcelas(149.99);
 
 function selectPlan(el,plano,preco){
 document.querySelectorAll('.plan').forEach(x=>x.classList.remove('active'));
@@ -155,7 +181,23 @@ boletoBox.style.display='block';
 linhaBoleto.innerText='00190.00009 02313.400006 45848.400002';
 }
 
-function finalizarNoBanco(){document.getElementById('mainForm').submit();}
+function finalizarNoBanco(){
+
+    Swal.fire({
+        icon: 'success',
+        title: 'Pagamento realizado!',
+        text: 'Seu plano GeoSync foi ativado com sucesso.',
+        confirmButtonColor: '#2563eb',
+        confirmButtonText: 'Continuar'
+    }).then((result) => {
+
+        if(result.isConfirmed){
+            window.location.href = '/login';
+        }
+
+    });
+
+}
 </script>
 
 </body>

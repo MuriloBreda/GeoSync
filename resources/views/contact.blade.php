@@ -35,6 +35,28 @@ body{
     overflow-x:hidden;
 }
 
+body::before{
+    content:"";
+    position:fixed;
+    width:700px;
+    height:700px;
+    background:radial-gradient(circle,#2F6FB220 0%,transparent 70%);
+    top:-250px;
+    right:-250px;
+    z-index:-1;
+}
+
+body::after{
+    content:"";
+    position:fixed;
+    width:600px;
+    height:600px;
+    background:radial-gradient(circle,#0B3B7A15 0%,transparent 70%);
+    bottom:-250px;
+    left:-250px;
+    z-index:-1;
+}
+
 /* =========================
    CONTAINER
 ========================= */
@@ -57,31 +79,33 @@ body{
 ========================= */
 
 .topbar{
-    background:linear-gradient(90deg,var(--azul-profundo),var(--azul-institucional));
+    background:linear-gradient(90deg,#0B1F36,#1C3F6E);
     padding:10px 0;
-    color:#fff;
+    color:white;
     font-size:14px;
-    box-shadow:0 2px 10px rgba(0,0,0,.08);
-}
-
-.top-info{
-    display:flex;
-    gap:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.08);
 }
 
 .topbar a{
-    color:#fff;
+    color:white;
     text-decoration:none;
-    transition:.3s;
+    transition:0.3s;
 }
 
 .topbar a:hover{
     color:#7fb7ff;
 }
 
+.top-info{
+    display:flex;
+    gap:20px;
+    align-items:center;
+}
+
 .top-icons{
     display:flex;
     gap:10px;
+    align-items:center;
 }
 
 .top-icons a{
@@ -91,11 +115,11 @@ body{
     align-items:center;
     justify-content:center;
     border-radius:50%;
-    transition:.3s;
+    transition:0.3s;
 }
 
 .top-icons a:hover{
-    background:rgba(255,255,255,.15);
+    background:rgba(255,255,255,0.15);
     transform:translateY(-3px);
 }
 
@@ -104,26 +128,39 @@ body{
 ========================= */
 
 .navbar{
-    background:#fff;
-    padding:15px 0;
-    border-bottom:1px solid #e8e8e8;
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    padding:18px 0;
     position:sticky;
     top:0;
-    z-index:1000;
+    z-index:9999;
+    border-bottom:1px solid rgba(255,255,255,0.4);
+    box-shadow:0 8px 30px rgba(0,0,0,.05);
 }
 
 .logo{
     display:flex;
     align-items:center;
     gap:12px;
-    text-decoration:none;
-    color:var(--azul-institucional);
-    font-size:28px;
+    font-size:30px;
     font-weight:700;
+    color:var(--azul-institucional);
+    text-decoration:none;
+    transition:.4s;
+}
+
+.logo:hover{
+    transform:scale(1.04);
 }
 
 .logo img{
     width:65px;
+    transition:.5s;
+}
+
+.logo:hover img{
+    transform:rotate(-8deg) scale(1.08);
 }
 
 .menu{
@@ -132,30 +169,79 @@ body{
 }
 
 .menu a{
+    position:relative;
     text-decoration:none;
     color:var(--azul-institucional);
     font-size:15px;
     font-weight:700;
     transition:.3s;
+    padding-bottom:6px;
 }
 
 .menu a:hover{
-    color:var(--azul-tech);
+    color:#2F6FB2;
+    transform:translateY(-2px);
+}
+
+.menu a::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:0;
+    width:0%;
+    height:2px;
+    background:#2F6FB2;
+    transition:0.4s;
+    border-radius:10px;
+}
+
+.menu a:hover::after{
+    width:100%;
 }
 
 .btn{
-    background:linear-gradient(90deg,#0B3B7A,#022553);
-    color:#fff;
-    padding:12px 24px;
-    border-radius:10px;
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(
+        135deg,
+        #0B3B7A,
+        #1C5CC8
+    );
+    color:white;
+    padding:14px 28px;
+    border-radius:14px;
     text-decoration:none;
     font-weight:600;
-    transition:.3s;
+    transition:.4s;
+    box-shadow:
+    0 10px 25px rgba(47,111,178,.25);
 }
 
 .btn:hover{
-    transform:translateY(-3px);
-    box-shadow:0 8px 20px rgba(0,0,0,.15);
+    transform:translateY(-4px);
+    box-shadow:
+    0 20px 40px rgba(47,111,178,.35);
+}
+
+.btn::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:-120%;
+    width:100%;
+    height:100%;
+    background:
+    linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,.4),
+        transparent
+    );
+    transition:.7s;
+}
+
+.btn:hover::before{
+    left:120%;
 }
 
 /* =========================
@@ -285,95 +371,140 @@ select.input{
    FOOTER
 ========================= */
 
+/* =========================
+FOOTER
+========================= */
+
 .footer{
-    background:var(--primary);
-    color:#bfcbdd;
-    padding:60px 0 20px;
-    margin-top:50px;
+    background:
+    linear-gradient(
+    180deg,
+    #08192c,
+    #050f1c
+    );
+
+    color:white;
+    padding:90px 0 20px;
+    position:relative;
+}
+
+.footer::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:1px;
+
+    background:
+    linear-gradient(
+    90deg,
+    transparent,
+    #2F6FB2,
+    transparent
+    );
 }
 
 .footer-grid{
     display:flex;
+    gap:40px;
     flex-wrap:wrap;
-    gap:30px;
 }
 
 .footer-col{
     flex:1;
-    min-width:220px;
+    min-width:250px;
 }
 
 .footer h3{
-    color:var(--secondary);
-    margin-bottom:20px;
+    color:#2F6FB2;
+    margin-bottom:15px;
 }
 
-.footer p,
+.footer p{
+    color:#c7d2df;
+    font-size:15px;
+}
+
 .footer a{
-    color:#a3b8cc;
-    text-decoration:none;
     display:block;
+    color:#a7b4c5;
     margin-bottom:10px;
-    transition:.3s;
+    text-decoration:none;
+    transition:0.3s;
 }
 
 .footer a:hover{
-    color:white;
+    color:#2F6FB2;
     padding-left:5px;
 }
 
 .social{
     display:flex;
-    gap:15px;
+    gap:10px;
     margin-top:15px;
+}
+
+.social a{
+    width:38px;
+    height:38px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    border:1px solid #7B92AD;
+    transition:0.3s;
+}
+
+.social a:hover{
+    background:#2F6FB2;
+    border-color:#2F6FB2;
+    transform:translateY(-3px);
 }
 
 .newsletter{
     display:flex;
-    margin-top:10px;
+    margin-top:15px;
 }
 
 .newsletter input{
     flex:1;
-    padding:10px;
+    padding:12px;
     border:none;
     outline:none;
-    border-radius:4px 0 0 4px;
+    border-radius:8px 0 0 8px;
 }
 
 .newsletter button{
-    background:var(--secondary);
+    background:#2F6FB2;
     border:none;
-    color:#fff;
-    padding:10px 15px;
+    color:white;
+    padding:0 20px;
     cursor:pointer;
-    border-radius:0 4px 4px 0;
+    border-radius:0 8px 8px 0;
 }
 
 .copy{
     text-align:center;
     margin-top:40px;
-    padding-top:20px;
-    border-top:1px solid rgba(255,255,255,.1);
-    color:#7b92ad;
-    font-size:13px;
+    font-size:14px;
+    color:#9db0c7;
 }
 
 /* =========================
    RESPONSIVO
 ========================= */
 
-@media(max-width:768px){
+@media(max-width:992px){
 
-    .flex{
+    .navbar .flex{
         flex-direction:column;
-        gap:15px;
-        text-align:center;
+        gap:20px;
     }
 
     .menu{
-        flex-direction:column;
-        gap:12px;
+        flex-wrap:wrap;
+        justify-content:center;
     }
 
     .top-info{
@@ -388,7 +519,13 @@ select.input{
     .contact-card{
         padding:20px;
     }
+
+    .footer-grid{
+        flex-direction:column;
+    }
+
 }
+
 </style>
 </head>
 
@@ -401,12 +538,12 @@ select.input{
 
 <div class="top-info">
 
-<a href="#">
+<a href="https://wa.me/551994010744?text=Olá%20GeoSync" target="_blank">
 <i class="fas fa-phone-alt"></i>
 +55 (19) 99401-0744
 </a>
 
-<a href="#">
+<a href="mailto:murilo.breda@aluno.senai.br" target="_blank">
 <i class="fas fa-envelope"></i>
 contact@geosync.com
 </a>
@@ -450,7 +587,7 @@ contact@geosync.com
 <a href="/">Início</a>
 <a href="/about">Sobre</a>
 <a href="/contact">Contato</a>
-{{-- <a href="/pagamento">Planos</a> --}}
+<a href="/planos">Planos</a>
 </div>
 
 <a href="/login" class="btn">
@@ -510,46 +647,74 @@ Solicitar um Serviço
 </script>
 
 <div class="footer">
+
     <div class="container">
+
         <div class="footer-grid">
+
             <div class="footer-col">
+
                 <h3>GeoSync</h3>
-                <p>Sistema inteligente de rastreamento e logística em tempo real.</p>
+
+                <p>
+                Sistema inteligente de rastreamento e logística em tempo real.
+                </p>
+
                 <div class="social">
-                    <a href="https://www.facebook.com/?locale=pt_BR" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                    <a href="https://x.com/?lang=pt" target="_blank"><i class="fab fa-twitter"></i></a>
-                    <a href="https://br.linkedin.com/?mcid=6821526239111716925&src=go-pa&trk=sem-ga_campid.12619604099_asid.149519181115_crid.725790844702_kw.linkedin_d.c_tid.kwd-148086543_n.g_mt.e_geo.1032087&cid=&gclsrc=aw.ds&gad_source=1&gad_campaignid=12619604099&gbraid=0AAAAABhL5JN4wzyXHl9v3KlEu0Ue8Qcgx&gclid=Cj0KCQjwy_fOBhC6ARIsAHKFB7-eoK4pgfFGsLmdO-reXead95oZ4BqlwNmRZrwmbZPk-SWcKZa35ykaAtqrEALw_wcB" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+
+                    <a href="https://www.facebook.com/geosync" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://x.com/geosync" target="_blank"><i class="fab fa-twitter"></i></a>
+                    <a href="https://br.linkedin.com/company/geosync" target="_blank"><i class="fab fa-linkedin-in"></i></a>
                     <a href="https://www.instagram.com/geosync_tambau/" target="_blank"><i class="fab fa-instagram"></i></a>
+
                 </div>
+
             </div>
+
             <div class="footer-col">
+
                 <h3>Links</h3>
+
                 <a href="/">Início</a>
                 <a href="/about">Sobre</a>
-                <a href="/login">Serviços</a>
+                <a href="/login">Serviço</a>
                 <a href="/contact">Contato</a>
-                <a href="/pagamento">Planos</a>
+                <a href="/planos">Planos</a>
                 <a href="/avaliar">Feedback</a>
+
             </div>
+
             <div class="footer-col">
+
                 <h3>Contato</h3>
-                <p>R. Cap. David, 56 - Centro, Tambaú - SP, 13710-000</p>
+
+                <p>R. Cap. David, 56 - Centro, Tambaú - SP</p>
                 <p>(19) 99401-0744</p>
                 <p>contact@geosync.com</p>
+
             </div>
+
             <div class="footer-col">
-                <h3>Newsletter</h3>
-                <p>Receba novidades da plataforma</p>
+
+                <h3>Boletim informativo</h3>
+
+                <p>Receba novidades da plataforma.</p>
+
                 <div class="newsletter">
                     <input type="text" placeholder="Seu email">
                     <button>Enviar</button>
                 </div>
+
             </div>
+
         </div>
+
         <div class="copy">
             © 2026 GeoSync - Todos os direitos reservados
         </div>
+
     </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

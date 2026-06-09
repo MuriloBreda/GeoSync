@@ -454,7 +454,7 @@ Swal.fire({
     timer:2500,
     showConfirmButton:false
 }).then(() => {
-    window.location.href="/chat";
+    window.location.href="/";
 });
 </script>
 @endif

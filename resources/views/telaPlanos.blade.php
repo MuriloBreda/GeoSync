@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="utf-8">
-<title>GeoSync</title>
+<title>GeoSync - Planos</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -39,6 +39,18 @@ body{
     position:relative;
 }
 
+.container{
+    width:90%;
+    margin:auto;
+}
+
+.flex{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+}
+
 /* Glow Background */
 
 body::before{
@@ -61,22 +73,6 @@ body::after{
     bottom:-250px;
     left:-250px;
     z-index:-1;
-}
-
-/* =========================
-CONTAINER
-========================= */
-
-.container{
-width:90%;
-margin:auto;
-}
-
-.flex{
-display:flex;
-justify-content:space-between;
-align-items:center;
-flex-wrap:wrap;
 }
 
 /* =========================
@@ -250,273 +246,221 @@ width:100%;
     left:120%;
 }
 
-
 /* =========================
-HEADER
+PLANOS
 ========================= */
 
-.header{
-background:
-linear-gradient(rgba(11,31,54,0.85), rgba(11,31,54,0.85)),
-url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
-background-size:cover;
-background-position:center;
-padding:140px 20px;
-text-align:center;
-color:white;
+.planos-hero{
+    background:
+    linear-gradient(
+        135deg,
+        rgba(11,31,54,.95),
+        rgba(28,63,110,.95)
+    );
+    padding:120px 20px;
+    text-align:center;
+    color:white;
 }
 
-.header h1{
-font-size:58px;
-margin-bottom:15px;
-}
-
-.header p{
-font-size:22px;
-text-align:center;
-}
-
-/* =========================
-SEÇÕES
-========================= */
-
-.section{
-padding:70px 0;
-}
-
-/* =========================
-BLOCOS
-========================= */
-
-.block{
-    background:white;
-    border-radius:24px;
-    padding:35px;
+.planos-hero h1{
+    font-size:60px;
     margin-bottom:20px;
-
-    transition:.4s;
-
-    box-shadow:
-    0 12px 30px rgba(0,0,0,.06);
 }
 
-.block:hover{
-    transform:translateY(-8px);
-
-    box-shadow:
-    0 25px 50px rgba(0,0,0,.12);
+.planos-hero p{
+    max-width:800px;
+    margin:auto;
+    text-align:center;
+    color:#d8e5f7;
 }
 
-.block img{
-width:100%;
-max-height:250px;
-object-fit:cover;
-border-radius:15px;
-margin-bottom:25px;
+.planos-section{
+    padding:90px 0;
 }
 
-/* =========================
-TEXTOS
-========================= */
-
-h2{
-font-size:40px;
-margin-bottom:20px;
-color:#0B1F36;
+.planos-grid{
+    display:flex;
+    justify-content:center;
+    gap:35px;
+    flex-wrap:wrap;
 }
 
-h3{
-font-size:26px;
-margin-bottom:15px;
-}
-
-p{
-font-size:18px;
-line-height:1.9;
-text-align:justify;
-color:#444;
-}
-
-.texto-grande{
-font-size:20px;
-line-height:1.9;
-text-align:justify;
-}
-
-/* =========================
-SERVIÇOS
-========================= */
-
-.services{
-display:flex;
-gap:25px;
-flex-wrap:wrap;
-}
-
-.service{
-flex:1;
-min-width:300px;
-}
-
-.service .block{
-transition:0.4s;
-cursor:pointer;
-}
-
-.service .block:hover{
-transform:translateY(-10px);
-box-shadow:0 15px 35px rgba(0,0,0,0.12);
-}
-
-/* =========================
-DIFERENCIAIS
-========================= */
-
-.diferenciais-topo{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:40px;
-flex-wrap:wrap;
-margin-bottom:60px;
-}
-
-.diferenciais-texto{
-flex:1;
-min-width:320px;
-}
-
-.diferenciais-texto span{
-color:#2F6FB2;
-font-weight:700;
-letter-spacing:1px;
-font-size:15px;
-}
-
-.diferenciais-texto h2{
-font-size:60px;
-line-height:1.1;
-margin:20px 0;
-}
-
-.diferenciais-texto h2 span{
-font-size:60px;
-}
-
-.diferenciais-imagem{
-flex:1;
-min-width:320px;
-}
-
-.diferenciais-imagem img{
-width:100%;
-height:500px;
-object-fit:cover;
-border-radius:25px;
-box-shadow:0 10px 30px rgba(0,0,0,0.12);
-}
-
-/* CARDS */
-
-.cards{
-display:flex;
-justify-content:center;
-gap:30px;
-flex-wrap:wrap;
-}
-
-.card{
-    width:320px;
-    padding:35px;
-    border-radius:25px;
-    transition:.5s;
-    cursor:pointer;
+.plano-card{
+    width:350px;
+    background:white;
+    border-radius:30px;
+    padding:40px;
     position:relative;
-    overflow:hidden;
+    transition:.4s;
 
     box-shadow:
     0 15px 35px rgba(0,0,0,.08);
 }
 
-.card::before{
-    content:"";
-    position:absolute;
-    top:0;
-    left:-100%;
-    width:100%;
-    height:100%;
+.plano-card:hover{
+    transform:translateY(-10px);
+    box-shadow:
+    0 25px 50px rgba(0,0,0,.15);
+}
+
+.plano-card.destaque{
     background:
     linear-gradient(
-    90deg,
-    transparent,
-    rgba(255,255,255,.25),
-    transparent
+        135deg,
+        #1C5CC8,
+        #0B3B7A
     );
-    transition:.7s;
 }
 
-.card:hover::before{
-    left:120%;
+.plano-card.destaque:hover{
+    transform:scale(1.05) translateY(-10px);
 }
 
-.card:hover{
-    transform:
-    translateY(-12px)
-    scale(1.03);
+.badge{
+    position:absolute;
+    top:20px;
+    right:20px;
 
-    box-shadow:
-    0 30px 50px rgba(0,0,0,.15);
+    background:#2F6FB2;
+    color:white;
+
+    padding:8px 16px;
+    border-radius:50px;
+    font-size:12px;
+    font-weight:700;
 }
 
-.card.azul{
-background:linear-gradient(180deg,#0B3B7A,#022553);
-color:white;
-}
-
-.card.branco{
-background:white;
-}
-
-.icon-circle{
+.plano-icon{
     width:90px;
     height:90px;
+
     border-radius:50%;
 
     display:flex;
     align-items:center;
     justify-content:center;
 
-    background:white;
-
-    box-shadow:
-    0 10px 25px rgba(47,111,178,.18);
+    background:#E6EEF8;
 
     margin-bottom:25px;
-
-    transition:.4s;
 }
 
-.card:hover .icon-circle{
-    transform:rotate(10deg) scale(1.1);
+.plano-icon i{
+    font-size:38px;
+    color:#0B3B7A;
 }
 
-.icon-circle.borda{
-border:2px solid #2F6FB2;
+.plano-card h3{
+    font-size:30px;
+    margin-bottom:15px;
 }
 
-.icon-circle i{
-font-size:38px;
-color:#0B3B7A;
+.preco{
+    font-size:40px;
+    font-weight:700;
+    margin-bottom:15px;
 }
 
-.card p{
-font-size:18px;
-line-height:1.8;
-text-align:justify;
+.preco span{
+    font-size:18px;
+    font-weight:400;
 }
 
-.card.azul p{
-color:#f1f1f1;
+.descricao{
+    text-align:left;
+    margin-bottom:25px;
+    color:#666;
+}
+
+.plano-card.destaque .descricao{
+    color:#d7e4f8;
+}
+
+.plano-card ul{
+    list-style:none;
+    margin-bottom:30px;
+}
+
+.plano-card ul li{
+    margin-bottom:15px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.plano-card ul li i{
+    color:#2F6FB2;
+}
+
+.plano-card.destaque ul li i{
+    color:#7fb7ff;
+}
+
+.btn-plano{
+    display:block;
+    width:100%;
+
+    text-align:center;
+
+    padding:16px;
+    border-radius:14px;
+
+    text-decoration:none;
+    font-weight:600;
+
+    background:#2F6FB2;
+    color:white;
+
+    transition:.3s;
+}
+
+.btn-plano:hover{
+    transform:translateY(-3px);
+}
+
+.plano-card.destaque .btn-plano{
+    background:white;
+    color:#0B3B7A;
+}
+
+.comparativo{
+    margin-top:100px;
+}
+
+.comparativo h2{
+    text-align:center;
+    margin-bottom:40px;
+}
+
+.tabela{
+    overflow-x:auto;
+}
+
+.tabela table{
+    width:100%;
+    background:white;
+    border-radius:20px;
+    overflow:hidden;
+    border-collapse:collapse;
+
+    box-shadow:
+    0 10px 25px rgba(0,0,0,.08);
+}
+
+.tabela th{
+    background:#0B3B7A;
+    color:white;
+    padding:20px;
+}
+
+.tabela td{
+    padding:18px;
+    text-align:center;
+    border-bottom:1px solid #eee;
+}
+
+.tabela tr:hover{
+    background:#f7faff;
 }
 
 /* =========================
@@ -661,14 +605,31 @@ color:#9db0c7;
         gap:20px;
     }
 
+    .top-info{
+        flex-direction:column;
+        gap:8px;
+    }
+
     .menu{
         flex-wrap:wrap;
         justify-content:center;
     }
 
-    .top-info{
-        flex-direction:column;
-        gap:8px;
+    .planos-hero h1{
+        font-size:42px;
+    }
+
+    .plano-card{
+        width:100%;
+        max-width:420px;
+    }
+
+    .plano-card.destaque{
+        transform:none;
+    }
+
+    .plano-card.destaque:hover{
+        transform:translateY(-10px);
     }
 
     .footer-grid{
@@ -748,164 +709,207 @@ Solicitar um Serviço
 </div>
 </div>
 
-<!-- HEADER -->
+<!-- HERO -->
 
-<div class="header">
-<h1>Rastreamento Inteligente</h1>
-<p style="color: white">Controle total da sua logística em tempo real</p>
-</div>
+<section class="planos-hero">
 
-<!-- SOBRE -->
+    <div class="container">
 
-<div class="container section">
+        <h1>Planos GeoSync</h1>
 
-<div class="block">
+        <p>
+            Escolha a solução ideal para monitorar sua operação,
+            rastrear veículos em tempo real e otimizar sua logística.
+        </p>
 
-<img src="https://images.unsplash.com/photo-1553413077-190dd305871c">
+    </div>
 
-<h2>Sobre a GeoSync</h2>
+</section>
 
-<p class="texto-grande">
-A GeoSync é uma plataforma inteligente de rastreamento e monitoramento logístico desenvolvida para oferecer total controle sobre operações de transporte e armazenamento.
-Com tecnologia moderna e interface intuitiva, nossa solução permite acompanhar veículos, cargas e rotas em tempo real, garantindo mais segurança, eficiência e transparência em toda a cadeia logística.
-Nosso objetivo é transformar a forma como empresas gerenciam sua logística, reduzindo custos operacionais, otimizando processos e aumentando a confiabilidade nas entregas.
-</p>
+<!-- PLANOS -->
 
-</div>
+<section class="planos-section">
 
-</div>
+    <div class="container">
 
-<!-- SERVIÇOS -->
+        <div class="planos-grid">
 
-<div class="container section">
+            <!-- START -->
 
-<div class="services">
+            <div class="plano-card">
 
-<div class="service">
-<div class="block">
+                <div class="plano-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
 
-<img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7">
+                <h3>GeoSync Start</h3>
 
-<h3>Transporte Terrestre</h3>
+                <div class="preco">
+                    R$149,99
+                    <span>/mês</span>
+                </div>
 
-<p class="texto-grande">
-O módulo de transporte terrestre da GeoSync permite o gerenciamento completo da sua frota com rastreamento em tempo real.
-Acompanhe rotas, monitore paradas, identifique desvios e tenha acesso a dados estratégicos.
-</p>
+                <p class="descricao">
+                    Ideal para pequenas empresas e autônomos.
+                </p>
 
-</div>
-</div>
+                <ul>
+                    <li><i class="fas fa-check"></i> Até 10 veículos</li>
+                    <li><i class="fas fa-check"></i> Rastreamento em tempo real</li>
+                    <li><i class="fas fa-check"></i> Alertas inteligentes</li>
+                    <li><i class="fas fa-check"></i> Dashboard</li>
+                </ul>
 
-<div class="service">
-<div class="block">
+                <a href="/pagamento" class="btn-plano">
+                    Começar Agora
+                </a>
 
-<img src="https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc">
+            </div>
 
-<h3>Armazenamento</h3>
+            <!-- PRO -->
 
-<p class="texto-grande">
-A GeoSync também oferece soluções para controle de armazenamento, proporcionando organização e eficiência na gestão de estoques.
-</p>
+            <div class="plano-card destaque">
 
-</div>
-</div>
+                <span class="badge">
+                    MAIS POPULAR
+                </span>
 
-</div>
+                <div class="plano-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
 
-</div>
+                <h3>GeoSync Pro</h3>
 
-<!-- DIFERENCIAIS -->
+                <div class="preco">
+                    R$599,99
+                    <span>/6 mês</span>
+                </div>
 
-<div class="container section">
+                <p class="descricao">
+                    Controle completo para empresas em crescimento.
+                </p>
 
-<div class="diferenciais-topo">
+                <ul>
+                    <li><i class="fas fa-check"></i> Até 65 veículos</li>
+                    <li><i class="fas fa-check"></i> Rastreamento em tempo real</li>
+                    <li><i class="fas fa-check"></i> Alertas inteligentes</li>
+                    <li><i class="fas fa-check"></i> Dashboard</li>
+                    <li><i class="fas fa-check"></i> Suporte prioritário</li>
+                </ul>
 
-<div class="diferenciais-texto">
+                <a href="/pagamento" class="btn-plano">
+                    Assinar Pro
+                </a>
 
-<span>NOSSOS DIFERENCIAIS</span>
+            </div>
 
-<h2>
-Por que escolher <br>
-<span style="color:#2F6FB2;">a GeoSync?</span>
-</h2>
+            <!-- ENTERPRISE -->
 
-<p class="texto-grande">
-A GeoSync oferece soluções inteligentes para rastreamento e monitoramento logístico em tempo real.
-</p>
+            <div class="plano-card">
 
-<p class="texto-grande">
-Com tecnologia moderna e uma plataforma intuitiva, ajudamos empresas a otimizar processos e reduzir custos.
-</p>
+                <div class="plano-icon">
+                    <i class="fas fa-building"></i>
+                </div>
 
-</div>
+                <h3>Enterprise</h3>
 
-<div class="diferenciais-imagem">
-<img src="https://images.unsplash.com/photo-1519003722824-194d4455a60c">
-</div>
+                <div class="preco">
+                    Personalizado
+                </div>
 
-</div>
+                <p class="descricao">
+                    Para grandes operações logísticas.
+                </p>
 
-<!-- CARDS -->
+                <ul>
+                    <li><i class="fas fa-check"></i> Veículos ilimitados</li>
+                    <li><i class="fas fa-check"></i> Rastreamento em tempo real</li>
+                    <li><i class="fas fa-check"></i> Alertas inteligentes</li>
+                    <li><i class="fas fa-check"></i> Dashboard</li>
+                    <li><i class="fas fa-check"></i> Suporte prioritário</li>
+                </ul>
 
-<div class="cards">
+                <a href="https://wa.me/551994010744?text=Olá,%20quero%20mais%20informações%20sobre%20o%20plano%20Enterprise" target="_blank" class="btn-plano">
+                    Falar com Consultor
+                </a>
 
-<div class="card azul">
+            </div>
 
-<div class="icon-circle">
-<i class="fas fa-shield-alt"></i>
-</div>
+        </div>
 
-<h3>Segurança</h3>
+        <!-- TABELA COMPARATIVA -->
 
-<p>
-Monitoramento contínuo e proteção das operações logísticas.
-</p>
+        <div class="comparativo">
 
-</div>
+            <h2>Compare os planos</h2>
 
-<div class="card branco">
+            <div class="tabela">
 
-<div class="icon-circle borda">
-<i class="fas fa-chart-line"></i>
-</div>
+                <table>
 
-<h3>Eficiência</h3>
+                    <tr>
+                        <th>Recursos</th>
+                        <th>Start</th>
+                        <th>Pro</th>
+                        <th>Enterprise</th>
+                    </tr>
 
-<p>
-Mais produtividade e redução de custos através da tecnologia.
-</p>
+                    <tr>
+                        <td>Rastreamento em tempo real</td>
+                        <td>✔</td>
+                        <td>✔</td>
+                        <td>✔</td>
+                    </tr>
 
-</div>
+                    <tr>
+                        <td>Alertas inteligentes</td>
+                        <td>✔</td>
+                        <td>✔</td>
+                        <td>✔</td>
+                    </tr>
 
-<div class="card azul">
+                    <tr>
+                        <td>Dashboard</td>
+                        <td>✔</td>
+                        <td>✔</td>
+                        <td>✔</td>
+                    </tr>
 
-<div class="icon-circle">
-<i class="fas fa-map-marker-alt"></i>
-</div>
+                    <tr>
+                        <td>Suporte prioritário</td>
+                        <td>✖</td>
+                        <td>✔</td>
+                        <td>✔</td>
+                    </tr>
 
-<h3>Rastreamento</h3>
+                    <tr>
+                        <td>Veículos</td>
+                        <td>10</td>
+                        <td>65</td>
+                        <td>Ilimitado</td>
+                    </tr>
 
-<p>
-Acompanhamento em tempo real de cargas, rotas e veículos.
-</p>
+                </table>
 
-</div>
+            </div>
 
-</div>
+        </div>
 
-</div>
+    </div>
+
+</section>
 
 <div vw class="enabled">
     <div vw-access-button class="active"></div>
     <div vw-plugin-wrapper>
-      <div class="vw-plugin-top-wrapper"></div>
+        <div class="vw-plugin-top-wrapper"></div>
     </div>
-  </div>
+</div>
 
 <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
 
 <script>
-    new window.VLibras.Widget('https://vlibras.gov.br/app');
+new window.VLibras.Widget('https://vlibras.gov.br/app');
 </script>
 
 <!-- FOOTER -->

@@ -88,78 +88,77 @@ body::after{
 /* TOPBAR */
 
 .topbar{
-    background:linear-gradient(90deg,#08192c,#1C3F6E);
+    background:linear-gradient(90deg,#0B1F36,#1C3F6E);
     padding:10px 0;
     color:white;
     font-size:14px;
-    box-shadow:0 2px 15px rgba(0,0,0,.08);
+    box-shadow:0 2px 10px rgba(0,0,0,0.08);
 }
 
 .topbar a{
     color:white;
     text-decoration:none;
-    transition:.3s;
+    transition:0.3s;
 }
 
 .topbar a:hover{
     color:#7fb7ff;
 }
 
+.top-info{
+    display:flex;
+    gap:20px;
+    align-items:center;
+}
+
 .top-icons{
     display:flex;
     gap:10px;
+    align-items:center;
 }
 
 .top-icons a{
-    width:36px;
-    height:36px;
-    border-radius:50%;
+    width:34px;
+    height:34px;
     display:flex;
-    justify-content:center;
     align-items:center;
-    transition:.3s;
+    justify-content:center;
+    border-radius:50%;
+    transition:0.3s;
 }
 
 .top-icons a:hover{
-    background:rgba(255,255,255,.15);
+    background:rgba(255,255,255,0.15);
     transform:translateY(-3px);
 }
 
 /* NAVBAR */
 
 .navbar{
-    background:rgba(255,255,255,.95);
-    backdrop-filter:blur(15px);
-    -webkit-backdrop-filter:blur(15px);
-
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
     padding:18px 0;
-
     position:sticky;
     top:0;
     z-index:9999;
-
-    border-bottom:1px solid rgba(255,255,255,.5);
-
-    box-shadow:
-    0 10px 30px rgba(0,0,0,.05);
+    border-bottom:1px solid rgba(255,255,255,0.4);
+    box-shadow:0 8px 30px rgba(0,0,0,.05);
 }
 
 .logo{
     display:flex;
     align-items:center;
     gap:12px;
-
     font-size:30px;
     font-weight:700;
-
     color:var(--azul-institucional);
     text-decoration:none;
-
     transition:.4s;
 }
 
 .logo:hover{
-    transform:scale(1.03);
+    transform:scale(1.04);
 }
 
 .logo img{
@@ -168,7 +167,7 @@ body::after{
 }
 
 .logo:hover img{
-    transform:rotate(-8deg);
+    transform:rotate(-8deg) scale(1.08);
 }
 
 .menu{
@@ -180,60 +179,53 @@ body::after{
     position:relative;
     text-decoration:none;
     color:var(--azul-institucional);
-    font-weight:600;
+    font-size:15px;
+    font-weight:700;
     transition:.3s;
+    padding-bottom:6px;
+}
+
+.menu a:hover{
+    color:#2F6FB2;
+    transform:translateY(-2px);
 }
 
 .menu a::after{
     content:"";
     position:absolute;
     left:0;
-    bottom:-6px;
+    bottom:0;
     width:0%;
     height:2px;
     background:#2F6FB2;
-    transition:.4s;
-}
-
-.menu a:hover{
-    color:#2F6FB2;
+    transition:0.4s;
+    border-radius:10px;
 }
 
 .menu a:hover::after{
     width:100%;
 }
 
-/* BOTÃO */
-
 .btn{
     position:relative;
     overflow:hidden;
-
     background:linear-gradient(
-    135deg,
-    #0B3B7A,
-    #1C5CC8
+        135deg,
+        #0B3B7A,
+        #1C5CC8
     );
-
     color:white;
-    border:none;
     padding:14px 28px;
     border-radius:14px;
     text-decoration:none;
-
     font-weight:600;
-
     transition:.4s;
-
     box-shadow:
     0 10px 25px rgba(47,111,178,.25);
 }
 
 .btn:hover{
     transform:translateY(-4px);
-
-    color:white;
-
     box-shadow:
     0 20px 40px rgba(47,111,178,.35);
 }
@@ -243,19 +235,16 @@ body::after{
     position:absolute;
     top:0;
     left:-120%;
-
     width:100%;
     height:100%;
-
     background:
     linear-gradient(
-    90deg,
-    transparent,
-    rgba(255,255,255,.4),
-    transparent
+        90deg,
+        transparent,
+        rgba(255,255,255,.4),
+        transparent
     );
-
-    transition:.8s;
+    transition:.7s;
 }
 
 .btn:hover::before{
@@ -390,6 +379,10 @@ body::after{
 
 /* FOOTER */
 
+/* =========================
+FOOTER
+========================= */
+
 .footer{
     background:
     linear-gradient(
@@ -399,11 +392,7 @@ body::after{
     );
 
     color:white;
-
     padding:90px 0 20px;
-
-    margin-top:80px;
-
     position:relative;
 }
 
@@ -412,9 +401,8 @@ body::after{
     position:absolute;
     top:0;
     left:0;
-
     width:100%;
-    height:2px;
+    height:1px;
 
     background:
     linear-gradient(
@@ -427,53 +415,58 @@ body::after{
 
 .footer-grid{
     display:flex;
-    flex-wrap:wrap;
     gap:40px;
+    flex-wrap:wrap;
 }
 
 .footer-col{
     flex:1;
-    min-width:220px;
+    min-width:250px;
 }
 
 .footer h3{
     color:#2F6FB2;
-    margin-bottom:20px;
+    margin-bottom:15px;
 }
 
-.footer p,
+.footer p{
+    color:#c7d2df;
+    font-size:15px;
+}
+
 .footer a{
-    color:#a3b8cc;
-    text-decoration:none;
-    margin-bottom:10px;
     display:block;
-    transition:.3s;
+    color:#a7b4c5;
+    margin-bottom:10px;
+    text-decoration:none;
+    transition:0.3s;
 }
 
 .footer a:hover{
-    color:white;
-    padding-left:6px;
+    color:#2F6FB2;
+    padding-left:5px;
 }
 
 .social{
     display:flex;
-    gap:12px;
+    gap:10px;
     margin-top:15px;
 }
 
 .social a{
-    width:40px;
-    height:40px;
-    border-radius:50%;
-    border:1px solid rgba(255,255,255,.2);
-
+    width:38px;
+    height:38px;
     display:flex;
-    justify-content:center;
     align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    border:1px solid #7B92AD;
+    transition:0.3s;
 }
 
 .social a:hover{
     background:#2F6FB2;
+    border-color:#2F6FB2;
     transform:translateY(-3px);
 }
 
@@ -484,27 +477,26 @@ body::after{
 
 .newsletter input{
     flex:1;
+    padding:12px;
     border:none;
     outline:none;
-    padding:12px;
     border-radius:8px 0 0 8px;
 }
 
 .newsletter button{
-    border:none;
     background:#2F6FB2;
+    border:none;
     color:white;
     padding:0 20px;
-    border-radius:0 8px 8px 0;
     cursor:pointer;
+    border-radius:0 8px 8px 0;
 }
 
 .copy{
     text-align:center;
-    margin-top:50px;
-    padding-top:20px;
-    border-top:1px solid rgba(255,255,255,.08);
-    color:#7B92AD;
+    margin-top:40px;
+    font-size:14px;
+    color:#9db0c7;
 }
 
 /* ANIMAÇÕES */
@@ -527,12 +519,21 @@ body::after{
 
 /* RESPONSIVO */
 
-@media(max-width:768px){
+@media(max-width:992px){
+
+    .navbar .flex{
+        flex-direction:column;
+        gap:20px;
+    }
+
+    .top-info{
+        flex-direction:column;
+        gap:8px;
+    }
 
     .menu{
-        flex-direction:column;
-        gap:12px;
-        text-align:center;
+        flex-wrap:wrap;
+        justify-content:center;
     }
 
     .jumbotron{
@@ -553,6 +554,7 @@ body::after{
 
 }
 
+
     </style>
 </head>
 
@@ -561,7 +563,19 @@ body::after{
 <!-- TOPBAR -->
 <div class="topbar">
     <div class="container flex">
-        <div><i class="fas fa-phone-alt"></i> +55 (19) 99401-0744 | <i class="fas fa-envelope"></i> contact@geosync.com</div>
+        <div class="top-info">
+
+<a href="https://wa.me/551994010744?text=Olá%20GeoSync" target="_blank">
+<i class="fas fa-phone-alt"></i>
++55 (19) 99401-0744
+</a>
+
+<a href="mailto:murilo.breda@aluno.senai.br" target="_blank">
+<i class="fas fa-envelope"></i>
+contact@geosync.com
+</a>
+
+</div>
         <div class="top-icons">
             <a href="https://www.facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
             <a href="https://x.com" target="_blank"><i class="fab fa-twitter"></i></a>
@@ -582,10 +596,10 @@ body::after{
             <a href="/" style="font-weight:600;">Início</a>
             <a href="/about" style="font-weight:600;">Sobre</a>
             <a href="/contact" style="font-weight:600;">Contato</a>
-            {{-- <a href="/pagamento" style="font-weight:600;">Planos</a> --}}
+            <a href="/planos" style="font-weight:600;">Planos</a>
         </div>
 
-        <a href="/login" class="btn" style="border-radius: 8px; background-color: #022553; font-weight:600;">Solicitar um Serviço</a>
+        <a href="/login" class="btn" >Solicitar um Serviço</a>
     </div>
 </div>
 
@@ -619,19 +633,19 @@ body::after{
     <div class="row">
         <div class="col-md-4 mb-4">
             <div class="team card shadow">
-                <img src="{{ asset('img/mariaClara.png') }}" class="card-img-top" alt="Maria Clara">
+                <img src="{{ asset('img/murilo.jpg') }}" class="card-img-top" alt="Murilo">
                 <div class="team-text">
-                    <h5>Maria Clara</h5>
-                    <small>Front-End / Banco de Dados</small>
+                    <h5>Murilo Moroni Breda</h5>
+                    <small>Full-Stack Developer - PO</small>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-4">
             <div class="team card shadow">
-                <img src="{{ asset('img/murilo.jpg') }}" class="card-img-top" alt="Murilo">
+                <img src="{{ asset('img/thayla.png') }}" class="card-img-top" alt="Thayla">
                 <div class="team-text">
-                    <h5>Murilo</h5>
-                    <small>Full Stack Developer</small>
+                    <h5>Thayla F. de Lima Ribeiro</h5>
+                    <small>Back-End Developer - Scrum Master</small>
                 </div>
             </div>
         </div>
@@ -639,7 +653,7 @@ body::after{
             <div class="team card shadow">
                 <img src="{{ asset('img/lucas.png') }}" class="card-img-top" alt="Lucas">
                 <div class="team-text">
-                    <h5>Lucas</h5>
+                    <h5>Lucas Rizzo Bertoloto</h5>
                     <small>Back-End Developer</small>
                 </div>
             </div>
@@ -648,17 +662,17 @@ body::after{
             <div class="team card shadow">
                 <img src="{{ asset('img/mickael.png') }}" class="card-img-top" alt="Mickael">
                 <div class="team-text">
-                    <h5>Mickael</h5>
+                    <h5>Mickael H. Malafatti Ezequiel</h5>
                     <small>Front-End / Banco de Dados</small>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-4">
             <div class="team card shadow">
-                <img src="{{ asset('img/thayla.png') }}" class="card-img-top" alt="Thayla">
+                <img src="{{ asset('img/mariaClara.png') }}" class="card-img-top" alt="Maria Clara">
                 <div class="team-text">
-                    <h5>Thayla</h5>
-                    <small>Back-End Developer</small>
+                    <h5>Maria Clara Luz da Silva</h5>
+                    <small>Front-End / Banco de Dados</small>
                 </div>
             </div>
         </div>
@@ -666,7 +680,7 @@ body::after{
             <div class="team card shadow">
                 <img src="{{ asset('img/theo.png') }}" class="card-img-top" alt="Théo">
                 <div class="team-text">
-                    <h5>Théo</h5>
+                    <h5>Théo Donizetti de Souza</h5>
                     <small>Front-End / Banco de Dados</small>
                 </div>
             </div>
@@ -688,45 +702,74 @@ body::after{
 </script>
 
 <div class="footer">
+
     <div class="container">
+
         <div class="footer-grid">
+
             <div class="footer-col">
+
                 <h3>GeoSync</h3>
-                <p>Sistema inteligente de rastreamento e logística em tempo real.</p>
+
+                <p>
+                Sistema inteligente de rastreamento e logística em tempo real.
+                </p>
+
                 <div class="social">
+
                     <a href="https://www.facebook.com/geosync" target="_blank"><i class="fab fa-facebook-f"></i></a>
                     <a href="https://x.com/geosync" target="_blank"><i class="fab fa-twitter"></i></a>
                     <a href="https://br.linkedin.com/company/geosync" target="_blank"><i class="fab fa-linkedin-in"></i></a>
                     <a href="https://www.instagram.com/geosync_tambau/" target="_blank"><i class="fab fa-instagram"></i></a>
+
                 </div>
+
             </div>
+
             <div class="footer-col">
+
                 <h3>Links</h3>
+
                 <a href="/">Início</a>
                 <a href="/about">Sobre</a>
-                <a href="/login">Serviços</a>
+                <a href="/login">Serviço</a>
                 <a href="/contact">Contato</a>
-                <a href="/pagamento">Planos</a>
+                <a href="/planos">Planos</a>
                 <a href="/avaliar">Feedback</a>
+
             </div>
+
             <div class="footer-col">
+
                 <h3>Contato</h3>
-                <p>R. Cap. David, 56 - Centro, Tambaú - SP, 13710-000</p>
+
+                <p>R. Cap. David, 56 - Centro, Tambaú - SP</p>
                 <p>(19) 99401-0744</p>
                 <p>contact@geosync.com</p>
+
             </div>
+
             <div class="footer-col">
-                <h3>Newsletter</h3>
+
+                <h3>Boletim informativo</h3>
+
+                <p>Receba novidades da plataforma.</p>
+
                 <div class="newsletter">
                     <input type="text" placeholder="Seu email">
                     <button>Enviar</button>
                 </div>
+
             </div>
+
         </div>
+
         <div class="copy">
             © 2026 GeoSync - Todos os direitos reservados
         </div>
+
     </div>
+
 </div>
 
 </body>
