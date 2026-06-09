@@ -753,7 +753,7 @@ Solicitar um Serviço
                 </p>
 
                 <ul>
-                    <li><i class="fas fa-check"></i> Até 10 veículos</li>
+                    <li><i class="fas fa-check"></i> Até 10 entregas</li>
                     <li><i class="fas fa-check"></i> Rastreamento em tempo real</li>
                     <li><i class="fas fa-check"></i> Alertas inteligentes</li>
                     <li><i class="fas fa-check"></i> Dashboard</li>
@@ -789,7 +789,7 @@ Solicitar um Serviço
                 </p>
 
                 <ul>
-                    <li><i class="fas fa-check"></i> Até 65 veículos</li>
+                    <li><i class="fas fa-check"></i> Até 65 entregas</li>
                     <li><i class="fas fa-check"></i> Rastreamento em tempo real</li>
                     <li><i class="fas fa-check"></i> Alertas inteligentes</li>
                     <li><i class="fas fa-check"></i> Dashboard</li>
@@ -821,7 +821,7 @@ Solicitar um Serviço
                 </p>
 
                 <ul>
-                    <li><i class="fas fa-check"></i> Veículos ilimitados</li>
+                    <li><i class="fas fa-check"></i> Entregas ilimitados</li>
                     <li><i class="fas fa-check"></i> Rastreamento em tempo real</li>
                     <li><i class="fas fa-check"></i> Alertas inteligentes</li>
                     <li><i class="fas fa-check"></i> Dashboard</li>
@@ -882,7 +882,7 @@ Solicitar um Serviço
                     </tr>
 
                     <tr>
-                        <td>Veículos</td>
+                        <td>Entregas</td>
                         <td>10</td>
                         <td>65</td>
                         <td>Ilimitado</td>

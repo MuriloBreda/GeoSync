@@ -639,6 +639,51 @@ font-size:14px;
 color:#9db0c7;
 }
 
+/* loader */
+
+#loader{
+    position:fixed;
+    inset:0;
+    background: #fff;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:999999;
+    transition:all .8s ease;
+}
+
+.loader-logo{
+    text-align:center;
+    transition:all .8s ease;
+}
+
+.loader-logo img{
+    width:140px;
+    animation:pulse 1.5s infinite;
+}
+
+.loader-exit{
+    opacity:0;
+    backdrop-filter:blur(10px);
+}
+
+.loader-exit .loader-logo{
+    transform:scale(1.5);
+    opacity:0;
+}
+
+@keyframes pulse{
+    0%{
+        transform:scale(1);
+    }
+    50%{
+        transform:scale(1.08);
+    }
+    100%{
+        transform:scale(1);
+    }
+}
+
 @keyframes fadeUp{
     from{
         opacity:0;
@@ -681,6 +726,14 @@ color:#9db0c7;
 </head>
 
 <body>
+
+    <!-- LOADER -->
+    <div id="loader">
+        <div class="loader-logo">
+            <img src="{{ asset('img/Logo.png') }}" alt="GeoSync">
+            <h1><span>Geo</span><span style="color: #1C3F6E">Sync</span></h1>
+        </div>
+    </div>
 
 <!-- TOPBAR -->
 
@@ -982,4 +1035,25 @@ Sistema inteligente de rastreamento e logística em tempo real.
 </div>
 
 </body>
+
+<script>
+window.addEventListener('load', function(){
+
+    setTimeout(() => {
+
+        const loader = document.getElementById('loader');
+
+        // animação de saída
+        loader.classList.add('loader-exit');
+
+        // remove totalmente
+        setTimeout(() => {
+            loader.remove();
+        }, 800);
+
+    }, 1500);
+
+});
+</script>
+
 </html>

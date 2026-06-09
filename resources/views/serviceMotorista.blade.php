@@ -599,8 +599,8 @@ body.alto-contraste .nav-link.active {
             // SE DER ERRO DE PERMISSÃO, ELE USA COORDENADAS DE TESTE (MOCK) PARA VOCÊ NÃO FICAR TRAVADO
             console.warn("GPS Real bloqueado. Usando coordenadas simuladas de teste.");
             
-            const latSimulada = -23.55052; // Coordenada simulada (Ex: São Paulo)
-            const lonSimulada = -46.63330;
+            const latSimulada = -21.70; // Coordenada simulada (Ex: São Paulo)
+            const lonSimulada = -47.27;
             
             configurarMarcadorMapa(latSimulada, lonSimulada);
         },
