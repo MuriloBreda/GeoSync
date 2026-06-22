@@ -37,11 +37,16 @@ class ProfileController extends Controller
         // Upload da foto
         if ($request->hasFile('foto')) {
 
-            $path = $request->file('foto')->store('users', 'public');
+            $arquivo = $request->file('foto');
 
-            $data['foto'] = $path;
+            $nome = time().'.'.$arquivo->getClientOriginalExtension();
+
+            $arquivo->move(public_path('uploads/perfis'), $nome);
+
+            $user->foto = 'uploads/perfis/'.$nome;
         }
 
+        $user->save();
         $user->update($data);
 
         return back()->with('success', 'Perfil atualizado com sucesso!');

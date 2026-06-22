@@ -35,8 +35,8 @@
 
         .card {
             background: #fff;
-            width: 550px;
-            height: 550px;
+            width: 650px;
+            height: 650px;
             padding: 20px;
             border-radius: 14px;
             text-align: center;
@@ -131,6 +131,89 @@
             transition: 0.3s;
         }
 
+        .btn-google{
+            width:100%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:10px;
+            text-decoration:none;
+            background:#fff;
+            color:#333;
+            border:1px solid #ddd;
+            padding:12px;
+            border-radius:6px;
+            font-size:14px;
+            font-weight:500;
+            transition:.3s;
+        }
+
+        .btn-google:hover{
+            background:#f5f5f5;
+        }
+
+        .btn-google img{
+            width:20px;
+            height:20px;
+        }
+
+        @media (max-width: 768px){
+
+            body{
+                padding: 15px;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .container{
+                width: 100%;
+            }
+
+            .card{
+                width: 100%;
+                height: auto;
+                min-height: auto;
+                padding: 20px;
+            }
+
+            form{
+                grid-template-columns: 1fr;
+            }
+
+            .full,
+            button,
+            .msg{
+                grid-column: span 1;
+            }
+
+            h1{
+                font-size: 20px;
+            }
+
+            #imagemLogo{
+                width: 130px !important;
+            }
+
+            input{
+                font-size: 16px;
+            }
+
+            button,
+            .btn-login,
+            .btn-google{
+                width: 100%;
+            }
+
+            .btn-google{
+                padding: 14px;
+            }
+
+            span{
+                display: block;
+                text-align: center;
+            }
+        }
+
     </style>
 </head>
 
@@ -168,6 +251,19 @@
             <button type="submit">Entrar</button>
 
         </form>
+
+        <div class="full" style="margin-top:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <hr style="flex:1">
+                <span style="font-size:13px;color:#666;">ou</span>
+                <hr style="flex:1">
+            </div>
+
+            <a href="/auth/google" class="btn-google">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google">
+                Entrar com Google
+            </a>
+        </div>
 
         <span style="margin: 5px">Não tem conta?</span>
         <a href="/register" class="btn-login">Criar conta</a>

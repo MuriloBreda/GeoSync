@@ -8,32 +8,34 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
 
+
 <style>
 :root{
-    --azul-institucional:#1C3F6E;
-    --azul-tech:#2F6FB2;
-    --azul-profundo:#0B1F36;
-    --azul-claro:#E6EEF8;
-    --azul-cinza:#7B92AD;
-
-    --primary:#072051;
-    --secondary:#328CC1;
-    --light:#F4F7FA;
-    --dark:#1B1B1B;
+--azul-institucional:#1C3F6E;
+--azul-tech:#2F6FB2;
+--azul-profundo:#0B1F36;
+--azul-claro:#E6EEF8;
+--azul-cinza:#7B92AD;
 }
 
 *{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
 }
 
 body{
-    font-family:'Poppins',sans-serif;
+    font-family:'Poppins', sans-serif;
     background:#f5f7fb;
-    color:var(--dark);
     overflow-x:hidden;
+    position:relative;
 }
+
+/* Glow Background */
 
 body::before{
     content:"";
@@ -58,73 +60,72 @@ body::after{
 }
 
 /* =========================
-   CONTAINER
+CONTAINER
 ========================= */
 
 .container{
-    width:90%;
-    max-width:1200px;
-    margin:auto;
+width:90%;
+margin:auto;
 }
 
 .flex{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    flex-wrap:wrap;
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
 }
 
 /* =========================
-   TOPBAR
+TOPBAR
 ========================= */
 
 .topbar{
-    background:linear-gradient(90deg,#0B1F36,#1C3F6E);
-    padding:10px 0;
-    color:white;
-    font-size:14px;
-    box-shadow:0 2px 10px rgba(0,0,0,0.08);
+background:linear-gradient(90deg,#0B1F36,#1C3F6E);
+padding:10px 0;
+color:white;
+font-size:14px;
+box-shadow:0 2px 10px rgba(0,0,0,0.08);
 }
 
 .topbar a{
-    color:white;
-    text-decoration:none;
-    transition:0.3s;
+color:white;
+text-decoration:none;
+transition:0.3s;
 }
 
 .topbar a:hover{
-    color:#7fb7ff;
+color:#7fb7ff;
 }
 
 .top-info{
-    display:flex;
-    gap:20px;
-    align-items:center;
+display:flex;
+gap:20px;
+align-items:center;
 }
 
 .top-icons{
-    display:flex;
-    gap:10px;
-    align-items:center;
+display:flex;
+gap:10px;
+align-items:center;
 }
 
 .top-icons a{
-    width:34px;
-    height:34px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:50%;
-    transition:0.3s;
+width:34px;
+height:34px;
+display:flex;
+align-items:center;
+justify-content:center;
+border-radius:50%;
+transition:0.3s;
 }
 
 .top-icons a:hover{
-    background:rgba(255,255,255,0.15);
-    transform:translateY(-3px);
+background:rgba(255,255,255,0.15);
+transform:translateY(-3px);
 }
 
 /* =========================
-   NAVBAR
+NAVBAR
 ========================= */
 
 .navbar{
@@ -164,8 +165,8 @@ body::after{
 }
 
 .menu{
-    display:flex;
-    gap:35px;
+display:flex;
+gap:35px;
 }
 
 .menu a{
@@ -184,19 +185,20 @@ body::after{
 }
 
 .menu a::after{
-    content:"";
-    position:absolute;
-    left:0;
-    bottom:0;
-    width:0%;
-    height:2px;
-    background:#2F6FB2;
-    transition:0.4s;
-    border-radius:10px;
+content:"";
+position:absolute;
+left:0;
+bottom:0;
+width:0%;
+height:2px;
+background:#2F6FB2;
+transition:0.4s;
+border-radius:10px;
 }
 
+
 .menu a:hover::after{
-    width:100%;
+width:100%;
 }
 
 .btn{
@@ -494,33 +496,257 @@ FOOTER
    RESPONSIVO
 ========================= */
 
-@media(max-width:992px){
+@media (max-width: 768px){
 
-    .navbar .flex{
-        flex-direction:column;
-        gap:20px;
+    .container{
+        width:95%;
     }
 
-    .menu{
-        flex-wrap:wrap;
-        justify-content:center;
+    /* TOPBAR */
+
+    .topbar{
+        padding:12px 0;
     }
 
     .top-info{
+        width:100%;
         flex-direction:column;
         gap:8px;
+        text-align:center;
     }
 
-    .header h1{
-        font-size:36px;
+    .top-info a{
+        font-size:13px;
+    }
+
+    .top-icons{
+        width:100%;
+        justify-content:center;
+        margin-top:10px;
+    }
+
+    /* NAVBAR */
+
+    .navbar{
+        padding:15px 0;
+    }
+
+    .navbar .flex{
+        flex-direction:column;
+        gap:15px;
+    }
+
+    .logo{
+        font-size:24px;
+    }
+
+    .logo img{
+        width:50px;
+    }
+
+    .menu{
+        width:100%;
+        justify-content:center;
+        gap:15px;
+        flex-wrap:wrap;
+    }
+
+    .menu a{
+        font-size:14px;
+    }
+
+    .btn{
+        width:100%;
+        text-align:center;
+        padding:14px;
+    }
+
+    /* HERO */
+
+    .header,
+    .hero-about,
+    .planos-hero{
+        padding:80px 15px;
+    }
+
+    .header h1,
+    .hero-about h1,
+    .planos-hero h1{
+        font-size:32px !important;
+        line-height:1.2;
+    }
+
+    .header p,
+    .hero-about p,
+    .planos-hero p{
+        font-size:15px;
+    }
+
+    /* TITULOS */
+
+    h2{
+        font-size:28px !important;
+    }
+
+    h3{
+        font-size:22px !important;
+    }
+
+    p{
+        font-size:15px !important;
+        text-align:left;
+    }
+
+    /* ABOUT */
+
+    .about-card{
+        padding:25px;
+    }
+
+    .about-content{
+        flex-direction:column;
+        gap:25px;
+    }
+
+    .team-grid{
+        grid-template-columns:1fr;
+    }
+
+    .team-card img,
+    .team img{
+        height:280px;
+    }
+
+    /* INDEX */
+
+    .diferenciais-topo{
+        flex-direction:column;
+        gap:25px;
+    }
+
+    .diferenciais-texto h2,
+    .diferenciais-texto h2 span{
+        font-size:36px !important;
+    }
+
+    .diferenciais-imagem img{
+        height:280px;
+    }
+
+    .cards{
+        gap:20px;
+    }
+
+    .card{
+        width:100%;
+        max-width:none;
+    }
+
+    .services{
+        flex-direction:column;
+    }
+
+    .service{
+        min-width:100%;
+    }
+
+    /* CONTATO */
+
+    .contact-wrapper{
+        flex-direction:column;
+        margin:35px 0;
     }
 
     .contact-card{
+        min-width:100%;
         padding:20px;
+    }
+
+    iframe{
+        height:280px;
+    }
+
+    /* AVALIAÇÃO */
+
+    .stats{
+        grid-template-columns:1fr;
+    }
+
+    .content{
+        grid-template-columns:1fr !important;
+    }
+
+    .left-panel,
+    .right-panel{
+        padding:25px;
+    }
+
+    .page-header h1{
+        font-size:30px;
+    }
+
+    .form-title{
+        font-size:24px;
+    }
+
+    .stars{
+        justify-content:center;
+    }
+
+    .stars span{
+        font-size:40px;
+    }
+
+    /* PLANOS */
+
+    .planos-grid{
+        gap:20px;
+    }
+
+    .plano-card{
+        width:100%;
+        padding:25px;
+    }
+
+    .preco{
+        font-size:32px;
+    }
+
+    .tabela{
+        overflow-x:auto;
+    }
+
+    .tabela table{
+        min-width:700px;
+    }
+
+    /* FOOTER */
+
+    .footer{
+        padding:60px 0 20px;
     }
 
     .footer-grid{
         flex-direction:column;
+        gap:25px;
+    }
+
+    .footer-col{
+        min-width:100%;
+    }
+
+    .newsletter{
+        flex-direction:column;
+        gap:10px;
+    }
+
+    .newsletter input{
+        border-radius:8px;
+    }
+
+    .newsletter button{
+        border-radius:8px;
+        padding:14px;
     }
 
 }
@@ -537,14 +763,14 @@ FOOTER
 
 <div class="top-info">
 
-<a href="https://wa.me/551994010744?text=Olá%20GeoSync" target="_blank">
+<a href="https://wa.me/551994010744?text=Olá!%20Seja%20Bem-vindo(a)%20à%20GeoSync!%20Como%20posso%20ajudar?" target="_blank">
 <i class="fas fa-phone-alt"></i>
 +55 (19) 99401-0744
 </a>
 
-<a href="mailto:murilo.breda@aluno.senai.br" target="_blank">
+<a href="https://mail.google.com/mail/?view=cm&fs=1&to=contatogeosync@gmail.com" target="_blank">
 <i class="fas fa-envelope"></i>
-contact@geosync.com
+contatogeosync@gmail.com
 </a>
 
 </div>
@@ -611,7 +837,7 @@ Solicitar um Serviço
         </div>
 
         <div class="contact-card">
-            <form action="{{ route('contato.store') }}" method="POST" id="contactForm">
+            <form action="{{ route('chat.iniciar') }}" method="POST" id="contactForm">
                 @csrf
                 <h2>Envie uma mensagem</h2>
                 <input type="text" name="nome" placeholder="Seu nome" class="input" required>

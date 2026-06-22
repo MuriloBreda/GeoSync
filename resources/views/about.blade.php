@@ -7,31 +7,24 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
 
         /* =========================
            VARIÁVEIS UNIFICADAS
         ========================= */
-        :root{
-    --azul-institucional:#1C3F6E;
-    --azul-tech:#2F6FB2;
-    --azul-profundo:#0B1F36;
-    --azul-claro:#E6EEF8;
-    --azul-cinza:#7B92AD;
-
-    --primary:#072051;
-    --secondary:#328CC1;
-    --accent:#D9B310;
-    --light:#F4F7FA;
-    --dark:#1B1B1B;
+:root{
+--azul-institucional:#1C3F6E;
+--azul-tech:#2F6FB2;
+--azul-profundo:#0B1F36;
+--azul-claro:#E6EEF8;
+--azul-cinza:#7B92AD;
 }
 
 *{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+margin:0;
+padding:0;
+box-sizing:border-box;
 }
 
 html{
@@ -39,14 +32,13 @@ html{
 }
 
 body{
-    font-family:'Poppins',sans-serif;
+    font-family:'Poppins', sans-serif;
     background:#f5f7fb;
-    color:var(--dark);
     overflow-x:hidden;
     position:relative;
 }
 
-/* GLOW BACKGROUND */
+/* Glow Background */
 
 body::before{
     content:"";
@@ -73,66 +65,67 @@ body::after{
 /* CONTAINER */
 
 .container{
-    width:90%;
-    max-width:1200px;
-    margin:auto;
+width:90%;
+margin:auto;
 }
 
 .flex{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    flex-wrap:wrap;
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
 }
 
 /* TOPBAR */
 
 .topbar{
-    background:linear-gradient(90deg,#0B1F36,#1C3F6E);
-    padding:10px 0;
-    color:white;
-    font-size:14px;
-    box-shadow:0 2px 10px rgba(0,0,0,0.08);
+background:linear-gradient(90deg,#0B1F36,#1C3F6E);
+padding:10px 0;
+color:white;
+font-size:14px;
+box-shadow:0 2px 10px rgba(0,0,0,0.08);
 }
 
 .topbar a{
-    color:white;
-    text-decoration:none;
-    transition:0.3s;
+color:white;
+text-decoration:none;
+transition:0.3s;
 }
 
 .topbar a:hover{
-    color:#7fb7ff;
+color:#7fb7ff;
 }
 
 .top-info{
-    display:flex;
-    gap:20px;
-    align-items:center;
+display:flex;
+gap:20px;
+align-items:center;
 }
 
 .top-icons{
-    display:flex;
-    gap:10px;
-    align-items:center;
+display:flex;
+gap:10px;
+align-items:center;
 }
 
 .top-icons a{
-    width:34px;
-    height:34px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:50%;
-    transition:0.3s;
+width:34px;
+height:34px;
+display:flex;
+align-items:center;
+justify-content:center;
+border-radius:50%;
+transition:0.3s;
 }
 
 .top-icons a:hover{
-    background:rgba(255,255,255,0.15);
-    transform:translateY(-3px);
+background:rgba(255,255,255,0.15);
+transform:translateY(-3px);
 }
 
-/* NAVBAR */
+/* =========================
+NAVBAR
+========================= */
 
 .navbar{
     background:rgba(255,255,255,0.92);
@@ -171,8 +164,8 @@ body::after{
 }
 
 .menu{
-    display:flex;
-    gap:35px;
+display:flex;
+gap:35px;
 }
 
 .menu a{
@@ -191,19 +184,20 @@ body::after{
 }
 
 .menu a::after{
-    content:"";
-    position:absolute;
-    left:0;
-    bottom:0;
-    width:0%;
-    height:2px;
-    background:#2F6FB2;
-    transition:0.4s;
-    border-radius:10px;
+content:"";
+position:absolute;
+left:0;
+bottom:0;
+width:0%;
+height:2px;
+background:#2F6FB2;
+transition:0.4s;
+border-radius:10px;
 }
 
+
 .menu a:hover::after{
-    width:100%;
+width:100%;
 }
 
 .btn{
@@ -251,9 +245,12 @@ body::after{
     left:120%;
 }
 
-/* HERO */
+.section{
+    padding: 80px 0;
+}
 
-.jumbotron{
+/* HERO */
+.hero-about{
     background:
     linear-gradient(rgba(11,31,54,0.85), rgba(11,31,54,0.85)),
     url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
@@ -264,16 +261,126 @@ body::after{
     color:white;
 }
 
-.jumbotron h1{
-    font-size:70px;
-    font-weight:700;
-    margin-bottom:15px;
-    animation:fadeUp 1s ease;
+.hero-about h1{
+    color: white;
+    font-size: 4rem;
+    margin-bottom: 15px;
 }
 
-.jumbotron p{
-    font-size:22px;
-    animation:fadeUp 1.2s ease;
+.hero-about p{
+    color: rgba(255,255,255,.9);
+    font-size: 1.2rem;
+}
+
+/* SOBRE */
+.about-card{
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.12);
+}
+
+.about-content{
+    display: flex;
+    align-items: center;
+    gap: 50px;
+}
+
+.about-image{
+    flex: 1;
+}
+
+.about-image img{
+    width: 100%;
+    border-radius: 15px;
+    display: block;
+    box-shadow: 0 5px 20px rgba(0,0,0,.15);
+}
+
+.about-text{
+    flex: 1.2;
+}
+
+.about-text h6{
+    color: var(--secondary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: .85rem;
+    margin-bottom: 10px;
+}
+
+.about-text h2{
+    color: var(--primary);
+    font-size: 2.2rem;
+    margin-bottom: 25px;
+}
+
+.about-text p{
+    color: #333;
+    line-height: 1.8;
+    margin-bottom: 15px;
+}
+
+/* TÍTULO */
+.section-title{
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.section-title h6{
+    color: var(--secondary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: .85rem;
+}
+
+.section-title h2{
+    color: var(--primary);
+    font-size: 2.5rem;
+    margin-top: 10px;
+}
+
+/* EQUIPE */
+.team-grid{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+}
+
+.team-card{
+    background: white;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0,0,0,.1);
+    transition: .3s;
+}
+
+.team-card:hover{
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0,0,0,.15);
+}
+
+.team-card img{
+    width: 100%;
+    height: 320px;
+    object-fit: cover;
+    display: block;
+}
+
+.team-text{
+    padding: 20px;
+    text-align: center;
+}
+
+.team-text h5{
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: #222;
+}
+
+.team-text small{
+    color: #666;
+    font-size: .9rem;
 }
 
 /* ABOUT CARD */
@@ -361,6 +468,7 @@ body::after{
 }
 
 .team-text h5{
+    color:white;
     margin-bottom:6px;
     font-weight:700;
 }
@@ -369,8 +477,6 @@ body::after{
     color:#9fd2ff;
     font-size:14px;
 }
-
-/* FOOTER */
 
 /* =========================
 FOOTER
@@ -494,37 +600,257 @@ FOOTER
 
 /* RESPONSIVO */
 
-@media(max-width:992px){
+@media (max-width: 768px){
 
-    .navbar .flex{
-        flex-direction:column;
-        gap:20px;
+    .container{
+        width:95%;
+    }
+
+    /* TOPBAR */
+
+    .topbar{
+        padding:12px 0;
     }
 
     .top-info{
+        width:100%;
         flex-direction:column;
         gap:8px;
+        text-align:center;
+    }
+
+    .top-info a{
+        font-size:13px;
+    }
+
+    .top-icons{
+        width:100%;
+        justify-content:center;
+        margin-top:10px;
+    }
+
+    /* NAVBAR */
+
+    .navbar{
+        padding:15px 0;
+    }
+
+    .navbar .flex{
+        flex-direction:column;
+        gap:15px;
+    }
+
+    .logo{
+        font-size:24px;
+    }
+
+    .logo img{
+        width:50px;
     }
 
     .menu{
-        flex-wrap:wrap;
+        width:100%;
         justify-content:center;
+        gap:15px;
+        flex-wrap:wrap;
     }
 
-    .jumbotron{
-        padding:120px 20px;
+    .menu a{
+        font-size:14px;
     }
 
-    .jumbotron h1{
-        font-size:42px;
+    .btn{
+        width:100%;
+        text-align:center;
+        padding:14px;
     }
+
+    /* HERO */
+
+    .header,
+    .hero-about,
+    .planos-hero{
+        padding:80px 15px;
+    }
+
+    .header h1,
+    .hero-about h1,
+    .planos-hero h1{
+        font-size:32px !important;
+        line-height:1.2;
+    }
+
+    .header p,
+    .hero-about p,
+    .planos-hero p{
+        font-size:15px;
+    }
+
+    /* TITULOS */
+
+    h2{
+        font-size:28px !important;
+    }
+
+    h3{
+        font-size:22px !important;
+    }
+
+    p{
+        font-size:15px !important;
+        text-align:left;
+    }
+
+    /* ABOUT */
 
     .about-card{
         padding:25px;
     }
 
+    .about-content{
+        flex-direction:column;
+        gap:25px;
+    }
+
+    .team-grid{
+        grid-template-columns:1fr;
+    }
+
+    .team-card img,
+    .team img{
+        height:280px;
+    }
+
+    /* INDEX */
+
+    .diferenciais-topo{
+        flex-direction:column;
+        gap:25px;
+    }
+
+    .diferenciais-texto h2,
+    .diferenciais-texto h2 span{
+        font-size:36px !important;
+    }
+
+    .diferenciais-imagem img{
+        height:280px;
+    }
+
+    .cards{
+        gap:20px;
+    }
+
+    .card{
+        width:100%;
+        max-width:none;
+    }
+
+    .services{
+        flex-direction:column;
+    }
+
+    .service{
+        min-width:100%;
+    }
+
+    /* CONTATO */
+
+    .contact-wrapper{
+        flex-direction:column;
+        margin:35px 0;
+    }
+
+    .contact-card{
+        min-width:100%;
+        padding:20px;
+    }
+
+    iframe{
+        height:280px;
+    }
+
+    /* AVALIAÇÃO */
+
+    .stats{
+        grid-template-columns:1fr;
+    }
+
+    .content{
+        grid-template-columns:1fr !important;
+    }
+
+    .left-panel,
+    .right-panel{
+        padding:25px;
+    }
+
+    .page-header h1{
+        font-size:30px;
+    }
+
+    .form-title{
+        font-size:24px;
+    }
+
+    .stars{
+        justify-content:center;
+    }
+
+    .stars span{
+        font-size:40px;
+    }
+
+    /* PLANOS */
+
+    .planos-grid{
+        gap:20px;
+    }
+
+    .plano-card{
+        width:100%;
+        padding:25px;
+    }
+
+    .preco{
+        font-size:32px;
+    }
+
+    .tabela{
+        overflow-x:auto;
+    }
+
+    .tabela table{
+        min-width:700px;
+    }
+
+    /* FOOTER */
+
+    .footer{
+        padding:60px 0 20px;
+    }
+
     .footer-grid{
         flex-direction:column;
+        gap:25px;
+    }
+
+    .footer-col{
+        min-width:100%;
+    }
+
+    .newsletter{
+        flex-direction:column;
+        gap:10px;
+    }
+
+    .newsletter input{
+        border-radius:8px;
+    }
+
+    .newsletter button{
+        border-radius:8px;
+        padding:14px;
     }
 
 }
@@ -536,139 +862,177 @@ FOOTER
 <body>
 
 <!-- TOPBAR -->
-<div class="topbar">
-    <div class="container flex">
-        <div class="top-info">
 
-<a href="https://wa.me/551994010744?text=Olá%20GeoSync" target="_blank">
+<div class="topbar">
+<div class="container flex">
+
+<div class="top-info">
+
+<a href="https://wa.me/551994010744?text=Olá!%20Seja%20Bem-vindo(a)%20à%20GeoSync!%20Como%20posso%20ajudar?" target="_blank">
 <i class="fas fa-phone-alt"></i>
 +55 (19) 99401-0744
 </a>
 
-<a href="mailto:murilo.breda@aluno.senai.br" target="_blank">
+<a href="https://mail.google.com/mail/?view=cm&fs=1&to=contatogeosync@gmail.com" target="_blank">
 <i class="fas fa-envelope"></i>
-contact@geosync.com
+contatogeosync@gmail.com
 </a>
 
 </div>
-        <div class="top-icons">
-            <a href="https://www.facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
-            <a href="https://x.com" target="_blank"><i class="fab fa-twitter"></i></a>
-            <a href="https://br.linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-            <a href="https://www.instagram.com/geosync_tambau/" target="_blank"><i class="fab fa-instagram"></i></a>
-        </div>
-    </div>
+
+<div class="top-icons">
+
+<a href="https://www.facebook.com" target="_blank">
+<i class="fab fa-facebook-f"></i>
+</a>
+
+<a href="https://x.com" target="_blank">
+<i class="fab fa-twitter"></i>
+</a>
+
+<a href="https://br.linkedin.com" target="_blank">
+<i class="fab fa-linkedin-in"></i>
+</a>
+
+<a href="https://www.instagram.com/geosync_tambau/" target="_blank">
+<i class="fab fa-instagram"></i>
+</a>
+
 </div>
+
+</div>
+</div>
+
+<!-- NAVBAR -->
 
 <div class="navbar">
-    <div class="container flex">
-        <a href="/" class="logo" style="text-decoration:none; display:flex; align-items:center; gap:12px;">
-            <img src="{{ asset('img/Logo.png') }}" alt="Logo" style="width: 65px;">
-            <span>GeoSync</span>
-        </a>
+<div class="container flex">
 
-        <div class="menu">
-            <a href="/" style="font-weight:600;">Início</a>
-            <a href="/about" style="font-weight:600;">Sobre</a>
-            <a href="/contact" style="font-weight:600;">Contato</a>
-            <a href="/planos" style="font-weight:600;">Planos</a>
-        </div>
+<a href="/" class="logo">
+<img src="{{ asset('img/Logo.png') }}" alt="Logo">
+<span>GeoSync</span>
+</a>
 
-        <a href="/login" class="btn" >Solicitar um Serviço</a>
-    </div>
+<div class="menu">
+<a href="/">Início</a>
+<a href="/about">Sobre</a>
+<a href="/contact">Contato</a>
+<a href="/planos">Planos</a>
 </div>
 
-<div class="jumbotron text-center">
+<a href="/login" class="btn">
+Solicitar um Serviço
+</a>
+
+</div>
+</div>
+
+<!-- HERO -->
+<section class="hero-about">
     <div class="container">
-        <h1 class="display-4 text-white">Sobre Nós</h1>
-        <p class="lead text-white">Conheça a história e a equipe por trás da GeoSync</p>
+        <h1>Sobre Nós</h1>
+        <p>Conheça a história e a equipe por trás da GeoSync</p>
     </div>
-</div>
+</section>
 
-<div class="container py-5">
-    <div class="about-card shadow-lg"> <div class="row align-items-center">
-            <div class="col-lg-5 mb-4">
-                <img class="img-fluid rounded shadow" src="https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&q=80&w=600" alt="Caminhão Logística">
+<!-- SOBRE -->
+<section class="container section">
+    <div class="about-card">
+        <div class="about-content">
+
+            <div class="about-image">
+                <img src="https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&q=80&w=600"
+                    alt="Caminhão Logística">
             </div>
-            <div class="col-lg-7">
-                <h6 class="text-secondary text-uppercase font-weight-bold">Nossa Essência</h6> <h2 class="mb-4 text-primary-custom">Logística rápida, segura e inteligente</h2> <p class="text-dark"> Unimos tecnologia de ponta e anos de experiência no setor para otimizar entregas e reduzir custos operacionais. Na GeoSync, acreditamos que a transparência em tempo real é a chave para o sucesso logístico moderno.
+
+            <div class="about-text">
+                <h6>Nossa Essência</h6>
+                <h2>Logística rápida, segura e inteligente</h2>
+
+                <p>
+                    Unimos tecnologia de ponta e anos de experiência no setor para
+                    otimizar entregas e reduzir custos operacionais. Na GeoSync,
+                    acreditamos que a transparência em tempo real é a chave para o
+                    sucesso logístico moderno.
                 </p>
-                <p class="text-dark">
-                    Nossa plataforma foi desenhada para ser intuitiva, robusta e escalável, atendendo desde pequenos frotistas até grandes centros de distribuição.
+
+                <p>
+                    Nossa plataforma foi desenhada para ser intuitiva, robusta e
+                    escalável, atendendo desde pequenos frotistas até grandes
+                    centros de distribuição.
                 </p>
             </div>
+
         </div>
     </div>
-</div>
+</section>
 
-<div class="container py-5">
-    <div class="text-center mb-5">
-        <h6 class="text-secondary text-uppercase font-weight-bold">Nossa Equipe</h6> <h2 class="text-primary-custom">Mentes que movem a GeoSync</h2> </div>
-
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="team card shadow">
-                <img src="{{ asset('img/murilo.jpg') }}" class="card-img-top" alt="Murilo">
-                <div class="team-text">
-                    <h5>Murilo Moroni Breda</h5>
-                    <small>Full-Stack Developer - PO</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="team card shadow">
-                <img src="{{ asset('img/thayla.png') }}" class="card-img-top" alt="Thayla">
-                <div class="team-text">
-                    <h5>Thayla F. de Lima Ribeiro</h5>
-                    <small>Back-End Developer - Scrum Master</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="team card shadow">
-                <img src="{{ asset('img/lucas.png') }}" class="card-img-top" alt="Lucas">
-                <div class="team-text">
-                    <h5>Lucas Rizzo Bertoloto</h5>
-                    <small>Back-End Developer</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="team card shadow">
-                <img src="{{ asset('img/mickael.png') }}" class="card-img-top" alt="Mickael">
-                <div class="team-text">
-                    <h5>Mickael H. Malafatti Ezequiel</h5>
-                    <small>Front-End / Banco de Dados</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="team card shadow">
-                <img src="{{ asset('img/mariaClara.png') }}" class="card-img-top" alt="Maria Clara">
-                <div class="team-text">
-                    <h5>Maria Clara Luz da Silva</h5>
-                    <small>Front-End / Banco de Dados</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="team card shadow">
-                <img src="{{ asset('img/theo.png') }}" class="card-img-top" alt="Théo">
-                <div class="team-text">
-                    <h5>Théo Donizetti de Souza</h5>
-                    <small>Front-End / Banco de Dados</small>
-                </div>
-            </div>
-        </div>
+<!-- EQUIPE -->
+<section class="container section">
+    <div class="section-title">
+        <h6>Nossa Equipe</h6>
+        <h2>Mentes que movem a GeoSync</h2>
     </div>
-</div>
+
+    <div class="team-grid">
+
+        <div class="team-card">
+            <img src="{{ asset('img/murilo.png') }}" alt="Murilo">
+            <div class="team-text">
+                <h5>Murilo Moroni Breda</h5>
+                <small>Full-Stack Developer - PO</small>
+            </div>
+        </div>
+
+        <div class="team-card">
+            <img src="{{ asset('img/thayla.png') }}" alt="Thayla">
+            <div class="team-text">
+                <h5>Thayla F. de Lima Ribeiro</h5>
+                <small>Back-End Developer - Scrum Master</small>
+            </div>
+        </div>
+
+        <div class="team-card">
+            <img src="{{ asset('img/lucas.png') }}" alt="Lucas">
+            <div class="team-text">
+                <h5>Lucas Rizzo Bertoloto</h5>
+                <small>Back-End Developer</small>
+            </div>
+        </div>
+
+        <div class="team-card">
+            <img src="{{ asset('img/mickael.png') }}" alt="Mickael">
+            <div class="team-text">
+                <h5>Mickael H. Malafatti Ezequiel</h5>
+                <small>Front-End / Banco de Dados</small>
+            </div>
+        </div>
+
+        <div class="team-card">
+            <img src="{{ asset('img/mariaClara.png') }}" alt="Maria Clara">
+            <div class="team-text">
+                <h5>Maria Clara Luz da Silva</h5>
+                <small>Front-End / Banco de Dados</small>
+            </div>
+        </div>
+
+        <div class="team-card">
+            <img src="{{ asset('img/theo.png') }}" alt="Théo">
+            <div class="team-text">
+                <h5>Théo Donizetti de Souza</h5>
+                <small>Front-End / Banco de Dados</small>
+            </div>
+        </div>
+
+    </div>
+</section>
 
 <div vw class="enabled">
     <div vw-access-button class="active"></div>
     <div vw-plugin-wrapper>
-      <div class="vw-plugin-top-wrapper"></div>
+        <div class="vw-plugin-top-wrapper"></div>
     </div>
-  </div>
+</div>
 
 <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
 

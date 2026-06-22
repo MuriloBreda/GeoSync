@@ -154,19 +154,59 @@
             color: #333;
         }
 
-        @media(max-width: 600px) {
-            .card {
+        @media (max-width: 768px){
+
+            body{
+                padding: 15px;
+                align-items: flex-start;
+            }
+
+            .container{
                 width: 100%;
             }
 
-            form {
+            .card{
+                width: 100%;
+                min-height: auto;
+                padding: 20px;
+            }
+
+            form{
                 grid-template-columns: 1fr;
+                gap: 10px;
             }
 
             .full,
             button,
-            .errors {
+            .errors{
                 grid-column: span 1;
+            }
+
+            h1{
+                font-size: 20px;
+            }
+
+            .logo{
+                width: 120px;
+            }
+
+            input,
+            select{
+                font-size: 16px;
+            }
+
+            button,
+            .btn-login{
+                width: 100%;
+            }
+
+            .errors{
+                font-size: 13px;
+            }
+
+            span{
+                text-align: center;
+                display: block;
             }
         }
 

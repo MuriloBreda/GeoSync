@@ -11,6 +11,7 @@ class AvaliacaoController extends Controller
     /**
      * Salva a avaliação no banco de dados.
      */
+    
     public function store(Request $request)
     {
         // 1. Validação dos dados
@@ -39,14 +40,28 @@ class AvaliacaoController extends Controller
             // Caso ocorra algum erro inesperado no banco
             return back()->withErrors(['error' => 'Erro ao salvar avaliação: ' . $e->getMessage()]);
         }
+
+        
     }
 
     /**
      * Opcional: Lista todas as avaliações (pode ser útil para a index)
      */
     public function index()
-    {
-        $avaliacoes = Avaliacao::with('user')->latest()->get();
-        return view('index', compact('avaliacoes'));
-    }
+{
+    $media = Avaliacao::avg('nota') ?? 0;
+    $total = Avaliacao::count();
+
+    $satisfacao = Avaliacao::where('nota', '>=', 4)->count();
+
+    $percentualSatisfacao = $total > 0
+        ? round(($satisfacao / $total) * 100)
+        : 0;
+
+    return view('avaliacao', compact(
+        'media',
+        'total',
+        'percentualSatisfacao'
+    ));
+}
 }

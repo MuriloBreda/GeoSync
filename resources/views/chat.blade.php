@@ -1,8 +1,9 @@
 <!DOCTYPE html>
+
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Central Logística</title>
+<title>GeoSync - Chat</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -13,9 +14,14 @@
     --muted:#6b7280;
 }
 
-body{
+*{
     margin:0;
-    font-family:Segoe UI;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Segoe UI',sans-serif;
     background:var(--bg);
 }
 
@@ -26,20 +32,29 @@ body{
 }
 
 .header{
-    padding:12px;
+    padding:12px 20px;
     background:#fff;
     border-bottom:1px solid var(--border);
     display:flex;
-    justify-content:space-between;
+    align-items:center;
+}
+
+.logo{
+    text-decoration:none;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:#111827;
+    font-weight:600;
 }
 
 .chat{
     flex:1;
-    overflow:auto;
-    padding:10px;
+    overflow-y:auto;
+    padding:20px;
     display:flex;
     flex-direction:column;
-    gap:10px;
+    gap:12px;
 }
 
 .msg{
@@ -55,10 +70,12 @@ body{
 }
 
 .bubble{
-    padding:10px;
-    border-radius:14px;
-    background:#fff;
+    padding:12px 15px;
+    border-radius:15px;
     white-space:pre-line;
+    word-break:break-word;
+    background:#fff;
+    box-shadow:0 2px 6px rgba(0,0,0,.05);
 }
 
 .me .bubble{
@@ -66,59 +83,154 @@ body{
     color:#fff;
 }
 
+.meta{
+    margin-top:4px;
+    font-size:11px;
+    color:var(--muted);
+}
+
+.me .meta{
+    text-align:right;
+}
+
 .input-area{
     display:flex;
-    padding:10px;
+    gap:10px;
+    padding:15px;
     background:#fff;
     border-top:1px solid var(--border);
 }
 
-input{
+.input-area input{
     flex:1;
-    padding:10px;
-    border-radius:20px;
     border:none;
     background:#f1f5f9;
+    padding:12px 16px;
+    border-radius:25px;
+    outline:none;
 }
 
-button{
-    margin-left:5px;
+.input-area button{
+    width:45px;
+    height:45px;
     border:none;
+    border-radius:50%;
     background:var(--primary);
     color:#fff;
-    border-radius:50%;
-    width:40px;
     cursor:pointer;
+    font-size:18px;
 }
 
-.meta{
-    font-size:10px;
-    color:var(--muted);
+.input-area button:hover{
+    opacity:.9;
 }
 </style>
+
 </head>
 
 <body>
 
 <div class="app">
 
-    <div class="header">
-        <a href="/" class="logo" style="text-decoration:none; display:flex; align-items:center; gap:12px;">
-            <img src="{{ asset('img/Logo.png') }}" alt="Logo" style="width: 65px;">
-            <span>GeoSync</span>
-        </a>
-    </div>
+<div class="header">
+    <a href="/" class="logo">
+        <img src="{{ asset('img/Logo.png') }}"
+             alt="GeoSync"
+             style="width:65px;">
+        <span>GeoSync I.A</span>
+    </a>
+</div>
 
-    <div id="chat" class="chat"></div>
+<div id="chat" class="chat">
 
-    <div class="input-area">
-        <input id="input" placeholder="Ex: pedido 123">
-        <button onclick="send()">➤</button>
-    </div>
+    @if(session('chat'))
+
+        @foreach(session('chat') as $msg)
+
+            <div class="msg {{ $msg['type'] }}">
+
+                <div class="bubble">
+
+                    @if($msg['type'] == 'other')
+                        <strong>GeoSync I.A</strong>
+
+                        <br><br>
+                    @endif
+
+                    {{ $msg['text'] }}
+
+                </div>
+
+                <div class="meta">
+                    {{ $msg['time'] }}
+                </div>
+
+            </div>
+
+        @endforeach
+
+    @else
+
+        <div class="msg other">
+            <div class="bubble">
+                <strong>GeoSync I.A</strong>
+
+                <br><br>
+
+                Olá! Sou a GeoSync I.A.
+                Como posso ajudar você hoje?
+            </div>
+        </div>
+
+    @endif
 
 </div>
 
-<div vw class="enabled">
+<form action="{{ route('chat.enviar') }}"
+      method="POST"
+      class="input-area">
+
+    @csrf
+
+    <input
+        type="text"
+        name="mensagem"
+        id="mensagem"
+        placeholder="Digite sua mensagem..."
+        autocomplete="off"
+        required
+    >
+
+    <button type="submit">
+        ➤
+    </button>
+
+</form>
+
+</div>
+
+<script>
+
+window.onload = function()
+{
+    const chat = document.getElementById('chat');
+
+    chat.scrollTop = chat.scrollHeight;
+
+    document.getElementById('mensagem').focus();
+};
+
+</script>
+
+</body>
+</html>
+
+
+    
+
+</div>
+
+{{-- <div vw class="enabled">
     <div vw-access-button class="active"></div>
     <div vw-plugin-wrapper>
       <div class="vw-plugin-top-wrapper"></div>
@@ -129,193 +241,8 @@ button{
 
 <script>
     new window.VLibras.Widget('https://vlibras.gov.br/app');
-</script>
+</script> --}}
 
-<script>
-
-// =======================
-// BANCO + CONTEXTO
-// =======================
-let db = JSON.parse(localStorage.getItem("logisticaDB")) || {
-    pedidos:{
-        "123":{status:"Em rota", motorista:"Carlos", carga:"Alimentos"},
-        "456":{status:"Aguardando coleta", motorista:"João", carga:"Eletrônicos"}
-    },
-    contexto:{
-        pedidoAtual:null,
-        ultimoComando:null
-    }
-};
-
-// =======================
-// HISTÓRICO
-// =======================
-let historico = JSON.parse(localStorage.getItem("chat")) || [];
-
-// =======================
-// UTIL
-// =======================
-function time(){
-    let d = new Date();
-    return d.getHours().toString().padStart(2,"0") + ":" +
-           d.getMinutes().toString().padStart(2,"0");
-}
-
-// =======================
-// RENDER
-// =======================
-function render(){
-    chat.innerHTML = "";
-
-    historico.forEach(m => {
-        let msg = document.createElement("div");
-        msg.className = "msg " + m.type;
-
-        let bubble = document.createElement("div");
-        bubble.className = "bubble";
-        bubble.innerText = m.text;
-
-        let meta = document.createElement("div");
-        meta.className = "meta";
-        meta.innerText = m.time;
-
-        msg.appendChild(bubble);
-        msg.appendChild(meta);
-
-        chat.appendChild(msg);
-    });
-
-    chat.scrollTop = chat.scrollHeight;
-}
-
-// =======================
-// ADD MSG
-// =======================
-function add(text, type){
-    historico.push({ text, type, time: time() });
-
-    localStorage.setItem("chat", JSON.stringify(historico));
-    localStorage.setItem("logisticaDB", JSON.stringify(db));
-
-    render();
-}
-
-// =======================
-// COMANDOS
-// =======================
-const comandos = {
-
-    pedido: (args) => {
-        let id = args[0];
-
-        if(db.pedidos[id]){
-            db.contexto.pedidoAtual = id;
-
-            let p = db.pedidos[id];
-
-            return `📦 Pedido ${id}
-Status: ${p.status}
-Motorista: ${p.motorista}
-Carga: ${p.carga}`;
-        }
-
-        return "❌ Pedido não encontrado.";
-    },
-
-    status: () => {
-        let id = db.contexto.pedidoAtual;
-
-        if(!id) return "⚠️ Informe o número do pedido.";
-
-        return "📍 Status: " + db.pedidos[id].status;
-    },
-
-    atualizar: (args) => {
-        let id = db.contexto.pedidoAtual;
-
-        if(!id) return "⚠️ Selecione um pedido primeiro.";
-
-        let novo = args.join(" ");
-        db.pedidos[id].status = novo;
-
-        return "✅ Status atualizado para: " + novo;
-    },
-
-    motorista: () => {
-        let id = db.contexto.pedidoAtual;
-
-        if(!id) return "⚠️ Selecione um pedido.";
-
-        return "🚚 Motorista: " + db.pedidos[id].motorista;
-    },
-
-    chegou: () => {
-        return "📍 Local confirmado. Iniciar operação.";
-    },
-
-    problema: () => {
-        return "⚠️ Ocorrência registrada.";
-    }
-
-};
-
-// =======================
-// PARSER
-// =======================
-function interpretar(msg){
-
-    msg = msg.toLowerCase().trim();
-
-    // detectar "pedido 123"
-    if(msg.match(/pedido\s+\d+/)){
-        let id = msg.match(/\d+/)[0];
-        return comandos.pedido([id]);
-    }
-
-    let partes = msg.split(" ");
-    let cmd = partes[0];
-    let args = partes.slice(1);
-
-    if(comandos[cmd]){
-        return comandos[cmd](args);
-    }
-
-    // fallback inteligente
-    if(msg.includes("status")) return comandos.status();
-    if(msg.includes("motorista")) return comandos.motorista();
-    if(msg.includes("problema")) return comandos.problema();
-    if(msg.includes("cheguei")) return comandos.chegou();
-
-    return "🤖 Não entendi.\nTente:\n- pedido 123\n- status\n- atualizar entregue";
-}
-
-// =======================
-// SEND
-// =======================
-function send(){
-    let text = input.value.trim();
-    if(!text) return;
-
-    add(text, "me");
-    input.value = "";
-
-    setTimeout(() => {
-        add(interpretar(text), "other");
-    }, 400);
-}
-
-// ENTER
-input.addEventListener("keydown", e => {
-    if(e.key === "Enter") send();
-});
-
-// INIT
-window.onload = () => {
-    render();
-    input.focus();
-};
-
-</script>
 
 </body>
 </html>

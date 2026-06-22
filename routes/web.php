@@ -11,6 +11,8 @@ use App\Http\Controllers\PagamentoController;
 use App\Http\Controllers\AvaliacaoController;
 use App\Http\Controllers\ContatoController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\GoogleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,8 +31,22 @@ Route::post('/contato/enviar', [ContatoController::class, 'store'])->name('conta
 Route::get('/chat', fn() => view('chat'))->name('chat');
 Route::get('/pagamento', fn() => view('pagamento'));
 Route::get('/planos', fn() => view('telaPlanos'));
-Route::get('/avaliar', fn() => view('avaliacao'));
 Route::post('/avaliacao/store', [AvaliacaoController::class, 'store'])->name('avaliacao.store');
+Route::get('/avaliar', [AvaliacaoController::class, 'index'])
+    ->name('avaliacao.index');
+
+Route::post('/chat/iniciar', [ChatController::class, 'iniciar'])
+    ->name('chat.iniciar');
+
+Route::get('/chat', [ChatController::class, 'index'])
+    ->name('chat');
+
+Route::post('/chat/enviar', [ChatController::class, 'enviar'])
+    ->name('chat.enviar');
+
+Route::get('/teste-ia', [ChatController::class, 'testeIA']);
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -43,6 +59,11 @@ Route::get('/register', fn() => view('createAccount'));
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/logout', [AuthController::class, 'logout']);
+
+Route::get('/auth/google', [GoogleController::class, 'redirect'])
+    ->name('google.login');
+
+Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
 
 /*
 |--------------------------------------------------------------------------
