@@ -64,8 +64,8 @@ background:#cbd5e1;
 <form id="mainForm" action="{{ route('pagamento.store') }}" method="POST">
 @csrf
 
-<input type="hidden" name="valor" id="db_valor" value="150">
-<input type="hidden" name="plano" id="db_plano" value="mensal">
+<input type="hidden" name="valor" id="db_valor" value="149.99">
+<input type="hidden" name="plano" id="db_plano" value="GeoSync Start">
 <input type="hidden" name="metodo" id="db_metodo" value="credito">
 
 <div id="conteudo">
@@ -75,12 +75,12 @@ background:#cbd5e1;
 </div>
 
 <div class="plans">
-<div class="plan active" onclick="selectPlan(this,'GeoSync Start',149.99)"><strong>GeoSync Start</strong><br>R$149,99</div>
+<div class="plan" onclick="selectPlan(this,'GeoSync Start',149.99)"><strong>GeoSync Start</strong><br>R$149,99</div>
 <div class="plan" onclick="selectPlan(this,'GeoSync Pro',599.99)"><strong>GeoSync Pro</strong><br>R$599,99</div>
 </div>
 
 <div class="payments">
-<div class="payment active" onclick="selectPayment(this,'credito')"><i class="fa-solid fa-credit-card"></i><br>Cartão</div>
+<div class="payment" onclick="selectPayment(this,'credito')"><i class="fa-solid fa-credit-card"></i><br>Cartão</div>
 <div class="payment" onclick="selectPayment(this,'pix')"><i class="fa-brands fa-pix"></i><br>PIX</div>
 <div class="payment" onclick="selectPayment(this,'boleto')"><i class="fa-solid fa-barcode"></i><br>Boleto</div>
 </div>
@@ -147,55 +147,98 @@ background:#cbd5e1;
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-let currentValor=149.99,currentMetodo='credito';
-updateParcelas(149.99);
+let currentValor = 149.99;
+let currentMetodo = 'credito';
 
-function selectPlan(el,plano,preco){
-document.querySelectorAll('.plan').forEach(x=>x.classList.remove('active'));
-el.classList.add('active');
-currentValor=preco;
-db_plano.value=plano;
-db_valor.value=preco;
-txtPlano.innerText=el.querySelector('strong').innerText;
-txtTotal.innerText='R$ '+preco.toFixed(2);
-updateParcelas(preco);
-}
+document.addEventListener("DOMContentLoaded", function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const planoParam = urlParams.get('plano');
+    const valorParam = parseFloat(urlParams.get('valor'));
 
-function selectPayment(el,metodo){
-document.querySelectorAll('.payment').forEach(x=>x.classList.remove('active'));
-el.classList.add('active');
-currentMetodo=metodo;
-db_metodo.value=metodo;
-document.getElementById('area-credito').style.display=metodo==='credito'?'block':'none';
-}
+    const planosCards = document.querySelectorAll('.plan');
 
-function updateParcelas(preco){
-let s=document.getElementById('selectParcelas');
-s.innerHTML='';
-[1,2,3,6,12].forEach(p=>{
-let o=document.createElement('option');
-o.text=p+'x de R$ '+(preco/p).toFixed(2);
-s.appendChild(o);
+    // 1. Remove a classe 'active' de TODOS os planos antes de selecionar
+    planosCards.forEach(c => c.classList.remove('active'));
+
+    if (planoParam && !isNaN(valorParam)) {
+        let planoEncontrado = false;
+
+        planosCards.forEach(card => {
+            const titulo = card.querySelector('strong').innerText.toLowerCase();
+            if (titulo.includes(planoParam.toLowerCase())) {
+                selectPlan(card, card.querySelector('strong').innerText, valorParam);
+                planoEncontrado = true;
+            }
+        });
+
+        if (!planoEncontrado) {
+            // Se não encontrou pela URL, seleciona o primeiro (Start)
+            selectPlan(planosCards[0], 'GeoSync Start', 149.99);
+        }
+    } else {
+        // Seleciona o primeiro plano por padrão
+        selectPlan(planosCards[0], 'GeoSync Start', 149.99);
+    }
 });
+
+function selectPlan(el, plano, preco) {
+    // Garante que só um card fica ativo por vez
+    document.querySelectorAll('.plan').forEach(x => x.classList.remove('active'));
+    if (el) el.classList.add('active');
+
+    currentValor = preco;
+    
+    // Atualiza os inputs do formulário
+    document.getElementById('db_plano').value = plano;
+    document.getElementById('db_valor').value = preco;
+
+    // Atualiza os textos do resumo do lado direito
+    document.getElementById('txtPlano').innerText = plano;
+    document.getElementById('txtTotal').innerText = 'R$ ' + preco.toFixed(2).replace('.', ',');
+
+    updateParcelas(preco);
 }
 
-function processar(){
-if(currentMetodo==='credito'){finalizarNoBanco();return;}
-if(currentMetodo==='pix'){
-conteudo.style.display='none';
-pixBox.style.display='block';
-qrcode.innerHTML='';
-new QRCode(document.getElementById('qrcode'),{text:'PIX-'+Date.now(),width:220,height:220});
-return;
-}
-conteudo.style.display='none';
-boletoBox.style.display='block';
-linhaBoleto.innerText='00190.00009 02313.400006 45848.400002';
+function selectPayment(el, metodo) {
+    document.querySelectorAll('.payment').forEach(x => x.classList.remove('active'));
+    el.classList.add('active');
+    currentMetodo = metodo;
+    document.getElementById('db_metodo').value = metodo;
+    document.getElementById('area-credito').style.display = metodo === 'credito' ? 'block' : 'none';
 }
 
-function finalizarNoBanco(){
+function updateParcelas(preco) {
+    let s = document.getElementById('selectParcelas');
+    if (!s) return;
+    s.innerHTML = '';
+    [1, 2, 3, 6, 12].forEach(p => {
+        let o = document.createElement('option');
+        let valorParcela = (preco / p).toFixed(2).replace('.', ',');
+        o.text = p + 'x de R$ ' + valorParcela;
+        s.appendChild(o);
+    });
+}
 
+function processar() {
+    if (currentMetodo === 'credito') { finalizarNoBanco(); return; }
+    if (currentMetodo === 'pix') {
+        document.getElementById('conteudo').style.display = 'none';
+        document.getElementById('pixBox').style.display = 'block';
+        document.getElementById('qrcode').innerHTML = '';
+        new QRCode(document.getElementById('qrcode'), { text: 'PIX-' + Date.now(), width: 220, height: 220 });
+        return;
+    }
+    document.getElementById('conteudo').style.display = 'none';
+    document.getElementById('boletoBox').style.display = 'block';
+    document.getElementById('linhaBoleto').innerText = '00190.00009 02313.400006 45848.400002';
+}
+
+function finalizarNoBanco() {
     Swal.fire({
         icon: 'success',
         title: 'Pagamento realizado!',
@@ -203,13 +246,10 @@ function finalizarNoBanco(){
         confirmButtonColor: '#2563eb',
         confirmButtonText: 'Continuar'
     }).then((result) => {
-
-        if(result.isConfirmed){
+        if (result.isConfirmed) {
             window.location.href = '/login';
         }
-
     });
-
 }
 </script>
 

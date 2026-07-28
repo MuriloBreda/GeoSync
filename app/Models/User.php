@@ -2,55 +2,25 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use Notifiable;
 
-    /**
-     * Campos que podem ser preenchidos
-     */
+    protected $table = 'users';
+
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'birth_date',
-        'foto',
-        'tipo',
-        'telefone', // Liberado para salvar
-        'cpf',      // Liberado para salvar
-        'dark_mode'
+        'name', 'email', 'password', 'birth_date', 'foto', 'tipo', 'telefone', 'cpf', 'dark_mode'
     ];
 
-    /**
-     * Campos ocultos (segurança)
-     */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'password', 'remember_token',
     ];
 
-    /**
-     * Casts (tipos automáticos)
-     */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
-
-    /**
-     * RELACIONAMENTO COM REMESSAS
-     * 1 usuário pode ter várias remessas
-     */
-    public function remessasCliente()
-{
-    return $this->hasMany(Remessa::class,'cliente_id');
-}
-
-public function remessasMotorista()
-{
-    return $this->hasMany(Remessa::class,'motorista_id');
-}
+    public function isAdmin()
+    {
+        return $this->tipo === 'admin';
+    }
 }

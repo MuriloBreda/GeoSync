@@ -4,229 +4,186 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Remessa;
-use App\Models\Alerta;
 use App\Models\User;
+use App\Models\Alerta;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class RemessaController extends Controller
 {
-    // DASHBOARD PRINCIPAL
-    public function dashboard()
+    /**
+     * Exibe o Dashboard Geral do ADMINISTRADOR
+     */
+    public function adminDashboard()
     {
-        $user = Auth::user();
-        if ($user->tipo == 'admin') {
-            return $this->dashboardCliente(); // Altere para a lógica do Admin se reativar o método
-        }
-        if ($user->tipo == 'motorista') {
-            return $this->dashboardMotorista();
-        }
-        return $this->dashboardCliente();
+        $totalRemessas = Remessa::count();
+        $motoristasAtivos = User::where('tipo', 'motorista')->count();
+        $alertasCriticos = Remessa::where('status', 'Atrasado')->count();
+
+        $motoristas = User::where('tipo', 'motorista')->get();
+        $clientes = User::where('tipo', 'cliente')->get();
+
+        // NOVAS VARIÁVEIS
+        $usuarios = User::all();
+        $remessas = Remessa::all();
+        $alertas = \App\Models\Alerta::latest()->get();
+
+        return view('dashboard-admin', [
+            'total' => $totalRemessas,
+            'motoristasAtivos' => $motoristasAtivos,
+            'alertasCriticos' => $alertasCriticos,
+
+            'motoristas' => $motoristas,
+            'clientes' => $clientes,
+
+            // ADICIONAR ESTAS
+            'usuarios' => $usuarios,
+            'remessas' => $remessas,
+            'alertas' => $alertas
+        ]);
     }
 
-    // CLIENTE
+    /**
+     * Admin cadastrando um motorista de forma privada dentro do Painel
+     */
+    public function storeMotorista(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'email' => 'required|string|email|max:100|unique:users',
+            'cpf' => 'required|string|max:14|unique:users',
+            'telefone' => 'required|string|max:20',
+            'password' => 'required|string|min:6',
+        ]);
+
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'cpf' => $request->cpf,
+            'telefone' => $request->telefone,
+            'password' => Hash::make($request->password),
+            'tipo' => 'motorista'
+        ]);
+
+        return redirect()->back()->with('success', 'Motorista homologado com sucesso!');
+    }
+
     public function dashboardCliente()
     {
-        $userId = Auth::id();
-        $remessas = Remessa::with(['cliente', 'motorista', 'localizacoes', 'alertas'])
-            ->where('cliente_id', $userId)
-            ->get();
+        // Pega o ID do usuário logado
+        $userId = auth()->id();
 
-        $total     = $remessas->count();
-        $transito  = $remessas->where('status', 'Em Rota')->count();
-        $entregues = $remessas->where('status', 'Entregue')->count();
-        $atrasadas = $remessas->where('status', 'Atrasado')->count();
-        $alertas   = Alerta::latest()->take(5)->get();
+        // SUBSTITUÍMOS 'user_id' POR 'cliente_id' (que é o nome real da coluna no seu SQL)
+        $remessas = Remessa::where('cliente_id', $userId)->get();
 
-        return view('serviceCliente', compact('total', 'transito', 'entregues', 'atrasadas', 'alertas', 'remessas'));
+        $total = Remessa::where('cliente_id', $userId)->count();
+        $transito = Remessa::where('cliente_id', $userId)->where('status', 'Em Rota')->count();
+        $entregues = Remessa::where('cliente_id', $userId)->where('status', 'Entregue')->count();
+        $atrasadas = Remessa::where('cliente_id', $userId)->where('status', 'Atrasado')->count();
+
+        // Busca os alertas vinculados às remessas desse cliente
+        $alertas = \App\Models\Alerta::whereIn('remessa_id', $remessas->pluck('id'))->get();
+
+        return view('serviceCliente', [
+            'remessas' => $remessas,
+            'total' => $total,
+            'transito' => $transito,
+            'entregues' => $entregues,
+            'atrasadas' => $atrasadas,
+            'alertas' => $alertas
+        ]);
     }
 
-    // MOTORISTA
     public function dashboardMotorista()
-{
-    $motoristaId = Auth::id();
-
-    // 1. Todas as viagens que pertencem a ESTE motorista logado
-    $remessas = Remessa::where('motorista_id', $motoristaId)->get();
-
-    // 2. Estatísticas para os cards superiores
-    $total = $remessas->count();
-    $transito = $remessas->where('status', 'Em Rota')->count();
-
-    // 3. Novas Cargas Disponíveis (onde o motorista_id ainda é NULL)
-    $remessasDisponiveis = Remessa::whereNull('motorista_id')->get();
-
-    // 4. Viagens ativas deste motorista para preencher o SELECT de atualizar status
-    // (Filtramos para não mostrar as que já foram 'Entregues')
-    $minhasRemessas = Remessa::where('motorista_id', $motoristaId)
-                             ->where('status', '!=', 'Entregue')
-                             ->get();
-
-    return view('serviceMotorista', compact('remessas', 'total', 'transito', 'remessasDisponiveis', 'minhasRemessas'));
-}
-
-    public function atualizarCoordenadas(Request $request) 
-{
-    $request->validate([
-        'codigo_rastreio' => 'required', // Mudamos de remessa_id para codigo_rastreio
-        'latitude' => 'required',
-        'longitude' => 'required',
-    ]);
-
-    // Procura no banco usando o código que veio da tela (ex: 999999)
-    $remessa = Remessa::where('codigo_rastreio', $request->codigo_rastreio)->first();
-
-    if ($remessa) {
-        $remessa->latitude = $request->latitude;
-        $remessa->longitude = $request->longitude;
-        $remessa->save();
-        return response()->json(['status' => 'Sucesso', 'mensagem' => 'Posição atualizada!']);
-    }
-
-    return response()->json(['status' => 'Erro', 'mensagem' => 'Remessa não encontrada'], 404);
-}
-
-    public function consultarLocalizacaoJson($codigo_rastreio) {
-    $remessa = Remessa::where('codigo_rastreio', $codigo_rastreio)->firstOrFail();
-    
-    return response()->json([
-        'latitude' => $remessa->latitude,
-        'longitude' => $remessa->longitude,
-        'status' => $remessa->status
-    ]);
-}
-
-    public function aceitarRemessa(Request $request)
     {
-        $request->validate([
-            'remessa_id' => 'required|exists:remessas,id'
+        $motoristaId = auth()->id();
+        $remessas = \App\Models\Remessa::where('motorista_id', $motoristaId)->get();
+
+        return view('serviceMotorista', [
+            'remessas' => $remessas, // Este é o nome que a view vai usar
+            'total' => $remessas->count(),
+            'pendentes' => $remessas->where('status', 'Pendente')->count(),
+            'emRota' => $remessas->where('status', 'Em Rota')->count(),
+            'entregues' => $remessas->where('status', 'Entregue')->count()
         ]);
-
-        $remessa = Remessa::findOrFail($request->remessa_id);
-        $remessa->update([
-            'motorista_id' => Auth::id(),
-            'status'       => 'Em Rota'
-        ]);
-
-        return redirect()->back()->with('success', 'Você aceitou a remessa com sucesso! Boa viagem.');
     }
 
-    public function index()
-    {
-        return $this->dashboard();
-    }
-
-    public function create()
-    {
-        $motoristas = User::where('tipo', 'motorista')->get();
-        return view('cadastroMercadoria', compact('motoristas'));
-    }
-
-    // 💾 SALVAR REMESSA
+    /**
+     * Grava uma nova remessa/mercadoria no Banco de Dados
+     */
     public function store(Request $request)
     {
-        // Removido o 'codigo_rastreio' daqui pois ele é gerado de forma automática abaixo
         $request->validate([
-            'codigo_rastreio'  => 'required|max:15',
-            'origem'           => 'required|max:100',
-            'destino'          => 'required|max:100',
-            'tipo_carga'       => 'required|max:100',
-            'peso'             => 'required|numeric',
-            'previsao_entrega' => 'required|date',
-            'status'           => 'required|max:50',
-            'motorista_id'     => 'nullable|exists:users,id'
+            'codigo_rastreio' => 'required|string|max:100|unique:remessas',
+            'origem' => 'required|string|max:100',
+            'destino' => 'required|string|max:100',
+            'tipo_carga' => 'nullable|string|max:100',
+            'peso' => 'nullable|numeric',
+            'previsao_entrega' => 'nullable|date',
+            'status' => 'required|string|max:50',
+            'cliente_id' => 'nullable|exists:users,id',
+            'motorista_id' => 'nullable|exists:users,id',
         ]);
 
         Remessa::create([
-            'codigo_rastreio'  => $request->codigo_rastreio, // Agora o código de rastreio é gerado automaticamente
-            'origem'           => $request->origem,
-            'destino'          => $request->destino,
-            'tipo_carga'       => $request->tipo_carga,
-            'peso'             => $request->peso,
+            'codigo_rastreio' => $request->codigo_rastreio,
+            'origem' => $request->origem,
+            'destino' => $request->destino,
+            'tipo_carga' => $request->tipo_carga,
+            'peso' => $request->peso,
             'previsao_entrega' => $request->previsao_entrega,
-            'status'           => $request->status,
-            'cliente_id'       => Auth::id(),
-            'motorista_id'     => $request->motorista_id
+            'status' => $request->status,
+            'cliente_id' => $request->cliente_id,
+            'motorista_id' => $request->motorista_id,
         ]);
 
-        return redirect('/service-cliente')->with('success', 'Remessa cadastrada com sucesso!');
+        return redirect()->back()->with('success', 'Nova ordem de remessa registrada no sistema!');
     }
 
-    public function show($id)
-    {
-        $remessa = Remessa::with(['cliente', 'motorista', 'localizacoes', 'alertas'])->findOrFail($id);
-        return view('remessaShow', compact('remessa'));
-    }
-
-    public function edit($id)
-    {
-        $remessa    = Remessa::findOrFail($id);
-        $motoristas = User::where('tipo', 'motorista')->get();
-        return view('remessaEdit', compact('remessa', 'motoristas'));
-    }
-
-    public function update(Request $request, $id)
-{
-    $remessa = Remessa::findOrFail($id);
-    $user = Auth::user();
-
-    // Se for motorista, ele só pode/precisa atualizar o Status (e opcionalmente o motorista_id)
-    if ($user->tipo == 'motorista') {
-        $request->validate([
-            'status' => 'required|max:50'
-        ]);
-
-        $remessa->update([
-            'status' => $request->status
-        ]);
-
-        return redirect('/service-motorista')
-            ->with('success', 'Status da remessa atualizado com sucesso!');
-    }
-
-    // Se for Cliente ou Admin, atualiza todos os campos do formulário completo
-    $request->validate([
-        'origem' => 'required|max:100',
-        'destino' => 'required|max:100',
-        'status' => 'required|max:50'
-    ]);
-
-    $remessa->update([
-        'origem' => $request->origem,
-        'destino' => $request->destino,
-        'tipo_carga' => $request->tipo_carga,
-        'peso' => $request->peso,
-        'previsao_entrega' => $request->previsao_entrega,
-        'status' => $request->status,
-        'motorista_id' => $request->motorista_id
-    ]);
-
-    return redirect('/service-cliente')
-        ->with('success', 'Remessa atualizada com sucesso!');
-}
-
-    // Rota para o motorista atualizar o status de uma remessa que já é dele
-public function atualizarStatus(Request $request)
-{
-    $request->validate([
-        'remessa_id' => 'required|exists:remessas,id',
-        'status' => 'required|max:50'
-    ]);
-
-    // Encontra a remessa enviada pelo formulário do motorista
-    $remessa = Remessa::findOrFail($request->remessa_id);
+    public function index() { return redirect()->route('dashboard'); }
+    public function create() { return view('cadastromercadoria'); }
+    public function show($id) { return view('welcome'); }
+    public function edit($id) { return view('welcome'); }
+    public function update(Request $request, $id) { return redirect()->back(); }
+    public function destroy($id) { return redirect()->back(); }
     
-    // Atualiza o status
-    $remessa->status = $request->status;
-    $remessa->save(); // Salva permanentemente no banco de dados
-
-    // Redireciona de volta para o painel do motorista com mensagem de sucesso
-    return redirect('/service-motorista')->with('success', 'Status da entrega atualizado com sucesso!');
-}
-
-    public function destroy($id)
+    public function aceitarRemessa(Request $request)
     {
-        $remessa = Remessa::findOrFail($id);
-        $remessa->delete();
-        return redirect('/service-cliente')->with('success', 'Remessa removida com sucesso!');
+        $request->validate(['remessa_id' => 'required|exists:remessas,id']);
+        $remessa = Remessa::findOrFail($request->remessa_id);
+        $remessa->update(['motorista_id' => Auth::id(), 'status' => 'Em Rota']);
+        return redirect()->back()->with('success', 'Viagem aceita!');
+    }
+
+    public function atualizarStatus(Request $request)
+    {
+        $remessa = Remessa::findOrFail($request->remessa_id);
+        if($remessa->status === 'Entregue') {
+            return redirect()->back()->with('error', 'Esta carga já foi entregue!');
+        }
+
+        $request->validate(['remessa_id' => 'required|exists:remessas,id', 'status' => 'required|string']);
+        
+        $remessa->update(['status' => $request->status]);
+        return redirect()->back()->with('success', 'Status atualizado!');
+    }
+
+    public function storeAlerta(Request $request)
+    {
+        $remessa = \App\Models\Remessa::findOrFail($request->remessa_id);
+
+        // TRAVA DE SEGURANÇA: Se estiver entregue, barra o envio!
+        if ($remessa->status === 'Entregue') {
+            return redirect()->back()->with('error', 'Atenção: Não é permitido emitir alertas para remessas já entregues.');
+        }
+
+        // Caso contrário, salva o alerta...
+        Alerta::create([
+            'remessa_id' => $request->remessa_id,
+            'tipo' => $request->tipo,
+            'mensagem' => $request->mensagem,
+        ]);
+
+        return redirect()->back()->with('success', 'Alerta enviado com sucesso!');
     }
 }

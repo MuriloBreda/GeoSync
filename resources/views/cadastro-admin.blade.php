@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Cadastro - GeoSync</title>
+    <title>GeoSync - Cadastro Admin</title>
 
     <style>
         * {
@@ -223,13 +223,13 @@
 
     <div class="card">
 
-        <h1>Tela de Cadastro</h1>
+        <h1>Tela de Cadastro do Administrador</h1>
 
         <a href="/">
             <img src="{{ asset('img/Logo.png') }}" class="logo" alt="Logo GeoSync" id="imagemLogo">
         </a>
 
-        <form action="/register" method="POST">
+        <form action="/cadastro-admin" method="POST">
 
             @csrf
 
@@ -254,23 +254,9 @@
             </div>
 
             <div class="full">
-                <label>Tipo de Conta</label>
-                <select name="tipo" required>
-                    <option value="">Selecione...</option>
-                    <option value="cliente" {{ old('tipo') == 'cliente' ? 'selected' : '' }}>Cliente</option>
-                    {{-- <option value="motorista" {{ old('tipo') == 'motorista' ? 'selected' : '' }}>Motorista</option> --}}
-                </select>
-            </div>
-
-            <div>
-                <label>CPF</label>
-                <input type="text" name="cpf" id="cpf" value="{{ old('cpf') }}" placeholder="000.000.000-00" required>
-            </div>
-
-            <div>
-                <label>Telefone</label>
-                <input type="text" name="telefone" id="telefone" value="{{ old('telefone') }}" placeholder="(00) 00000-0000" required>
-            </div>
+<label>Chave de Segurança</label>
+<input type="password" name="security_token" placeholder="Digite a chave de segurança" required>
+</div>
 
             <div>
                 <label>Senha</label>
@@ -282,7 +268,7 @@
                 <input type="password" name="password_confirmation" placeholder="Confirmar senha" required>
             </div>
 
-            <button type="submit">Cadastrar</button>
+            <button type="submit">Cadastrar Administrador</button>
 
         </form>
 
@@ -308,24 +294,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
-    // Máscara de CPF (000.000.000-00)
-    document.getElementById('cpf').addEventListener('input', function (e) {
-        let value = e.target.value.replace(/\D/g, '');
-        value = value.replace(/^(\d{3})(\d)/, '$1.$2');
-        value = value.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
-        value = value.replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4');
-        e.target.value = value.substring(0, 14);
-    });
 
-    // Máscara de Telefone ((00) 00000-0000)
-    document.getElementById('telefone').addEventListener('input', function (e) {
-        let value = e.target.value.replace(/\D/g, '');
-        value = value.replace(/^(\d{2})(\d)/, '($1) $2');
-        value = value.replace(/(\d{5})(\d)/, '$1-$2');
-        e.target.value = value.substring(0, 15);
-    });
-</script>
 
 @if($errors->any())
 <script>

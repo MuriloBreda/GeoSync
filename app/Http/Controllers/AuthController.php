@@ -59,32 +59,36 @@ class AuthController extends Controller
 
     // LOGIN
     public function login(Request $request)
-    {
-        $credenciais = $request->only('email', 'password');
+{
+    // 1. Valida se os campos foram preenchidos
+    $credenciais = $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
 
-        if (Auth::attempt($credenciais)) {
+    // 2. Tenta fazer o login com as credenciais no MySQL
+    if (Auth::attempt($credenciais)) {
+        
+        // CORREÇÃO CRÍTICA: Limpa a memória de redirecionamentos antigos do Laravel
+        $request->session()->regenerate();
+        $request->session()->forget('url.intended'); 
 
-            $user = Auth::user();
+        // 3. Pega o utilizador que acabou de logar
+        $user = Auth::user();
 
-            if ($user->tipo == 'admin') {
-                return redirect('/admin')
-                    ->with('success', 'Login realizado com sucesso!');
-            }
-
-            if ($user->tipo == 'motorista') {
-                return redirect('/service-motorista')
-                    ->with('success', 'Login realizado com sucesso!');
-            }
-
-            return redirect('/service-cliente')
-                ->with('success', 'Login realizado com sucesso!');
+        // 4. Faz o desvio exato baseado na tua coluna 'tipo'
+        if ($user->tipo === 'admin') {
+            return redirect()->route('admin.dashboard');
+        } elseif ($user->tipo === 'motorista') {
+            return redirect()->route('motorista.dashboard');
+        } else {
+            return redirect()->route('cliente.dashboard');
         }
-
-        return back()->with(
-            'error',
-            'Email ou senha inválidos'
-        );
     }
+
+    // Se falhar o login, volta com a mensagem de erro
+    return redirect()->back()->with('error', 'E-mail ou senha incorretos.');
+}
 
     // LOGOUT
     public function logout()

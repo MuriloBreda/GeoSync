@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoSync | Área do Cliente</title>
+    <title>GeoSync | Central de Controle Admin</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -77,7 +77,7 @@
             min-height: 100vh;
         }
 
-        /* SIDEBAR (PADRÃO ADMIN) */
+        /* SIDEBAR */
         .sidebar {
             width: 280px;
             height: 100vh;
@@ -398,6 +398,21 @@
             transform: translateY(-1px);
         }
 
+        .btn-delete {
+            background: #fee2e2;
+            color: #ef4444;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-delete:hover {
+            background: #ef4444;
+            color: white;
+        }
+
         label {
             display: block;
             margin-bottom: 6px;
@@ -423,6 +438,29 @@
             outline: none;
             border-color: var(--primary-hover);
             box-shadow: 0 0 0 3px rgba(47, 111, 178, 0.15);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            text-align: left;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        .section-form {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-form h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: var(--primary-hover);
         }
 
         .toggle-item {
@@ -535,23 +573,6 @@
             margin-top: 10px;
             color: var(--text-muted);
             font-size: 0.8rem;
-        }
-
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
-            background: #3b82f6;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-            box-shadow: 0 0 10px #3b82f6;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
         }
 
         /* BARRA FLUTUANTE DE FERRAMENTAS */
@@ -693,7 +714,7 @@
                 padding: 15px;
             }
 
-            .stats-grid, .charts-grid {
+            .stats-grid, .charts-grid, .form-grid {
                 grid-template-columns: 1fr !important;
             }
         }
@@ -765,26 +786,41 @@
             </button>
 
             <nav>
-                <div class="menu-title">ÁREA DO CLIENTE</div>
+                <div class="menu-title">ADMINISTRATIVO</div>
 
                 <div class="nav-link active" onclick="showPage('dashboard', this)">
                     <i class="fas fa-chart-pie"></i>
-                    <span>Dashboard</span>
+                    <span>Painel Operacional</span>
+                </div>
+
+                <div class="nav-link" onclick="showPage('usuarios', this)">
+                    <i class="fas fa-users"></i>
+                    <span>Todos os Usuários</span>
                 </div>
 
                 <div class="nav-link" onclick="showPage('remessas', this)">
                     <i class="fas fa-box"></i>
-                    <span>Minhas Remessas</span>
+                    <span>Todas as Remessas</span>
+                </div>
+
+                <div class="nav-link" onclick="showPage('novo-motorista', this)">
+                    <i class="fas fa-id-card"></i>
+                    <span>Cadastrar Motorista</span>
+                </div>
+
+                <div class="nav-link" onclick="showPage('nova-remessa', this)">
+                    <i class="fas fa-box-open"></i>
+                    <span>Cadastrar Remessa</span>
                 </div>
 
                 <div class="nav-link" onclick="showPage('localizacao-page', this)">
                     <i class="fas fa-map-location-dot"></i>
-                    <span>Rastreamento</span>
+                    <span>Localização Geral</span>
                 </div>
 
                 <div class="nav-link" onclick="showPage('alertas-page', this)">
                     <i class="fas fa-bell"></i>
-                    <span>Alertas</span>
+                    <span>Alertas das Remessas</span>
                 </div>
 
                 <div class="nav-link" onclick="showPage('config', this)">
@@ -808,59 +844,105 @@
         <!-- CONTEÚDO PRINCIPAL -->
         <main class="main-content">
 
-            <!-- ABA 1: DASHBOARD -->
+            <!-- ABA 1: OVERVIEW -->
             <section id="dashboard" class="page active">
-                <h1 style="margin-bottom: 1.5rem;">Dashboard Operacional</h1>
+                <h1 style="margin-bottom: 1.5rem;">Visão Geral da Operação</h1>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div>
-                            <h4>Total de Remessas</h4>
+                            <h4>Cargas Ativas</h4>
                             <h2>{{ $total ?? 0 }}</h2>
                         </div>
-                        <i class="fas fa-boxes-stacked" style="color: var(--text-muted)"></i>
+                        <i class="fas fa-boxes-stacked" style="color: var(--alert-info)"></i>
                     </div>
                     <div class="stat-card">
                         <div>
-                            <h4>Em Rota</h4>
-                            <h2>{{ $transito ?? 0 }}</h2>
+                            <h4>Motoristas Ativos</h4>
+                            <h2>{{ $motoristasAtivos ?? 0 }}</h2>
                         </div>
-                        <i class="fas fa-truck-fast" style="color: var(--alert-info)"></i>
+                        <i class="fas fa-truck-moving" style="color: var(--alert-success)"></i>
                     </div>
                     <div class="stat-card">
                         <div>
-                            <h4>Concluídas</h4>
-                            <h2>{{ $entregues ?? 0 }}</h2>
+                            <h4>Alertas de Risco</h4>
+                            <h2>{{ $alertasCriticos ?? 0 }}</h2>
                         </div>
-                        <i class="fas fa-circle-check" style="color: var(--alert-success)"></i>
-                    </div>
-                    <div class="stat-card">
-                        <div>
-                            <h4>Atrasos</h4>
-                            <h2>{{ $atrasadas ?? 0 }}</h2>
-                        </div>
-                        <i class="fas fa-clock" style="color: var(--alert-danger)"></i>
+                        <i class="fas fa-triangle-exclamation" style="color: var(--alert-danger)"></i>
                     </div>
                 </div>
 
                 <div class="charts-grid">
                     <div class="content-card">
-                        <h3 style="margin-bottom:15px;">Volume de Entregas</h3>
-                        <canvas id="chartLinhaCliente"></canvas>
+                        <h3 style="margin-bottom:15px;">Fluxo Geral de Entregas</h3>
+                        <canvas id="chartLinhaAdmin"></canvas>
                     </div>
                     <div class="content-card">
-                        <h3 style="margin-bottom:15px;">Status da Frota</h3>
-                        <canvas id="chartPizzaCliente"></canvas>
+                        <h3 style="margin-bottom:15px;">Disponibilidade</h3>
+                        <canvas id="chartPizzaAdmin"></canvas>
                     </div>
                 </div>
             </section>
 
-            <!-- ABA 2: MINHAS REMESSAS -->
+            <!-- ABA 2: TODOS OS USUARIOS -->
+            <section id="usuarios" class="page">
+                <div class="content-card">
+
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                        <h2>Todos os Usuários</h2>
+                        <span style="color:var(--text-muted)">
+                            Total: {{ $usuarios->count() }}
+                        </span>
+                    </div>
+
+                    <div class="table-res">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Foto</th>
+                                    <th>Nome</th>
+                                    <th>Email</th>
+                                    <th>Tipo</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach($usuarios as $u)
+                                <tr>
+                                    <td>
+                                        <img src="{{ $u->foto ? asset($u->foto) : 'https://ui-avatars.com/api/?name='.urlencode($u->name) }}"
+                                            style="width:38px;height:38px;border-radius:50%;object-fit:cover;">
+                                    </td>
+                                    <td>{{ $u->name }}</td>
+                                    <td>{{ $u->email }}</td>
+                                    <td>{{ ucfirst($u->tipo) }}</td>
+                                    <td><span class="badge entregue">Ativo</span></td>
+                                    <td>
+                                        <form id="form-delete-user-{{ $u->id }}" action="{{ route('admin.deleteUser', $u->id) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="button" class="btn-delete" onclick="confirmarExclusaoUser({{ $u->id }}, '{{ $u->name }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ABA 3: TODAS REMESSAS -->
             <section id="remessas" class="page">
                 <div class="content-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <h2>Minhas Remessas</h2>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                        <h2>Todas as Remessas</h2>
                         <span style="color:var(--text-muted)">
-                            {{ $remessas->count() }} encomendas
+                            {{ $remessas->count() }} remessas
                         </span>
                     </div>
 
@@ -869,16 +951,20 @@
                             <thead>
                                 <tr>
                                     <th>Rastreio</th>
+                                    <th>Cliente</th>
+                                    <th>Motorista</th>
                                     <th>Origem</th>
                                     <th>Destino</th>
                                     <th>Status</th>
-                                    {{-- <th>Ações</th> --}}
+                                    <th>Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($remessas as $r)
                                 <tr>
                                     <td><strong>#{{ $r->codigo_rastreio }}</strong></td>
+                                    <td>{{ $r->cliente->name ?? '-' }}</td>
+                                    <td>{{ $r->motorista->name ?? '-' }}</td>
                                     <td>{{ $r->origem }}</td>
                                     <td>{{ $r->destino }}</td>
                                     <td>
@@ -886,11 +972,15 @@
                                             {{ $r->status }}
                                         </span>
                                     </td>
-                                    {{-- <td>
-                                        <a href="{{ route('remessas.show', $r->id) }}" style="color: var(--primary); text-decoration: none;">
-                                            <i class="fas fa-eye"></i> Visualizar
-                                        </a>
-                                    </td> --}}
+                                    <td>
+                                        <form id="form-delete-remessa-{{ $r->id }}" action="{{ route('admin.deleteRemessa', $r->id) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="button" class="btn-delete" onclick="confirmarExclusaoRemessa({{ $r->id }}, '{{ $r->codigo_rastreio }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
                                 </tr>
                                 @endforeach
                             </tbody>
@@ -899,63 +989,153 @@
                 </div>
             </section>
 
-            <!-- ABA 3: RASTREAMENTO -->
-            <section id="localizacao-page" class="page">
-                <h1 style="margin-bottom: 1.5rem;">Rastreamento em Tempo Real</h1>
-                <div class="content-card">
-                    <div style="margin-bottom: 20px;">
-                        <label for="selectRastreioCliente">
-                            <i class="fas fa-search-location"></i> Escolha a Encomenda para Rastrear:
-                        </label>
-                        <select id="selectRastreioCliente" onchange="alterarRemessaRastreio(this.value)">
-                            <option value="" disabled selected>-- Selecione um código de rastreio --</option>
-                            @foreach($remessas as $r)
-                                <option value="{{ $r->codigo_rastreio }}" data-lat="{{ $r->latitude ?? -14.2350 }}"
-                                    data-lon="{{ $r->longitude ?? -51.9253 }}" data-status="{{ $r->status }}">
-                                    #{{ $r->codigo_rastreio }} (De: {{ $r->origem }} Para: {{ $r->destino }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+            <!-- ABA 4: CADASTRO DE MOTORISTA -->
+            <section id="novo-motorista" class="page">
+                <div class="content-card" style="max-width: 750px; margin: 0 auto;">
+                    <h2>Cadastrar Novo Motorista Parceiro</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 20px;">Insira as credenciais para autorizar o acesso de um motorista profissional no aplicativo.</p>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <div>
-                            <span class="pulse-dot"></span>
-                            <strong style="color: var(--text-main);">Sinal do Satélite em Tempo Real</strong>
+                    <form id="formCadastrarMotorista" action="/admin/store-motorista" method="POST" onsubmit="salvarMotorista(event)">
+                        @csrf
+                        <div class="form-grid">
+                            <div class="full">
+                                <label>Nome Completo do Profissional</label>
+                                <input type="text" name="name" required placeholder="Nome sem abreviações">
+                            </div>
+                            <div>
+                                <label>Email de Login</label>
+                                <input type="email" name="email" required placeholder="motorista@geosync.com">
+                            </div>
+                            <div>
+                                <label>CPF</label>
+                                <input type="text" name="cpf" id="cpf" placeholder="000.000.000-00" required>
+                            </div>
+                            <div>
+                                <label>Telefone / WhatsApp</label>
+                                <input type="text" name="telefone" id="telefone" placeholder="(00) 00000-0000" required>
+                            </div>
+                            <div>
+                                <label>Senha Provisória</label>
+                                <input type="password" name="password" required placeholder="Mínimo 6 dígitos">
+                            </div>
                         </div>
-                        <span id="statusPedidoCliente" class="badge transito">Aguardando Seleção</span>
-                    </div>
-
-                    <div id="mapaCliente" style="width:100%; height:450px; border-radius:12px; z-index:1;"></div>
+                        <button type="submit" class="btn-acao"><i class="fas fa-user-plus"></i> Validar e Registrar Motorista</button>
+                    </form>
                 </div>
             </section>
 
-            <!-- ABA 4: ALERTAS -->
-            <section id="alertas-page" class="page">
-                <h1 style="margin-bottom:1.5rem;">Alertas de Segurança</h1>
+            <!-- ABA 5: CADASTRO DE REMESSA -->
+            <section id="nova-remessa" class="page">
+                <div class="content-card" style="max-width: 850px; margin: 0 auto;">
+                    <h2>Cadastrar Nova Remessa Logística</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 25px;">Distribua o código e atribua a rota para o veículo monitorado</p>
+
+                    <form id="formCadastrarRemessa" action="{{ route('remessas.store') }}" method="POST" onsubmit="salvarRemessa(event)">
+                        @csrf
+
+                        <div class="section-form">
+                            <h3>📦 Dados Operacionais</h3>
+                            <div class="form-grid">
+                                <div>
+                                    <label>Código de Rastreio</label>
+                                    <input type="text" name="codigo_rastreio" placeholder="Ex: GS-999" required>
+                                </div>
+                                <div>
+                                    <label>Status Inicial</label>
+                                    <select name="status" required>
+                                        <option value="Em Rota">🚚 Em Rota</option>
+                                        <option value="Entregue">✅ Entregue</option>
+                                        <option value="Atrasado">⚠️ Atrasado</option>
+                                    </select>
+                                </div>
+                                <div class="full">
+                                    <label>Vincular Motorista Responsável</label>
+                                    <select name="motorista_id" required>
+                                        <option value="">Selecione um motorista homologado</option>
+                                        @foreach($motoristas as $motorista)
+                                            <option value="{{ $motorista->id }}">{{ $motorista->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="full">
+                                    <label>Vincular Cliente Destinatário</label>
+                                    <select name="cliente_id" required>
+                                        <option value="">Selecione o cliente da remessa</option>
+                                        @foreach($clientes as $cliente)
+                                            <option value="{{ $cliente->id }}">{{ $cliente->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-form">
+                            <h3>🚚 Rota e Logística</h3>
+                            <div class="form-grid">
+                                <div><label>Ponto de Origem</label><input type="text" name="origem" required placeholder="Cidade / Estado"></div>
+                                <div><label>Ponto de Destino</label><input type="text" name="destino" required placeholder="Destino Final"></div>
+                                <div><label>Tipo de Carga</label><input type="text" name="tipo_carga" required placeholder="Ex: Eletrodomésticos"></div>
+                                <div><label>Peso Total (kg)</label><input type="number" step="0.01" name="peso" required></div>
+                            </div>
+                        </div>
+
+                        <div class="section-form">
+                            <h3>📅 Agenda</h3>
+                            <label>Previsão Limite de Entrega</label>
+                            <input type="date" name="previsao_entrega" required>
+                        </div>
+
+                        <button type="submit" class="btn-acao"><i class="fas fa-truck-ramp-box"></i> Gerar Ordem e Cadastrar Remessa</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ABA 6: LOCALIZAÇÃO GERAL -->
+            <section id="localizacao-page" class="page">
+                <h1 style="margin-bottom:1.5rem;">Localização Geral das Remessas</h1>
+
                 <div class="content-card">
-                    @forelse($alertas as $a)
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                        <div>
+                            <span class="online-dot"></span>
+                            <strong>Cargas em tempo real no mapa</strong>
+                        </div>
+                        <span class="badge transito">
+                            {{ $remessas->count() }} remessas monitoradas
+                        </span>
+                    </div>
+
+                    <div id="mapaAdmin" style="width:100%;height:520px;border-radius:12px;z-index:1;"></div>
+                </div>
+            </section>
+
+            <!-- ABA 7: ALERTAS -->
+            <section id="alertas-page" class="page">
+                <h1 style="margin-bottom:1.5rem;">Central de Alertas</h1>
+
+                <div class="content-card">
+                    @forelse($alertas as $alerta)
                     <div class="alert-card">
                         <div class="alert-icon">
                             <i class="fas fa-triangle-exclamation"></i>
                         </div>
                         <div class="alert-content">
-                            <h3>{{ $a->tipo }}</h3>
-                            <p>{{ $a->mensagem }}</p>
+                            <h3>{{ $alerta->tipo }}</h3>
+                            <p>{{ $alerta->mensagem }}</p>
                             <div class="alert-footer">
-                                <span><i class="fas fa-truck-moving"></i> Motorista: {{ $a->remessa->motorista->name ?? 'Não atribuído' }}</span>
-                                <span><i class="fas fa-box"></i> Produto: {{ $a->remessa->tipo_carga ?? '-' }}</span>
-                                <span><i class="fas fa-clock"></i> {{ $a->created_at->format('d/m/Y H:i') }}</span>
+                                <span><i class="fas fa-user-circle"></i> {{ $alerta->remessa->motorista->name ?? 'Não atribuído' }}</span>
+                                <span><i class="fas fa-box"></i> {{ $alerta->remessa->tipo_carga ?? '-' }}</span>
+                                <span><i class="fas fa-clock"></i> {{ $alerta->created_at->format('d/m/Y H:i') }}</span>
                             </div>
                         </div>
                     </div>
                     @empty
-                    <p style="color:var(--text-muted); text-align:center; padding:20px;">Nenhum alerta crítico detectado no momento.</p>
+                    <p style="color:var(--text-muted);text-align:center;padding:20px;">Nenhum alerta registrado até o momento.</p>
                     @endforelse
                 </div>
             </section>
 
-            <!-- ABA 5: CONFIGURAÇÕES (IDÊNTICA À DO ADMIN) -->
+            <!-- ABA 8: CONFIGURAÇÕES -->
             <section id="config" class="page">
                 <h1 style="margin-bottom: 1.5rem;">Configurações do Sistema</h1>
                 <div class="charts-grid" style="grid-template-columns: 2fr 1fr;">
@@ -1010,41 +1190,41 @@
                     </div>
 
                     <div class="content-card">
-                        <h3 style="margin-bottom:20px;">Preferências</h3>
-                        
-                        <div class="toggle-item">
-                            <div>
-                                <strong>Notificações por Email</strong>
-                                <p style="font-size:0.75rem; color:var(--text-muted);">Alertas de entrega e atraso</p>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" checked onchange="Swal.fire({icon:'success', title:'Preferência atualizada', toast:true, position:'top-end', showConfirmButton:false, timer:2000})">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
+    <h3 style="margin-bottom:20px;">Preferências</h3>
+    
+    <div class="toggle-item">
+        <div>
+            <strong>Notificações por Email</strong>
+            <p style="font-size:0.75rem; color:var(--text-muted);">Alertas de atraso em tempo real</p>
+        </div>
+        <label class="switch">
+            <input type="checkbox" id="switchNotificacoes" onchange="togglePreferrencia('notificacoes', this)">
+            <span class="slider"></span>
+        </label>
+    </div>
 
-                        <div class="toggle-item">
-                            <div>
-                                <strong>Autenticação 2FA</strong>
-                                <p style="font-size:0.75rem; color:var(--text-muted);">Segurança reforçada para a conta</p>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" onchange="Swal.fire({icon:'info', title:'Recurso 2FA alterado', toast:true, position:'top-end', showConfirmButton:false, timer:2000})">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
+    <div class="toggle-item">
+        <div>
+            <strong>Autenticação 2FA</strong>
+            <p style="font-size:0.75rem; color:var(--text-muted);">Segurança reforçada para a conta</p>
+        </div>
+        <label class="switch">
+            <input type="checkbox" id="switch2FA" onchange="togglePreferrencia('2fa', this)">
+            <span class="slider"></span>
+        </label>
+    </div>
 
-                        <div class="toggle-item">
-                            <div>
-                                <strong>Modo Escuro Padrão</strong>
-                                <p style="font-size:0.75rem; color:var(--text-muted);">Ativar tema escuro na interface</p>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="switchDark" onchange="toggleDark()">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                    </div>
+    <div class="toggle-item">
+        <div>
+            <strong>Modo Escuro Padrão</strong>
+            <p style="font-size:0.75rem; color:var(--text-muted);">Ativar tema escuro na interface</p>
+        </div>
+        <label class="switch">
+            <input type="checkbox" id="switchDark" onchange="toggleDark()">
+            <span class="slider"></span>
+        </label>
+    </div>
+</div>
 
                 </div>
             </section>
@@ -1084,27 +1264,95 @@
                 document.body.classList.remove('sidebar-open');
             }
 
-            if (id === 'localizacao-page' && mapaCliente) {
+            // Redimensiona o mapa ao alternar para a aba correspondente
+            if (id === 'localizacao-page' && mapaAdmin) {
                 setTimeout(() => {
-                    mapaCliente.invalidateSize();
+                    mapaAdmin.invalidateSize();
                 }, 200);
             }
         }
 
-        // MÁSCARA PARA TELEFONE
+        // MÁSCARAS DE INPUT
         function aplicarMascaras() {
-            const telEl = document.getElementById('telefoneConfig');
-            if (telEl) {
-                telEl.addEventListener('input', function (e) {
+            const cpfEl = document.getElementById('cpf');
+            if (cpfEl) {
+                cpfEl.addEventListener('input', function (e) {
                     let v = e.target.value.replace(/\D/g, '');
-                    v = v.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2');
-                    e.target.value = v.substring(0, 15);
+                    v = v.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4');
+                    e.target.value = v.substring(0, 14);
                 });
             }
+
+            const telEls = [document.getElementById('telefone'), document.getElementById('telefoneConfig')];
+            telEls.forEach(telEl => {
+                if (telEl) {
+                    telEl.addEventListener('input', function (e) {
+                        let v = e.target.value.replace(/\D/g, '');
+                        v = v.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2');
+                        e.target.value = v.substring(0, 15);
+                    });
+                }
+            });
         }
         document.addEventListener('DOMContentLoaded', aplicarMascaras);
 
-        // SWEETALERT PARA CONFIGURAÇÕES
+        // SWEETALERTS DE CONFIRMAÇÃO & AÇÃO
+        function confirmarExclusaoUser(id, nome) {
+            Swal.fire({
+                title: 'Excluir Usuário?',
+                text: `Deseja realmente remover "${nome}"? Esta ação não pode ser revertida.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sim, excluir',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(`form-delete-user-${id}`).submit();
+                }
+            });
+        }
+
+        function confirmarExclusaoRemessa(id, codigo) {
+            Swal.fire({
+                title: 'Excluir Remessa?',
+                text: `Deseja excluir a remessa #${codigo}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sim, excluir',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(`form-delete-remessa-${id}`).submit();
+                }
+            });
+        }
+
+        function salvarMotorista(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Cadastrando...',
+                text: 'Processando o registro do motorista.',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+            document.getElementById('formCadastrarMotorista').submit();
+        }
+
+        function salvarRemessa(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Cadastrando...',
+                text: 'Processando a nova ordem de remessa.',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+            document.getElementById('formCadastrarRemessa').submit();
+        }
+
         function salvarConfiguracoes(e) {
             e.preventDefault();
             Swal.fire({
@@ -1116,7 +1364,7 @@
             document.getElementById('formConfigPerfil').submit();
         }
 
-        // Flash Messages Laravel
+        // Mensagens Flash do Laravel capturadas pelo SweetAlert
         @if(session('success'))
             Swal.fire({
                 icon: 'success',
@@ -1136,16 +1384,16 @@
             });
         @endif
 
-        // GRÁFICOS DO CLIENTE
-        const chartLinhaEl = document.getElementById('chartLinhaCliente');
+        // GRÁFICOS DO ADMIN
+        const chartLinhaEl = document.getElementById('chartLinhaAdmin');
         if (chartLinhaEl) {
             new Chart(chartLinhaEl, {
                 type: 'line',
                 data: {
                     labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana Atual'],
                     datasets: [{
-                        label: 'Histórico de Entregas', 
-                        data: [12, 19, 15, {{ $entregues ?? 0 }}],
+                        label: 'Desempenho Geral de Entregas', 
+                        data: [30, 45, 38, 70],
                         borderColor: '#2F6FB2', 
                         backgroundColor: 'rgba(47, 111, 178, 0.1)', 
                         fill: true, 
@@ -1155,16 +1403,13 @@
             });
         }
 
-        const chartPizzaEl = document.getElementById('chartPizzaCliente');
+        const chartPizzaEl = document.getElementById('chartPizzaAdmin');
         if (chartPizzaEl) {
             new Chart(chartPizzaEl, {
-                type: 'doughnut',
+                type: 'pie',
                 data: {
-                    labels: ['Em Rota', 'Entregues', 'Atrasadas'],
-                    datasets: [{ 
-                        data: [{{ $transito ?? 0 }}, {{ $entregues ?? 0 }}, {{ $atrasadas ?? 0 }}], 
-                        backgroundColor: ['#3b82f6', '#10b981', '#ef4444'] 
-                    }]
+                    labels: ['Disponíveis', 'Em Viagem', 'Manutenção'],
+                    datasets: [{ data: [15, 22, 4], backgroundColor: ['#10b981', '#3b82f6', '#ef4444'] }]
                 }
             });
         }
@@ -1181,68 +1426,42 @@
         }
     </script>
 
-    <!-- MAPA LEAFLET CLIENTE -->
+    <!-- MAPA LEAFLET -->
     <script>
-        let mapaCliente, marcadorCliente;
-        let intervaloRastreio = null;
-        let codigoRastreioAtivo = "";
+        let mapaAdmin;
 
-        const latPadraoSp = -23.55052;
-        const lonPadraoSp = -46.63330;
-
-        document.addEventListener("DOMContentLoaded", function () {
-            const container = document.getElementById('mapaCliente');
-            if (container) {
-                mapaCliente = L.map('mapaCliente').setView([latPadraoSp, lonPadraoSp], 14);
+        document.addEventListener('DOMContentLoaded', function () {
+            const mapContainer = document.getElementById('mapaAdmin');
+            if (mapContainer) {
+                mapaAdmin = L.map('mapaAdmin').setView([-14.2350, -51.9253], 4);
 
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; OpenStreetMap'
-                }).addTo(mapaCliente);
+                }).addTo(mapaAdmin);
 
-                marcadorCliente = L.marker([latPadraoSp, lonPadraoSp]).addTo(mapaCliente);
-                marcadorCliente.bindPopup("<b>Selecione uma encomenda para iniciar o rastreio.</b>").openPopup();
+                let marcadores = [];
 
-                const selectRastreio = document.getElementById('selectRastreioCliente');
-                if (selectRastreio && selectRastreio.value) {
-                    alterarRemessaRastreio(selectRastreio.value);
+                @foreach($remessas as $r)
+                    @if($r->latitude && $r->longitude)
+                        let marker = L.marker([{{ $r->latitude }}, {{ $r->longitude }}])
+                        .addTo(mapaAdmin)
+                        .bindPopup(`
+                            <div style="font-family:sans-serif; padding:2px;">
+                                <strong style="color:#1C3F6E;">Remessa #{{ $r->codigo_rastreio }}</strong><br>
+                                <small><b>Rota:</b> {{ $r->origem }} &rarr; {{ $r->destino }}</small><br>
+                                <small><b>Status:</b> {{ $r->status }}</small>
+                            </div>
+                        `);
+                        marcadores.push(marker);
+                    @endif
+                @endforeach
+
+                if (marcadores.length > 0) {
+                    let group = new L.featureGroup(marcadores);
+                    mapaAdmin.fitBounds(group.getBounds().pad(0.2));
                 }
             }
         });
-
-        function alterarRemessaRastreio(codigo) {
-            if (!codigo) return;
-            codigoRastreioAtivo = codigo;
-
-            if (intervaloRastreio) clearInterval(intervaloRastreio);
-
-            atualizarRastreioEmTempoReal();
-            intervaloRastreio = setInterval(atualizarRastreioEmTempoReal, 5000);
-        }
-
-        function atualizarRastreioEmTempoReal() {
-            if (!codigoRastreioAtivo) return;
-
-            fetch(`/api/rastreio/${codigoRastreioAtivo}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.latitude && data.longitude) {
-                        const novaLat = parseFloat(data.latitude);
-                        const novaLon = parseFloat(data.longitude);
-
-                        marcadorCliente.setLatLng([novaLat, novaLon]);
-                        marcadorCliente.setPopupContent(`<b>Remessa #${codigoRastreioAtivo}</b><br>Status: ${data.status}`);
-                        marcadorCliente.openPopup();
-
-                        mapaCliente.panTo([novaLat, novaLon]);
-
-                        const statusPedido = document.getElementById('statusPedidoCliente');
-                        if (statusPedido && data.status) {
-                            statusPedido.textContent = data.status;
-                        }
-                    }
-                })
-                .catch(error => console.error("Erro ao rastrear:", error));
-        }
     </script>
 
     <!-- PAINEL DE ACESSIBILIDADE E TEMAS -->
@@ -1335,6 +1554,135 @@
             const sw = document.getElementById("switchDark");
             if (sw) sw.checked = false;
         }
+    </script>
+
+    <script>
+    // GERENCIADOR DE PREFERÊNCIAS E ACESSIBILIDADE
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Restaurar Tamanho da Fonte
+    let escala = localStorage.getItem("fontScale") || "1";
+    document.documentElement.style.setProperty("--font-scale", escala);
+
+    // 2. Restaurar Modo Escuro
+    if (localStorage.getItem("darkMode") === "true") {
+        document.body.classList.add("dark-mode");
+        const swDark = document.getElementById("switchDark");
+        if (swDark) swDark.checked = true;
+    }
+
+    // 3. Restaurar Alto Contraste
+    if (localStorage.getItem("contraste") === "true") {
+        document.body.classList.add("alto-contraste");
+    }
+
+    // 4. Restaurar Notificações por Email (Padrão: ativado)
+    const notifStatus = localStorage.getItem("pref_notificacoes") !== "false";
+    const swNotif = document.getElementById("switchNotificacoes");
+    if (swNotif) swNotif.checked = notifStatus;
+
+    // 5. Restaurar Autenticação 2FA (Padrão: desativado)
+    const faStatus = localStorage.getItem("pref_2fa") === "true";
+    const sw2FA = document.getElementById("switch2FA");
+    if (sw2FA) sw2FA.checked = faStatus;
+});
+
+// Salvar Notificações e 2FA
+function togglePreferrencia(chave, el) {
+    localStorage.setItem(`pref_${chave}`, el.checked);
+    
+    const titulo = el.checked ? 'Recurso Ativado' : 'Recurso Desativado';
+    const msg = el.checked 
+        ? 'Suas preferências foram salvas com sucesso.' 
+        : 'As alterações foram registradas.';
+
+    Swal.fire({
+        icon: 'success',
+        title: titulo,
+        text: msg,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000
+    });
+}
+
+function toggleDark() {
+    document.body.classList.remove("alto-contraste");
+    localStorage.setItem("contraste", "false");
+
+    const isDark = document.body.classList.toggle("dark-mode");
+    localStorage.setItem("darkMode", isDark);
+    
+    const sw = document.getElementById("switchDark");
+    if (sw) sw.checked = isDark;
+
+    Swal.fire({
+        icon: 'info',
+        title: isDark ? 'Modo Escuro Ativado' : 'Modo Claro Ativado',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 1500
+    });
+}
+
+function toggleContraste() {
+    document.body.classList.remove("dark-mode");
+    localStorage.setItem("darkMode", "false");
+
+    const isContraste = document.body.classList.toggle("alto-contraste");
+    localStorage.setItem("contraste", isContraste);
+}
+
+function alterarFonte(valor) {
+    let atual = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--font-scale")) || 1;
+    atual += valor;
+    if (atual < 0.7) atual = 0.7;
+    if (atual > 1.7) atual = 1.7;
+
+    atual = parseFloat(atual.toFixed(2));
+    document.documentElement.style.setProperty("--font-scale", atual);
+    localStorage.setItem("fontScale", atual);
+}
+
+function lerPagina() {
+    window.speechSynthesis.cancel();
+    let texto = window.getSelection().toString().trim();
+    if (!texto) {
+        texto = document.querySelector('main').innerText;
+    }
+    if (texto) {
+        const fala = new SpeechSynthesisUtterance(texto);
+        fala.lang = "pt-BR";
+        fala.rate = 1.0;
+        window.speechSynthesis.speak(fala);
+    }
+}
+
+function pararLeitura() {
+    window.speechSynthesis.cancel();
+}
+
+function resetarAcessibilidade() {
+    pararLeitura();
+    localStorage.clear();
+    document.body.classList.remove("dark-mode", "alto-contraste");
+    document.documentElement.style.setProperty("--font-scale", "1");
+    
+    document.querySelectorAll('.switch input').forEach(sw => sw.checked = false);
+    const swNotif = document.getElementById("switchNotificacoes");
+    if (swNotif) swNotif.checked = true;
+
+    Swal.fire({
+        icon: 'success',
+        title: 'Preferências Restauradas',
+        text: 'Todas as configurações voltaram ao padrão.',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000
+    });
+}
     </script>
 </body>
 
