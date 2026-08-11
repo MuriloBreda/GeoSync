@@ -1201,12 +1201,14 @@
         let intervaloRastreio = null;
         let codigoRastreioAtivo = "";
 
+        // Coordenadas padrão (São Paulo) caso a remessa não tenha lat/lon
         const latPadraoSp = -23.55052;
         const lonPadraoSp = -46.63330;
 
         document.addEventListener("DOMContentLoaded", function () {
             const container = document.getElementById('mapaCliente');
             if (container) {
+                // Inicializa o mapa com as coordenadas padrão
                 mapaCliente = L.map('mapaCliente').setView([latPadraoSp, lonPadraoSp], 14);
 
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1217,6 +1219,20 @@
                 marcadorCliente.bindPopup("<b>Selecione uma encomenda para iniciar o rastreio.</b>").openPopup();
 
                 const selectRastreio = document.getElementById('selectRastreioCliente');
+                
+                // Tenta carregar a geolocalização do navegador caso o usuário permita
+                if (navigator.geolocation && (!selectRastreio || !selectRastreio.value)) {
+                    navigator.geolocation.getCurrentPosition(function (position) {
+                        const userLat = position.coords.latitude;
+                        const userLon = position.coords.longitude;
+                        
+                        mapaCliente.setView([userLat, userLon], 14);
+                        marcadorCliente.setLatLng([userLat, userLon]);
+                        marcadorCliente.setPopupContent("<b>Sua localização atual</b>").openPopup();
+                    });
+                }
+
+                // Se já houver um item selecionado no dropdown, carrega as informações dele
                 if (selectRastreio && selectRastreio.value) {
                     alterarRemessaRastreio(selectRastreio.value);
                 }
@@ -1227,35 +1243,57 @@
             if (!codigo) return;
             codigoRastreioAtivo = codigo;
 
+            // Limpa o intervalo antigo para evitar múltiplas requisições paralelas
             if (intervaloRastreio) clearInterval(intervaloRastreio);
 
+            // Atualiza a posição com base nas 'data-attributes' da tag <option> selecionada
+            const select = document.getElementById('selectRastreioCliente');
+            const optionSelecionada = select.options[select.selectedIndex];
+            
+            if (optionSelecionada) {
+                const lat = parseFloat(optionSelecionada.getAttribute('data-lat')) || latPadraoSp;
+                const lon = parseFloat(optionSelecionada.getAttribute('data-lon')) || lonPadraoSp;
+                const status = optionSelecionada.getAttribute('data-status') || 'Em Trânsito';
+
+                posicionarNoMapa(lat, lon, status);
+            }
+
+            // Inicia a requisição periódica (a cada 5s) para monitoramento dinâmico via API
             atualizarRastreioEmTempoReal();
             intervaloRastreio = setInterval(atualizarRastreioEmTempoReal, 5000);
+        }
+
+        function posicionarNoMapa(lat, lon, status) {
+            if (!mapaCliente || !marcadorCliente) return;
+
+            const novaCoordenada = [lat, lon];
+            marcadorCliente.setLatLng(novaCoordenada);
+            marcadorCliente.setPopupContent(`<b>Remessa #${codigoRastreioAtivo}</b><br>Status: ${status}`);
+            marcadorCliente.openPopup();
+            mapaCliente.setView(novaCoordenada, 14);
+
+            const statusPedido = document.getElementById('statusPedidoCliente');
+            if (statusPedido) {
+                statusPedido.textContent = status;
+            }
         }
 
         function atualizarRastreioEmTempoReal() {
             if (!codigoRastreioAtivo) return;
 
             fetch(`/api/rastreio/${codigoRastreioAtivo}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) throw new Error('Falha ao buscar dados');
+                    return response.json();
+                })
                 .then(data => {
                     if (data.latitude && data.longitude) {
                         const novaLat = parseFloat(data.latitude);
                         const novaLon = parseFloat(data.longitude);
-
-                        marcadorCliente.setLatLng([novaLat, novaLon]);
-                        marcadorCliente.setPopupContent(`<b>Remessa #${codigoRastreioAtivo}</b><br>Status: ${data.status}`);
-                        marcadorCliente.openPopup();
-
-                        mapaCliente.panTo([novaLat, novaLon]);
-
-                        const statusPedido = document.getElementById('statusPedidoCliente');
-                        if (statusPedido && data.status) {
-                            statusPedido.textContent = data.status;
-                        }
+                        posicionarNoMapa(novaLat, novaLon, data.status || 'Em Trânsito');
                     }
                 })
-                .catch(error => console.error("Erro ao rastrear:", error));
+                .catch(error => console.warn("Aguardando atualização de API ou rastreio offline:", error));
         }
     </script>
 
