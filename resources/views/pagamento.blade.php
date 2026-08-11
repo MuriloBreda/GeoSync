@@ -6,6 +6,8 @@
 <title>GeoSync - Pagamento Premium</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- Biblioteca de Máscaras -->
+<script src="https://unpkg.com/imask"></script>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif}
@@ -86,11 +88,11 @@ background:#cbd5e1;
 </div>
 
 <div id="area-credito" class="input-group">
-<input class="card-input" placeholder="Número do cartão">
-<input class="card-input" placeholder="Nome impresso">
+<input id="numeroCartao" class="card-input" placeholder="0000 0000 0000 0000" autocomplete="off">
+<input id="nomeCartao" class="card-input" placeholder="Nome impresso no cartão" autocomplete="off">
 <div style="display:flex;gap:10px">
-<input class="card-input" placeholder="MM/AA">
-<input class="card-input" placeholder="CVV">
+<input id="validadeCartao" class="card-input" placeholder="MM/AA" autocomplete="off">
+<input id="cvvCartao" class="card-input" placeholder="CVV" autocomplete="off">
 </div>
 <select id="selectParcelas"></select>
 </div>
@@ -147,22 +149,46 @@ background:#cbd5e1;
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <script>
 let currentValor = 149.99;
 let currentMetodo = 'credito';
 
 document.addEventListener("DOMContentLoaded", function () {
+    // --- Aplicação das Máscaras e Limites ---
+    IMask(document.getElementById('numeroCartao'), {
+        mask: '0000 0000 0000 0000'
+    });
+
+    IMask(document.getElementById('nomeCartao'), {
+        mask: /^[a-zA-Z\s]*$/ // Apenas letras e espaços
+    });
+
+    IMask(document.getElementById('validadeCartao'), {
+        mask: 'MM/YY',
+        blocks: {
+            MM: {
+                mask: IMask.MaskedRange,
+                from: 1,
+                to: 12
+            },
+            YY: {
+                mask: IMask.MaskedRange,
+                from: 0,
+                to: 99
+            }
+        }
+    });
+
+    IMask(document.getElementById('cvvCartao'), {
+        mask: '0000' // Aceita 3 ou 4 dígitos (padrão MasterCard/Visa/Amex)
+    });
+
+    // --- Lógica Inicial dos Planos ---
     const urlParams = new URLSearchParams(window.location.search);
     const planoParam = urlParams.get('plano');
     const valorParam = parseFloat(urlParams.get('valor'));
 
     const planosCards = document.querySelectorAll('.plan');
-
-    // 1. Remove a classe 'active' de TODOS os planos antes de selecionar
     planosCards.forEach(c => c.classList.remove('active'));
 
     if (planoParam && !isNaN(valorParam)) {
@@ -177,27 +203,22 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         if (!planoEncontrado) {
-            // Se não encontrou pela URL, seleciona o primeiro (Start)
             selectPlan(planosCards[0], 'GeoSync Start', 149.99);
         }
     } else {
-        // Seleciona o primeiro plano por padrão
         selectPlan(planosCards[0], 'GeoSync Start', 149.99);
     }
 });
 
 function selectPlan(el, plano, preco) {
-    // Garante que só um card fica ativo por vez
     document.querySelectorAll('.plan').forEach(x => x.classList.remove('active'));
     if (el) el.classList.add('active');
 
     currentValor = preco;
     
-    // Atualiza os inputs do formulário
     document.getElementById('db_plano').value = plano;
     document.getElementById('db_valor').value = preco;
 
-    // Atualiza os textos do resumo do lado direito
     document.getElementById('txtPlano').innerText = plano;
     document.getElementById('txtTotal').innerText = 'R$ ' + preco.toFixed(2).replace('.', ',');
 

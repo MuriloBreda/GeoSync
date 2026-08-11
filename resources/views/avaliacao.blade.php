@@ -1255,6 +1255,17 @@ FOOTER
         new window.VLibras.Widget('https://vlibras.gov.br/app');
     </script>
 
+    @if ($errors->any())
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro ao enviar',
+                text: @json($errors->first()),
+                confirmButtonColor: '#0B234F'
+            });
+        </script>
+    @endif
+
     <script>
         // Gerenciador do Painel
         const accessBtn = document.getElementById("accessibility-toggle");

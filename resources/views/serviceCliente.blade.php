@@ -1145,12 +1145,26 @@
                     labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana Atual'],
                     datasets: [{
                         label: 'Histórico de Entregas', 
-                        data: [12, 19, 15, {{ $entregues ?? 0 }}],
+                        data: [
+                            {{ $entregasSemana1 ?? 0 }}, 
+                            {{ $entregasSemana2 ?? 0 }}, 
+                            {{ $entregasSemana3 ?? 0 }}, 
+                            {{ $entregues ?? 0 }}
+                        ],
                         borderColor: '#2F6FB2', 
                         backgroundColor: 'rgba(47, 111, 178, 0.1)', 
                         fill: true, 
                         tension: 0.4
                     }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 }
+                        }
+                    }
                 }
             });
         }

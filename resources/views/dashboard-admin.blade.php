@@ -873,11 +873,11 @@
 
                 <div class="charts-grid">
                     <div class="content-card">
-                        <h3 style="margin-bottom:15px;">Fluxo Geral de Entregas</h3>
+                        <h3 style="margin-bottom:15px;">Status Geral das Remessas</h3>
                         <canvas id="chartLinhaAdmin"></canvas>
                     </div>
                     <div class="content-card">
-                        <h3 style="margin-bottom:15px;">Disponibilidade</h3>
+                        <h3 style="margin-bottom:15px;">Status dos Usuários</h3>
                         <canvas id="chartPizzaAdmin"></canvas>
                     </div>
                 </div>
@@ -1037,8 +1037,8 @@
                             <h3>📦 Dados Operacionais</h3>
                             <div class="form-grid">
                                 <div>
-                                    <label>Código de Rastreio</label>
-                                    <input type="text" name="codigo_rastreio" placeholder="Ex: GS-999" required>
+                                    <label>Código de Rastreio (Gerado Automatizado)</label>
+                                    <input type="text" id="codigo_rastreio" name="codigo_rastreio" readonly style="background-color: #e2e8f0; cursor: not-allowed; font-weight: bold;">
                                 </div>
                                 <div>
                                     <label>Status Inicial</label>
@@ -1245,6 +1245,29 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
     <script>
+        function gerarCodigoRastreio() {
+            const inputRastreio = document.getElementById('codigo_rastreio');
+            if (!inputRastreio) return;
+
+            const data = new Date();
+            const ano = data.getFullYear();
+            const mes = String(data.getMonth() + 1).padStart(2, '0');
+            const dia = String(data.getDate()).padStart(2, '0');
+            
+            // Pega os últimos 4 dígitos do timestamp atual para garantir irrepetibilidade
+            const aleatorioUnico = String(Date.now()).slice(-4);
+
+            const codigoGerado = `GS-${ano}${mes}${dia}-${aleatorioUnico}`;
+            inputRastreio.value = codigoGerado;
+        }
+
+        // Executa automaticamente quando a página é carregada
+        document.addEventListener('DOMContentLoaded', () => {
+            gerarCodigoRastreio();
+        });
+    </script>
+
+    <script>
         // CONTROLES DE INTERFACE
         function toggleSidebar() { 
             if (window.innerWidth <= 768) {
@@ -1385,31 +1408,53 @@
         @endif
 
         // GRÁFICOS DO ADMIN
+        // Contagem dinâmica das remessas por status
+        const remessasEmRota = {{ $remessas->where('status', 'Em Rota')->count() }};
+        const remessasEntregues = {{ $remessas->where('status', 'Entregue')->count() }};
+        const remessasAtrasadas = {{ $remessas->where('status', 'Atrasado')->count() }};
+
+        // Contagem dinâmica dos usuários por tipo
+        const totalMotoristas = {{ $usuarios->where('tipo', 'motorista')->count() }};
+        const totalClientes = {{ $usuarios->where('tipo', 'cliente')->count() }};
+        const totalAdmins = {{ $usuarios->where('tipo', 'admin')->count() }};
+
+        // 1. Gráfico de Barras/Status de Remessas
         const chartLinhaEl = document.getElementById('chartLinhaAdmin');
         if (chartLinhaEl) {
             new Chart(chartLinhaEl, {
-                type: 'line',
+                type: 'bar',
                 data: {
-                    labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana Atual'],
+                    labels: ['Em Rota', 'Entregues', 'Atrasadas'],
                     datasets: [{
-                        label: 'Desempenho Geral de Entregas', 
-                        data: [30, 45, 38, 70],
-                        borderColor: '#2F6FB2', 
-                        backgroundColor: 'rgba(47, 111, 178, 0.1)', 
-                        fill: true, 
-                        tension: 0.4
+                        label: 'Total de Remessas', 
+                        data: [remessasEmRota, remessasEntregues, remessasAtrasadas],
+                        backgroundColor: ['#3b82f6', '#10b981', '#ef4444'],
+                        borderRadius: 8
                     }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    }
                 }
             });
         }
 
+        // 2. Gráfico de Rosca/Distribuição dos Usuários
         const chartPizzaEl = document.getElementById('chartPizzaAdmin');
         if (chartPizzaEl) {
             new Chart(chartPizzaEl, {
-                type: 'pie',
+                type: 'doughnut',
                 data: {
-                    labels: ['Disponíveis', 'Em Viagem', 'Manutenção'],
-                    datasets: [{ data: [15, 22, 4], backgroundColor: ['#10b981', '#3b82f6', '#ef4444'] }]
+                    labels: ['Motoristas', 'Clientes', 'Administradores'],
+                    datasets: [{ 
+                        data: [totalMotoristas, totalClientes, totalAdmins], 
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b'] 
+                    }]
+                },
+                options: {
+                    responsive: true
                 }
             });
         }
