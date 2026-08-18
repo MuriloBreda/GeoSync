@@ -908,11 +908,17 @@
                             <i class="fas fa-search-location"></i> Escolha a Encomenda para Rastrear:
                         </label>
                         <select id="selectRastreioCliente" onchange="alterarRemessaRastreio(this.value)">
-                            <option value="" disabled selected>-- Selecione um código de rastreio --</option>
+                            <option value="">-- Selecione um código de rastreio --</option>
+
                             @foreach($remessas as $r)
-                                <option value="{{ $r->codigo_rastreio }}" data-lat="{{ $r->latitude ?? -14.2350 }}"
-                                    data-lon="{{ $r->longitude ?? -51.9253 }}" data-status="{{ $r->status }}">
-                                    #{{ $r->codigo_rastreio }} (De: {{ $r->origem }} Para: {{ $r->destino }})
+                                <option
+                                    value="{{ $r->codigo_rastreio }}"
+                                    data-lat="{{ $r->latitude }}"
+                                    data-lon="{{ $r->longitude }}"
+                                    data-status="{{ $r->status }}"
+                                >
+                                    #{{ $r->codigo_rastreio }}
+                                    (De: {{ $r->origem }} Para: {{ $r->destino }})
                                 </option>
                             @endforeach
                         </select>
@@ -1196,106 +1202,59 @@
     </script>
 
     <!-- MAPA LEAFLET CLIENTE -->
-    <script>
-        let mapaCliente, marcadorCliente;
-        let intervaloRastreio = null;
-        let codigoRastreioAtivo = "";
+<script>
+    let mapaCliente = null;
+    let marcadorCliente = null;
 
-        // Coordenadas padrão (São Paulo) caso a remessa não tenha lat/lon
-        const latPadraoSp = -23.55052;
-        const lonPadraoSp = -46.63330;
+    document.addEventListener("DOMContentLoaded", function () {
 
-        document.addEventListener("DOMContentLoaded", function () {
-            const container = document.getElementById('mapaCliente');
-            if (container) {
-                // Inicializa o mapa com as coordenadas padrão
-                mapaCliente = L.map('mapaCliente').setView([latPadraoSp, lonPadraoSp], 14);
+        const container = document.getElementById("mapaCliente");
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap'
-                }).addTo(mapaCliente);
+        if (!container) return;
 
-                marcadorCliente = L.marker([latPadraoSp, lonPadraoSp]).addTo(mapaCliente);
-                marcadorCliente.bindPopup("<b>Selecione uma encomenda para iniciar o rastreio.</b>").openPopup();
+        mapaCliente = L.map("mapaCliente").setView(
+            [-14.2350, -51.9253],
+            4
+        );
 
-                const selectRastreio = document.getElementById('selectRastreioCliente');
-                
-                // Tenta carregar a geolocalização do navegador caso o usuário permita
-                if (navigator.geolocation && (!selectRastreio || !selectRastreio.value)) {
-                    navigator.geolocation.getCurrentPosition(function (position) {
-                        const userLat = position.coords.latitude;
-                        const userLon = position.coords.longitude;
-                        
-                        mapaCliente.setView([userLat, userLon], 14);
-                        marcadorCliente.setLatLng([userLat, userLon]);
-                        marcadorCliente.setPopupContent("<b>Sua localização atual</b>").openPopup();
-                    });
-                }
-
-                // Se já houver um item selecionado no dropdown, carrega as informações dele
-                if (selectRastreio && selectRastreio.value) {
-                    alterarRemessaRastreio(selectRastreio.value);
-                }
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                attribution: "&copy; OpenStreetMap contributors"
             }
-        });
+        ).addTo(mapaCliente);
 
-        function alterarRemessaRastreio(codigo) {
-            if (!codigo) return;
-            codigoRastreioAtivo = codigo;
+    });
 
-            // Limpa o intervalo antigo para evitar múltiplas requisições paralelas
-            if (intervaloRastreio) clearInterval(intervaloRastreio);
+    function mostrarLocalizacaoMotorista(latitude, longitude) {
 
-            // Atualiza a posição com base nas 'data-attributes' da tag <option> selecionada
-            const select = document.getElementById('selectRastreioCliente');
-            const optionSelecionada = select.options[select.selectedIndex];
-            
-            if (optionSelecionada) {
-                const lat = parseFloat(optionSelecionada.getAttribute('data-lat')) || latPadraoSp;
-                const lon = parseFloat(optionSelecionada.getAttribute('data-lon')) || lonPadraoSp;
-                const status = optionSelecionada.getAttribute('data-status') || 'Em Trânsito';
+        if (!mapaCliente) return;
 
-                posicionarNoMapa(lat, lon, status);
-            }
+        latitude = parseFloat(latitude);
+        longitude = parseFloat(longitude);
 
-            // Inicia a requisição periódica (a cada 5s) para monitoramento dinâmico via API
-            atualizarRastreioEmTempoReal();
-            intervaloRastreio = setInterval(atualizarRastreioEmTempoReal, 5000);
+        if (isNaN(latitude) || isNaN(longitude)) {
+            return;
         }
 
-        function posicionarNoMapa(lat, lon, status) {
-            if (!mapaCliente || !marcadorCliente) return;
-
-            const novaCoordenada = [lat, lon];
-            marcadorCliente.setLatLng(novaCoordenada);
-            marcadorCliente.setPopupContent(`<b>Remessa #${codigoRastreioAtivo}</b><br>Status: ${status}`);
-            marcadorCliente.openPopup();
-            mapaCliente.setView(novaCoordenada, 14);
-
-            const statusPedido = document.getElementById('statusPedidoCliente');
-            if (statusPedido) {
-                statusPedido.textContent = status;
-            }
+        // Remove marcador anterior
+        if (marcadorCliente) {
+            mapaCliente.removeLayer(marcadorCliente);
         }
 
-        function atualizarRastreioEmTempoReal() {
-            if (!codigoRastreioAtivo) return;
+        // Cria marcador somente quando receber
+        // a localização real do motorista
+        marcadorCliente = L.marker([
+            latitude,
+            longitude
+        ]).addTo(mapaCliente);
 
-            fetch(`/api/rastreio/${codigoRastreioAtivo}`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Falha ao buscar dados');
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.latitude && data.longitude) {
-                        const novaLat = parseFloat(data.latitude);
-                        const novaLon = parseFloat(data.longitude);
-                        posicionarNoMapa(novaLat, novaLon, data.status || 'Em Trânsito');
-                    }
-                })
-                .catch(error => console.warn("Aguardando atualização de API ou rastreio offline:", error));
-        }
-    </script>
+        mapaCliente.setView([
+            latitude,
+            longitude
+        ], 15);
+    }
+</script>
 
     <!-- PAINEL DE ACESSIBILIDADE E TEMAS -->
     <script>

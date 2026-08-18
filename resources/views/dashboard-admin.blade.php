@@ -1472,42 +1472,183 @@
     </script>
 
     <!-- MAPA LEAFLET -->
-    <script>
-        let mapaAdmin;
+<script>
+    let mapaAdmin;
+    let marcadoresAdmin = {};
 
-        document.addEventListener('DOMContentLoaded', function () {
-            const mapContainer = document.getElementById('mapaAdmin');
-            if (mapContainer) {
-                mapaAdmin = L.map('mapaAdmin').setView([-14.2350, -51.9253], 4);
+    document.addEventListener('DOMContentLoaded', function () {
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap'
-                }).addTo(mapaAdmin);
+        const mapContainer = document.getElementById('mapaAdmin');
 
-                let marcadores = [];
+        if (!mapContainer) {
+            return;
+        }
 
-                @foreach($remessas as $r)
-                    @if($r->latitude && $r->longitude)
-                        let marker = L.marker([{{ $r->latitude }}, {{ $r->longitude }}])
-                        .addTo(mapaAdmin)
-                        .bindPopup(`
-                            <div style="font-family:sans-serif; padding:2px;">
-                                <strong style="color:#1C3F6E;">Remessa #{{ $r->codigo_rastreio }}</strong><br>
-                                <small><b>Rota:</b> {{ $r->origem }} &rarr; {{ $r->destino }}</small><br>
-                                <small><b>Status:</b> {{ $r->status }}</small>
-                            </div>
-                        `);
-                        marcadores.push(marker);
-                    @endif
-                @endforeach
+        // Criar mapa
+        mapaAdmin = L.map('mapaAdmin').setView(
+            [-14.2350, -51.9253],
+            4
+        );
 
-                if (marcadores.length > 0) {
-                    let group = new L.featureGroup(marcadores);
-                    mapaAdmin.fitBounds(group.getBounds().pad(0.2));
-                }
+        // OpenStreetMap
+        L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {
+                attribution: '&copy; OpenStreetMap'
             }
-        });
-    </script>
+        ).addTo(mapaAdmin);
+
+        // Buscar localização das remessas
+        atualizarLocalizacoesAdmin();
+
+        // Atualizar a cada 5 segundos
+        setInterval(
+            atualizarLocalizacoesAdmin,
+            5000
+        );
+    });
+
+
+    async function atualizarLocalizacoesAdmin() {
+
+        try {
+
+            @foreach($remessas as $r)
+
+                buscarLocalizacaoRemessa(
+                    {{ $r->id }},
+                    "{{ $r->codigo_rastreio }}",
+                    "{{ $r->origem }}",
+                    "{{ $r->destino }}",
+                    "{{ $r->status }}"
+                );
+
+            @endforeach
+
+        } catch (erro) {
+
+            console.error(
+                'Erro ao atualizar mapa:',
+                erro
+            );
+        }
+    }
+
+
+    async function buscarLocalizacaoRemessa(
+        remessaId,
+        codigo,
+        origem,
+        destino,
+        status
+    ) {
+
+        try {
+
+            const resposta = await fetch(
+                `/api/localizacao/remessa/${remessaId}/ultima`
+            );
+
+            const resultado = await resposta.json();
+
+            // A remessa ainda não possui localização
+            if (!resultado.success) {
+                return;
+            }
+
+            const latitude = parseFloat(
+                resultado.data.latitude
+            );
+
+            const longitude = parseFloat(
+                resultado.data.longitude
+            );
+
+            // Verificar coordenadas
+            if (
+                isNaN(latitude) ||
+                isNaN(longitude)
+            ) {
+                return;
+            }
+
+            const posicao = [
+                latitude,
+                longitude
+            ];
+
+
+            // ========================================
+            // SE JÁ EXISTE MARCADOR
+            // ========================================
+
+            if (marcadoresAdmin[remessaId]) {
+
+                marcadoresAdmin[remessaId]
+                    .setLatLng(posicao);
+
+                return;
+            }
+
+
+            // ========================================
+            // CRIAR NOVO MARCADOR
+            // ========================================
+
+            const marcador = L.marker(posicao)
+                .addTo(mapaAdmin)
+                .bindPopup(`
+                    <div style="font-family:sans-serif; padding:2px;">
+                        
+                        <strong style="color:#1C3F6E;">
+                            Remessa #${codigo}
+                        </strong>
+
+                        <br>
+
+                        <small>
+                            <b>Rota:</b>
+                            ${origem} → ${destino}
+                        </small>
+
+                        <br>
+
+                        <small>
+                            <b>Status:</b>
+                            ${status}
+                        </small>
+
+                        <br>
+
+                        <small>
+                            <b>Latitude:</b>
+                            ${latitude}
+                        </small>
+
+                        <br>
+
+                        <small>
+                            <b>Longitude:</b>
+                            ${longitude}
+                        </small>
+
+                    </div>
+                `);
+
+
+            // Guardar marcador
+            marcadoresAdmin[remessaId] = marcador;
+
+
+        } catch (erro) {
+
+            console.error(
+                `Erro na remessa ${remessaId}:`,
+                erro
+            );
+        }
+    }
+</script>
 
     <!-- PAINEL DE ACESSIBILIDADE E TEMAS -->
     <script>
@@ -1728,6 +1869,86 @@ function resetarAcessibilidade() {
         timer: 2000
     });
 }
+    </script>
+
+    <script>
+        let marcadores = {};
+
+        async function atualizarLocalizacoes() {
+
+            try {
+
+                const resposta = await fetch('/api/remessas');
+
+                const resultado = await resposta.json();
+
+                if (!resultado.success) {
+                    console.log('Erro ao buscar remessas');
+                    return;
+                }
+
+                for (const remessa of resultado.data) {
+
+                    const respostaLocalizacao = await fetch(
+                        `/api/localizacao/remessa/${remessa.id}/ultima`
+                    );
+
+                    const localizacao = await respostaLocalizacao.json();
+
+                    if (!localizacao.success) {
+                        continue;
+                    }
+
+                    const latitude = parseFloat(
+                        localizacao.data.latitude
+                    );
+
+                    const longitude = parseFloat(
+                        localizacao.data.longitude
+                    );
+
+                    atualizarMarcador(
+                        remessa.id,
+                        latitude,
+                        longitude,
+                        remessa.codigo_rastreio
+                    );
+                }
+
+            } catch (erro) {
+
+                console.error(
+                    'Erro ao atualizar localizações:',
+                    erro
+                );
+            }
+        }
+
+        function atualizarMarcador(
+            remessaId,
+            latitude,
+            longitude,
+            codigo
+        ) {
+
+            const posicao = {
+                lat: latitude,
+                lng: longitude
+            };
+
+            if (marcadores[remessaId]) {
+
+                marcadores[remessaId].setPosition(posicao);
+
+            } else {
+
+                marcadores[remessaId] = new google.maps.Marker({
+                    position: posicao,
+                    map: mapa,
+                    title: `Remessa ${codigo}`
+                });
+            }
+        }
     </script>
 </body>
 

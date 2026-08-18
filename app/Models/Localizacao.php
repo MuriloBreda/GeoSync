@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Localizacao extends Model
 {
-    use HasFactory;
-
     protected $table = 'localizacoes';
 
     protected $fillable = [
@@ -16,10 +13,4 @@ class Localizacao extends Model
         'longitude',
         'remessa_id'
     ];
-
-    // Relacionamento com remessa
-    public function remessa()
-    {
-        return $this->belongsTo(Remessa::class);
-    }
 }

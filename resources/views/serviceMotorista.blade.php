@@ -824,21 +824,149 @@
 
             <!-- ABA 2: LOCALIZAÇÃO -->
             <section id="localizacao" class="page">
-                <h1 style="margin-bottom: 1.5rem;">Rastreamento e Localização em Tempo Real</h1>
+
+                <h1 style="margin-bottom: 1.5rem;">
+                    Rastreamento e Localização em Tempo Real
+                </h1>
+
                 <div class="content-card">
+
                     <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
-                        As cargas agora são direcionadas automaticamente para o seu perfil. Utilize esta tela para acompanhar sua rota e atualizar sua geolocalização no sistema.
+                        Selecione a remessa que você está transportando e inicie o
+                        rastreamento. O sistema irá enviar sua localização
+                        automaticamente para o GeoSync.
                     </p>
 
-                    <div class="map-container" id="mapaBox"></div>
+                    <!-- SELECIONAR REMESSA -->
+                    <label>
+                        <i class="fas fa-box"></i>
+                        Remessa que está sendo transportada
+                    </label>
 
-                    <div style="margin-top: 1.5rem; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-                        <button class="btn-salvar" onclick="obterLocalizacaoAtual()">
-                            <i class="fas fa-location-crosshairs"></i> Sincronizar Minha Posição Atual
-                        </button>
-                        <span id="geoStatus" style="font-weight: 600; color: var(--text-muted);"></span>
+                    <select id="remessaGPS">
+
+                        <option value="">
+                            -- Selecione uma remessa --
+                        </option>
+
+                        @foreach($remessas->where('status', '!=', 'Entregue') as $r)
+
+                            <option value="{{ $r->id }}">
+                                #{{ $r->codigo_rastreio }}
+                                |
+                                {{ $r->origem }}
+                                →
+                                {{ $r->destino }}
+                            </option>
+
+                        @endforeach
+
+                    </select>
+
+
+                    <!-- MAPA -->
+                    <div
+                        class="map-container"
+                        id="mapaBox">
                     </div>
+
+
+                    <!-- CONTROLES -->
+                    <div style="
+                        margin-top: 1.5rem;
+                        display: flex;
+                        gap: 12px;
+                        flex-wrap: wrap;
+                        align-items: center;
+                    ">
+
+                        <button
+                            id="btnIniciarGPS"
+                            class="btn-salvar"
+                            onclick="iniciarRastreamento()">
+
+                            <i class="fas fa-location-crosshairs"></i>
+
+                            Iniciar Rastreamento
+
+                        </button>
+
+
+                        <button
+                            id="btnPararGPS"
+                            class="btn-salvar"
+                            onclick="pararRastreamento()"
+                            style="
+                                background: var(--alert-danger);
+                                display: none;
+                            ">
+
+                            <i class="fas fa-stop"></i>
+
+                            Parar Rastreamento
+
+                        </button>
+
+
+                        <span
+                            id="geoStatus"
+                            style="
+                                font-weight: 600;
+                                color: var(--text-muted);
+                            ">
+
+                            GPS parado
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- INFORMAÇÕES GPS -->
+                    <div
+                        id="infoGPS"
+                        style="
+                            display: none;
+                            margin-top: 20px;
+                            padding: 15px;
+                            border-radius: 12px;
+                            background: var(--input-bg);
+                            border: 1px solid var(--border);
+                        "
+                    >
+
+                        <strong>
+                            <i class="fas fa-satellite-dish"></i>
+                            Dados da localização
+                        </strong>
+
+                        <div style="margin-top: 10px;">
+
+                            <span>
+                                Latitude:
+                                <strong id="latitudeAtual">-</strong>
+                            </span>
+
+                            <br>
+
+                            <span>
+                                Longitude:
+                                <strong id="longitudeAtual">-</strong>
+                            </span>
+
+                            <br>
+
+                            <span>
+                                Última sincronização:
+                                <strong id="ultimaSincronizacao">-</strong>
+                            </span>
+
+                        </div>
+
+                    </div>
+
                 </div>
+
             </section>
 
             <!-- ABA 3: ATUALIZAR STATUS -->
@@ -1138,52 +1266,416 @@
         }
     </script>
 
-    <!-- MAPA LEAFLET -->
+    <!-- MAPA + GPS EM TEMPO REAL -->
     <script>
-        let mapa, marcador;
+
+        let mapa = null;
+        let marcador = null;
+        let watchId = null;
+
+        let ultimaLatitude = null;
+        let ultimaLongitude = null;
+
+
+        // ==========================================
+        // INICIALIZAR MAPA
+        // ==========================================
 
         document.addEventListener("DOMContentLoaded", function () {
-            const mapBox = document.getElementById('mapaBox');
-            if (mapBox) {
-                mapa = L.map('mapaBox').setView([-14.2350, -51.9253], 4);
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap'
-                }).addTo(mapa);
+            const mapBox = document.getElementById('mapaBox');
+
+            if (!mapBox) {
+                return;
             }
+
+            mapa = L.map('mapaBox').setView(
+                [-14.2350, -51.9253],
+                4
+            );
+
+            L.tileLayer(
+                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                {
+                    attribution: '&copy; OpenStreetMap'
+                }
+            ).addTo(mapa);
+
         });
 
-        function obterLocalizacaoAtual() {
-            const statusSpan = document.getElementById('geoStatus');
-            statusSpan.style.color = 'var(--alert-info)';
-            statusSpan.textContent = "Buscando satélites GPS...";
 
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    configurarMarcadorMapa(position.coords.latitude, position.coords.longitude);
-                },
-                (error) => {
-                    console.warn("GPS Real indisponível. Usando mock de testes.");
-                    configurarMarcadorMapa(-23.55052, -46.63330);
-                },
-                { enableHighAccuracy: true }
-            );
-        }
+        // ==========================================
+        // INICIAR RASTREAMENTO
+        // ==========================================
 
-        function configurarMarcadorMapa(lat, lon) {
-            const statusSpan = document.getElementById('geoStatus');
-            statusSpan.style.color = 'var(--alert-success)';
-            statusSpan.innerHTML = `<i class="fas fa-circle-check"></i> Sincronizado! Lat: ${lat.toFixed(4)} | Lon: ${lon.toFixed(4)}`;
+        function iniciarRastreamento() {
 
-            if (marcador) {
-                marcador.setLatLng([lat, lon]);
-            } else {
-                marcador = L.marker([lat, lon]).addTo(mapa);
+            const remessaId =
+                document.getElementById('remessaGPS').value;
+
+            const statusSpan =
+                document.getElementById('geoStatus');
+
+
+            // Verifica se selecionou remessa
+
+            if (!remessaId) {
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Selecione uma remessa',
+                    text: 'Escolha a remessa que você está transportando.',
+                    confirmButtonColor: '#1C3F6E'
+                });
+
+                return;
             }
 
-            mapa.setView([lat, lon], 15);
-            marcador.bindPopup("<b>Você está aqui!</b><br>Posição sincronizada no sistema.").openPopup();
+
+            // Verifica suporte ao GPS
+
+            if (!navigator.geolocation) {
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'GPS indisponível',
+                    text: 'Seu navegador não possui suporte à localização.'
+                });
+
+                return;
+            }
+
+
+            statusSpan.style.color =
+                'var(--alert-info)';
+
+            statusSpan.innerHTML =
+                '<i class="fas fa-spinner fa-spin"></i> Obtendo localização...';
+
+
+            document.getElementById('btnIniciarGPS').style.display =
+                'none';
+
+            document.getElementById('btnPararGPS').style.display =
+                'inline-flex';
+
+
+            // ==========================================
+            // WATCH POSITION
+            // ==========================================
+
+            watchId = navigator.geolocation.watchPosition(
+
+                function (position) {
+
+                    console.log("GPS recebido:", position);
+
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    ultimaLatitude = latitude;
+                    ultimaLongitude = longitude;
+
+                    configurarMarcadorMapa(
+                        latitude,
+                        longitude
+                    );
+
+                    enviarLocalizacao(
+                        latitude,
+                        longitude,
+                        remessaId
+                    );
+
+                },
+
+                function (error) {
+
+                    console.error(
+                        "ERRO COMPLETO DO GPS:",
+                        error
+                    );
+
+                    switch (error.code) {
+
+                        case 1:
+
+                            statusSpan.innerHTML =
+                                '<i class="fas fa-ban"></i> Permissão de localização negada.';
+
+                            break;
+
+                        case 2:
+
+                            statusSpan.innerHTML =
+                                '<i class="fas fa-location-dot"></i> Localização indisponível.';
+
+                            break;
+
+                        case 3:
+
+                            statusSpan.innerHTML =
+                                '<i class="fas fa-clock"></i> Tempo limite para obter GPS.';
+
+                            break;
+
+                        default:
+
+                            statusSpan.innerHTML =
+                                '<i class="fas fa-circle-xmark"></i> Erro desconhecido no GPS.';
+
+                    }
+
+                    statusSpan.style.color =
+                        'var(--alert-danger)';
+
+                },
+
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 5000,
+                    timeout: 30000
+                }
+
+            );
+
         }
+
+
+        // ==========================================
+        // PARAR RASTREAMENTO
+        // ==========================================
+
+        function pararRastreamento() {
+
+            if (watchId !== null) {
+
+                navigator.geolocation.clearWatch(
+                    watchId
+                );
+
+                watchId = null;
+
+            }
+
+
+            const statusSpan =
+                document.getElementById('geoStatus');
+
+
+            statusSpan.style.color =
+                'var(--text-muted)';
+
+            statusSpan.innerHTML =
+                '<i class="fas fa-location-dot"></i> GPS parado';
+
+
+            document.getElementById('btnIniciarGPS').style.display =
+                'inline-flex';
+
+            document.getElementById('btnPararGPS').style.display =
+                'none';
+
+        }
+
+
+        // ==========================================
+        // CONFIGURAR MARCADOR
+        // ==========================================
+
+        function configurarMarcadorMapa(
+            lat,
+            lon
+        ) {
+
+            if (!mapa) {
+                return;
+            }
+
+
+            const statusSpan =
+                document.getElementById('geoStatus');
+
+
+            statusSpan.style.color =
+                'var(--alert-success)';
+
+
+            statusSpan.innerHTML =
+                '<i class="fas fa-circle-check"></i> GPS conectado';
+
+
+            // Atualiza marcador existente
+
+            if (marcador) {
+
+                marcador.setLatLng([
+                    lat,
+                    lon
+                ]);
+
+            }
+
+            // Cria marcador
+
+            else {
+
+                marcador = L.marker([
+                    lat,
+                    lon
+                ])
+                .addTo(mapa);
+
+            }
+
+
+            marcador
+                .bindPopup(
+                    '<b>Localização atual</b><br>' +
+                    'GPS sincronizado.'
+                );
+
+
+            mapa.setView(
+                [lat, lon],
+                15
+            );
+
+
+            // Informações
+
+            document.getElementById(
+                'infoGPS'
+            ).style.display = 'block';
+
+
+            document.getElementById(
+                'latitudeAtual'
+            ).textContent =
+                lat.toFixed(8);
+
+
+            document.getElementById(
+                'longitudeAtual'
+            ).textContent =
+                lon.toFixed(8);
+
+
+            const agora =
+                new Date();
+
+
+            document.getElementById(
+                'ultimaSincronizacao'
+            ).textContent =
+                agora.toLocaleTimeString('pt-BR');
+
+        }
+
+
+        // ==========================================
+        // ENVIAR LOCALIZAÇÃO PARA API
+        // ==========================================
+
+        async function enviarLocalizacao(
+            latitude,
+            longitude,
+            remessaId
+        ) {
+
+            const statusSpan =
+                document.getElementById('geoStatus');
+
+
+            try {
+
+                const resposta =
+                    await fetch(
+                        '/api/localizacao',
+                        {
+
+                            method: 'POST',
+
+                            headers: {
+
+                                'Content-Type':
+                                    'application/json',
+
+                                'Accept':
+                                    'application/json'
+
+                            },
+
+                            body: JSON.stringify({
+
+                                latitude:
+                                    latitude,
+
+                                longitude:
+                                    longitude,
+
+                                remessa_id:
+                                    remessaId
+
+                            })
+
+                        }
+                    );
+
+
+                const dados =
+                    await resposta.json();
+
+
+                if (!resposta.ok) {
+
+                    console.error(
+                        'Erro da API:',
+                        dados
+                    );
+
+                    statusSpan.style.color =
+                        'var(--alert-danger)';
+
+                    statusSpan.innerHTML =
+                        '<i class="fas fa-circle-xmark"></i> Erro ao sincronizar GPS';
+
+                    return;
+                }
+
+
+                console.log(
+                    'Localização enviada:',
+                    dados
+                );
+
+
+                statusSpan.style.color =
+                    'var(--alert-success)';
+
+                statusSpan.innerHTML =
+                    '<i class="fas fa-circle-check"></i> Localização sincronizada';
+
+
+            }
+            catch (erro) {
+
+                console.error(
+                    'Erro ao enviar localização:',
+                    erro
+                );
+
+
+                statusSpan.style.color =
+                    'var(--alert-danger)';
+
+                statusSpan.innerHTML =
+                    '<i class="fas fa-wifi"></i> Erro de conexão com o servidor';
+
+            }
+
+        }
+
     </script>
 
     <!-- PAINEL DE ACESSIBILIDADE E TEMAS -->
