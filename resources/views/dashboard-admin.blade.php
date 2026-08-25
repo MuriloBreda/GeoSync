@@ -718,6 +718,15 @@
                 grid-template-columns: 1fr !important;
             }
         }
+
+        #chartLinhaAdmin {
+            height: 380px !important;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 380px;
+        }
     </style>
 </head>
 
@@ -865,7 +874,7 @@
                     <div class="stat-card">
                         <div>
                             <h4>Alertas de Risco</h4>
-                            <h2>{{ $alertasCriticos ?? 0 }}</h2>
+                            <h2>{{ $alertas->count() }}</h2>
                         </div>
                         <i class="fas fa-triangle-exclamation" style="color: var(--alert-danger)"></i>
                     </div>
@@ -1114,23 +1123,42 @@
                 <h1 style="margin-bottom:1.5rem;">Central de Alertas</h1>
 
                 <div class="content-card">
+                    <h2>
+                        Alertas ({{ $alertas->count() }})
+                    </h2><br>
+
                     @forelse($alertas as $alerta)
-                    <div class="alert-card">
-                        <div class="alert-icon">
-                            <i class="fas fa-triangle-exclamation"></i>
-                        </div>
-                        <div class="alert-content">
-                            <h3>{{ $alerta->tipo }}</h3>
-                            <p>{{ $alerta->mensagem }}</p>
-                            <div class="alert-footer">
-                                <span><i class="fas fa-user-circle"></i> {{ $alerta->remessa->motorista->name ?? 'Não atribuído' }}</span>
-                                <span><i class="fas fa-box"></i> {{ $alerta->remessa->tipo_carga ?? '-' }}</span>
-                                <span><i class="fas fa-clock"></i> {{ $alerta->created_at->format('d/m/Y H:i') }}</span>
+                        <div class="alert-card">
+                            <div class="alert-icon">
+                                <i class="fas fa-triangle-exclamation"></i>
+                            </div>
+
+                            <div class="alert-content">
+                                <h3>{{ $alerta->tipo }}</h3>
+                                <p>{{ $alerta->mensagem }}</p>
+
+                                <div class="alert-footer">
+                                    <span>
+                                        <i class="fas fa-user-circle"></i>
+                                        {{ $alerta->remessa->motorista->name ?? 'Não atribuído' }}
+                                    </span>
+
+                                    <span>
+                                        <i class="fas fa-box"></i>
+                                        {{ $alerta->remessa->tipo_carga ?? '-' }}
+                                    </span>
+
+                                    <span>
+                                        <i class="fas fa-clock"></i>
+                                        {{ $alerta->created_at->format('d/m/Y H:i') }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                    </div>
                     @empty
-                    <p style="color:var(--text-muted);text-align:center;padding:20px;">Nenhum alerta registrado até o momento.</p>
+                        <p style="color:var(--text-muted);text-align:center;padding:20px;">
+                            Nenhum alerta registrado até o momento.
+                        </p>
                     @endforelse
                 </div>
             </section>
@@ -1409,9 +1437,9 @@
 
         // GRÁFICOS DO ADMIN
         // Contagem dinâmica das remessas por status
-        const remessasEmRota = {{ $remessas->where('status', 'Em Rota')->count() }};
+        const remessasEmTransito = {{ $remessas->where('status', 'Em trânsito')->count() }};
         const remessasEntregues = {{ $remessas->where('status', 'Entregue')->count() }};
-        const remessasAtrasadas = {{ $remessas->where('status', 'Atrasado')->count() }};
+        const remessasPendentes = {{ $remessas->where('status', 'Pendente')->count() }};
 
         // Contagem dinâmica dos usuários por tipo
         const totalMotoristas = {{ $usuarios->where('tipo', 'motorista')->count() }};
@@ -1420,24 +1448,130 @@
 
         // 1. Gráfico de Barras/Status de Remessas
         const chartLinhaEl = document.getElementById('chartLinhaAdmin');
+
         if (chartLinhaEl) {
+
             new Chart(chartLinhaEl, {
                 type: 'bar',
+
                 data: {
-                    labels: ['Em Rota', 'Entregues', 'Atrasadas'],
+                    labels: ['Em Trânsito', 'Entregues', 'Pendentes'],
+
                     datasets: [{
-                        label: 'Total de Remessas', 
-                        data: [remessasEmRota, remessasEntregues, remessasAtrasadas],
-                        backgroundColor: ['#3b82f6', '#10b981', '#ef4444'],
-                        borderRadius: 8
+                        label: 'Total de Remessas',
+
+                        data: [
+                            remessasEmTransito,
+                            remessasEntregues,
+                            remessasPendentes
+                        ],
+
+                        backgroundColor: [
+                            '#3b82f6',
+                            '#10b981',
+                            '#F51D0C'
+                        ],
+
+                        borderRadius: 10,
+                        borderSkipped: false,
+                        barThickness: 70
                     }]
                 },
+
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
+
                     plugins: {
-                        legend: { display: false }
+
+                        legend: {
+                            display: false
+                        },
+
+                        tooltip: {
+                            backgroundColor: '#0B1F36',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            padding: 12,
+                            cornerRadius: 8,
+
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.raw + ' remessa(s)';
+                                }
+                            }
+                        }
+                    },
+
+                    scales: {
+
+                        y: {
+                            beginAtZero: true,
+
+                            ticks: {
+                                precision: 0,
+                                stepSize: 1
+                            },
+
+                            grid: {
+                                color: '#e5e7eb',
+                                drawBorder: false
+                            }
+                        },
+
+                        x: {
+                            grid: {
+                                display: false
+                            },
+
+                            ticks: {
+                                font: {
+                                    size: 14,
+                                    weight: '500'
+                                },
+
+                                color: '#6b7280'
+                            }
+                        }
                     }
-                }
+                },
+
+                plugins: [{
+                    id: 'valoresNoTopo',
+
+                    afterDatasetsDraw(chart) {
+
+                        const { ctx } = chart;
+
+                        ctx.save();
+
+                        chart.data.datasets.forEach((dataset, datasetIndex) => {
+
+                            const meta = chart.getDatasetMeta(datasetIndex);
+
+                            meta.data.forEach((bar, index) => {
+
+                                const valor = dataset.data[index];
+
+                                ctx.fillStyle = '#0B1F36';
+
+                                ctx.font = 'bold 16px Arial';
+
+                                ctx.textAlign = 'center';
+
+                                ctx.textBaseline = 'bottom';
+
+                                ctx.fillText(
+                                    valor,
+                                    bar.x,
+                                    bar.y - 8
+                                );
+                            });
+                        });
+
+                        ctx.restore();
+                    }
+                }]
             });
         }
 

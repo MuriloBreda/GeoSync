@@ -169,6 +169,44 @@
             text-align: right;
         }
 
+        /* Animação de Carregamento (Pontinhos no estilo ChatGPT) */
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 0;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background-color: var(--azul-tech);
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0.3); opacity: 0.3; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Cursor de digitação */
+        .typing-cursor::after {
+            content: '▌';
+            animation: blink 0.8s infinite;
+            color: var(--azul-tech);
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
         /* Rodapé com Campo de Texto */
         .footer-area {
             background: #ffffff;
@@ -230,12 +268,17 @@
             transform: scale(1.03);
         }
 
-        .input-container button i {
-            font-size: 1rem;
-            margin-left: 2px; /* Ajuste óptico do ícone de envio */
+        .input-container button:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
         }
 
-        /* Responsividade Básica */
+        .input-container button i {
+            font-size: 1rem;
+            margin-left: 2px;
+        }
+
         @media (max-width: 768px) {
             .msg {
                 max-width: 85%;
@@ -263,6 +306,16 @@
     </div>
 
     <div id="chat" class="chat">
+        <!-- Mensagem Padrão Fixa de Boas-Vindas -->
+        <div class="msg other">
+            <div class="bubble">
+                <span class="bot-name"><i class="fas fa-robot"></i> GeoSync I.A</span>
+                <span class="msg-content">Olá! Sou a inteligência artificial do GeoSync. Como posso ajudar no desenvolvimento ou análise do seu TCC hoje?</span>
+            </div>
+            <div class="meta js-time"></div>
+        </div>
+
+        <!-- Histórico do Chat vindo da Sessão -->
         @if(session('chat'))
             @foreach(session('chat') as $msg)
                 <div class="msg {{ $msg['type'] }}">
@@ -270,25 +323,18 @@
                         @if($msg['type'] == 'other')
                             <span class="bot-name"><i class="fas fa-robot"></i> GeoSync I.A</span>
                         @endif
-                        {{ $msg['text'] }}
+                        <span class="msg-content">{{ $msg['text'] }}</span>
                     </div>
-                    <div class="meta">
-                        {{ $msg['time'] }}
+                    <div class="meta js-time">
+                        {{ $msg['time'] ?? '' }}
                     </div>
                 </div>
             @endforeach
-        @else
-            <div class="msg other">
-                <div class="bubble">
-                    <span class="bot-name"><i class="fas fa-robot"></i> GeoSync I.A</span>
-                    Olá! Sou a inteligência artificial do GeoSync. Como posso ajudar no desenvolvimento ou análise do seu TCC hoje?
-                </div>
-            </div>
         @endif
     </div>
 
     <div class="footer-area">
-        <form action="{{ route('chat.enviar') }}" method="POST" class="input-container">
+        <form id="chatForm" action="{{ route('chat.enviar') }}" method="POST" class="input-container">
             @csrf
             <input
                 type="text"
@@ -298,17 +344,105 @@
                 autocomplete="off"
                 required
             >
-            <button type="submit" title="Enviar Mensagem">
+            <button type="submit" id="btnEnviar" title="Enviar Mensagem">
                 <i class="fas fa-paper-plane"></i>
             </button>
         </form>
     </div>
 
     <script>
+        // Função para obter o horário local exato do dispositivo (HH:mm)
+        function getLocalTime() {
+            return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
         window.onload = function() {
             const chat = document.getElementById('chat');
+            const form = document.getElementById('chatForm');
+            const input = document.getElementById('mensagem');
+            const btnEnviar = document.getElementById('btnEnviar');
+
             chat.scrollTop = chat.scrollHeight;
-            document.getElementById('mensagem').focus();
+            input.focus();
+
+            // Ajusta todos os campos de horário sem valor para o horário atual
+            document.querySelectorAll('.js-time').forEach(el => {
+                if (!el.textContent.trim()) {
+                    el.textContent = getLocalTime();
+                }
+            });
+
+            // 1. EFEITO DE DIGITAÇÃO estilo ChatGPT para a resposta enviada pelo servidor
+            // Aplica a digitação apenas na ÚLTIMA mensagem de resposta recebida do servidor
+            const botMessages = document.querySelectorAll('.msg.other');
+            if (botMessages.length > 1) { // Só anima se houver respostas além da mensagem inicial padrão
+                const lastBotMsg = botMessages[botMessages.length - 1];
+                const contentEl = lastBotMsg.querySelector('.msg-content');
+
+                if (contentEl && !lastBotMsg.dataset.animated) {
+                    lastBotMsg.dataset.animated = "true";
+                    const fullText = contentEl.innerText.trim();
+                    contentEl.innerHTML = '<span id="typed-text"></span><span class="typing-cursor"></span>';
+                    
+                    const typedTextEl = document.getElementById('typed-text');
+                    let index = 0;
+
+                    function typeWriter() {
+                        if (index < fullText.length) {
+                            typedTextEl.textContent += fullText.charAt(index);
+                            index++;
+                            chat.scrollTop = chat.scrollHeight;
+                            setTimeout(typeWriter, 18);
+                        } else {
+                            const cursor = lastBotMsg.querySelector('.typing-cursor');
+                            if (cursor) cursor.remove();
+                        }
+                    }
+                    typeWriter();
+                }
+            }
+
+            // 2. AÇÃO AO CLICAR EM ENVIAR (Mostra a pergunta imediatamente + Animação de Carregamento)
+            form.addEventListener('submit', function() {
+                const text = input.value.trim();
+                if (!text) return;
+
+                const timeNow = getLocalTime();
+
+                // Mostra a pergunta do usuário na tela instantaneamente
+                const userHtml = `
+                    <div class="msg me">
+                        <div class="bubble">${escapeHtml(text)}</div>
+                        <div class="meta">${timeNow}</div>
+                    </div>
+                `;
+                chat.insertAdjacentHTML('beforeend', userHtml);
+
+                // Mostra a animação dos 3 pontinhos "Carregando..." da IA
+                const loadingHtml = `
+                    <div class="msg other" id="loading-indicator">
+                        <div class="bubble">
+                            <span class="bot-name"><i class="fas fa-robot"></i> GeoSync I.A</span>
+                            <div class="typing-indicator">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
+                        <div class="meta">${timeNow}</div>
+                    </div>
+                `;
+                chat.insertAdjacentHTML('beforeend', loadingHtml);
+
+                // Bloqueia interações para evitar múltiplos envios simultâneos
+                input.readOnly = true;
+                btnEnviar.disabled = true;
+                btnEnviar.style.opacity = '0.5';
+
+                chat.scrollTop = chat.scrollHeight;
+            });
         };
     </script>
 

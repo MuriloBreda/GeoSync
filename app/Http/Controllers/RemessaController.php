@@ -77,9 +77,9 @@ class RemessaController extends Controller
         $remessas = Remessa::where('cliente_id', $userId)->get();
 
         $total = Remessa::where('cliente_id', $userId)->count();
-        $transito = Remessa::where('cliente_id', $userId)->where('status', 'Em Rota')->count();
+        $transito = Remessa::where('cliente_id', $userId)->where('status', 'Em trânsito')->count();
         $entregues = Remessa::where('cliente_id', $userId)->where('status', 'Entregue')->count();
-        $atrasadas = Remessa::where('cliente_id', $userId)->where('status', 'Atrasado')->count();
+        $atrasadas = Remessa::where('cliente_id', $userId)->where('status', 'Pendente')->count();
 
         // Busca os alertas vinculados às remessas desse cliente
         $alertas = \App\Models\Alerta::whereIn('remessa_id', $remessas->pluck('id'))->get();

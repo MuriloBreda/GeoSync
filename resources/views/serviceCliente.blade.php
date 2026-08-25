@@ -1180,7 +1180,7 @@
             new Chart(chartPizzaEl, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Em Rota', 'Entregues', 'Atrasadas'],
+                    labels: ['Em Trânsito', 'Entregues', 'Pendentes'],
                     datasets: [{ 
                         data: [{{ $transito ?? 0 }}, {{ $entregues ?? 0 }}, {{ $atrasadas ?? 0 }}], 
                         backgroundColor: ['#3b82f6', '#10b981', '#ef4444'] 
