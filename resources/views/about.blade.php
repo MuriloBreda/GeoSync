@@ -1,25 +1,29 @@
 <!DOCTYPE html>
-<html lang="pt_BR">
+<html lang="pt-br">
 
 <head>
     <meta charset="utf-8">
-    <title>GeoSync - Sobre Nós</title>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>GeoSync | Sobre Nós</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
     <style>
         /* =========================
-           VARIÁVEIS UNIFICADAS
-        ========================= */
+   PALETA E VARIÁVEIS
+========================= */
         :root {
-            --azul-institucional: #1C3F6E;
-            --azul-tech: #2F6FB2;
-            --azul-profundo: #0B1F36;
-            --azul-claro: #E6EEF8;
-            --azul-cinza: #7B92AD;
+            --azul-institucional: #0f172a;
+            --azul-tech: #2563eb;
+            --azul-hover: #1d4ed8;
+            --azul-profundo: #020617;
+            --azul-claro: #f0f6ff;
+            --texto-principal: #334155;
+            --texto-secundario: #64748b;
+            --borda-suave: #e2e8f0;
+            --card-bg: #ffffff;
+            --font-scale: 1;
         }
 
         * {
@@ -33,40 +37,46 @@
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background: #f5f7fb;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            color: var(--texto-principal);
             overflow-x: hidden;
             position: relative;
+            zoom: var(--font-scale);
+            transition: zoom 0.2s ease-in-out;
         }
 
-        /* Glow Background */
-
-        body::before {
-            content: "";
-            position: fixed;
-            width: 700px;
-            height: 700px;
-            background: radial-gradient(circle, #2F6FB220 0%, transparent 70%);
-            top: -250px;
-            right: -250px;
-            z-index: -1;
-        }
-
-        body::after {
-            content: "";
+        /* Ambient Glows */
+        .ambient-glow {
             position: fixed;
             width: 600px;
             height: 600px;
-            background: radial-gradient(circle, #0B3B7A15 0%, transparent 70%);
-            bottom: -250px;
-            left: -250px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+            top: -200px;
+            right: -200px;
             z-index: -1;
+            pointer-events: none;
         }
 
-        /* CONTAINER */
+        .ambient-glow-bottom {
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(15, 23, 42, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
+            bottom: -200px;
+            left: -200px;
+            z-index: -1;
+            pointer-events: none;
+        }
 
+        /* =========================
+   LAYOUT BASE
+========================= */
         .container {
-            width: 90%;
+            width: 88%;
+            max-width: 1280px;
             margin: auto;
         }
 
@@ -74,800 +84,630 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
         }
 
-        /* TOPBAR */
+        .section {
+            padding: 90px 0;
+        }
 
+        /* =========================
+   TOPBAR
+========================= */
         .topbar {
-            background: linear-gradient(90deg, #0B1F36, #1C3F6E);
+            background: var(--azul-profundo);
             padding: 10px 0;
-            color: white;
-            font-size: 14px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            color: #94a3b8;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .topbar a {
-            color: white;
+            color: #cbd5e1;
             text-decoration: none;
             transition: 0.3s;
+            font-weight: 500;
         }
 
         .topbar a:hover {
-            color: #7fb7ff;
+            color: #60a5fa;
         }
 
         .top-info {
             display: flex;
-            gap: 20px;
+            gap: 25px;
             align-items: center;
         }
 
         .top-icons {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             align-items: center;
         }
 
         .top-icons a {
-            width: 34px;
-            height: 34px;
+            width: 30px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
             transition: 0.3s;
         }
 
         .top-icons a:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-3px);
+            background: var(--azul-tech);
+            color: white;
         }
 
         /* =========================
-NAVBAR
+   NAVBAR
 ========================= */
-
         .navbar {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            padding: 18px 0;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 16px 0;
             position: sticky;
             top: 0;
             z-index: 9999;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, .05);
+            border-bottom: 1px solid var(--borda-suave);
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 30px;
-            font-weight: 700;
+            gap: 10px;
+            font-size: 26px;
+            font-weight: 800;
             color: var(--azul-institucional);
             text-decoration: none;
-            transition: .4s;
-        }
-
-        .logo:hover {
-            transform: scale(1.04);
+            letter-spacing: -0.5px;
         }
 
         .logo img {
-            width: 65px;
-            transition: .5s;
-        }
-
-        .logo:hover img {
-            transform: rotate(-8deg) scale(1.08);
+            width: 42px;
+            height: auto;
         }
 
         .menu {
             display: flex;
-            gap: 35px;
+            gap: 32px;
         }
 
         .menu a {
             position: relative;
             text-decoration: none;
-            color: var(--azul-institucional);
+            color: var(--texto-principal);
             font-size: 15px;
-            font-weight: 700;
+            font-weight: 600;
             transition: .3s;
-            padding-bottom: 6px;
         }
 
-        .menu a:hover {
-            color: #2F6FB2;
-            transform: translateY(-2px);
-        }
-
-        .menu a::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 0%;
-            height: 2px;
-            background: #2F6FB2;
-            transition: 0.4s;
-            border-radius: 10px;
-        }
-
-
-        .menu a:hover::after {
-            width: 100%;
+        .menu a:hover, .menu a.active {
+            color: var(--azul-tech);
         }
 
         .btn {
-            position: relative;
-            overflow: hidden;
-            background: linear-gradient(135deg,
-                    #0B3B7A,
-                    #1C5CC8);
+            background: var(--azul-tech);
             color: white;
-            padding: 14px 28px;
-            border-radius: 14px;
+            padding: 10px 24px;
+            border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
-            transition: .4s;
-            box-shadow:
-                0 10px 25px rgba(47, 111, 178, .25);
+            font-size: 14px;
+            transition: .3s ease;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+            display: inline-block;
         }
 
         .btn:hover {
-            transform: translateY(-4px);
-            box-shadow:
-                0 20px 40px rgba(47, 111, 178, .35);
+            background: var(--azul-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
         }
 
-        .btn::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: -120%;
-            width: 100%;
-            height: 100%;
-            background:
-                linear-gradient(90deg,
-                    transparent,
-                    rgba(255, 255, 255, .4),
-                    transparent);
-            transition: .7s;
+        /* =========================
+   TEXTOS & TIPOGRAFIA
+========================= */
+        h2 {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--azul-institucional);
+            letter-spacing: -0.5px;
+            margin-bottom: 16px;
         }
 
-        .btn:hover::before {
-            left: 120%;
+        h3 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--azul-institucional);
+            margin-bottom: 12px;
         }
 
-        .section {
-            padding: 80px 0;
+        p {
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--texto-secundario);
         }
 
-        /* HERO */
-        .hero-about {
-            background:
-                linear-gradient(rgba(11, 31, 54, 0.85), rgba(11, 31, 54, 0.85)),
-                url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
-            background-size: cover;
-            background-position: center;
-            padding: 140px 20px;
+        .sub-header {
+            color: var(--azul-tech);
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .section-title {
             text-align: center;
+            max-width: 720px;
+            margin: 0 auto 50px;
+        }
+
+        .section-title .sub-header {
+            margin-bottom: 8px;
+        }
+
+        /* =========================
+   HERO ABOUT
+========================= */
+        .hero-about {
+            padding: 110px 0 90px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-about::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1920&q=80") center/cover;
+            opacity: 0.12;
+            mix-blend-mode: overlay;
+        }
+
+        .hero-about .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(37, 99, 235, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
         }
 
         .hero-about h1 {
+            font-size: 52px;
+            line-height: 1.15;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            margin-bottom: 16px;
             color: white;
-            font-size: 4rem;
-            margin-bottom: 15px;
+        }
+
+        .hero-about h1 span {
+            background: linear-gradient(90deg, #60a5fa, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .hero-about p {
-            color: rgba(255, 255, 255, .9);
-            font-size: 1.2rem;
+            font-size: 18px;
+            color: #94a3b8;
+            line-height: 1.6;
+            max-width: 680px;
+            margin: 0 auto;
         }
 
-        /* SOBRE */
+        /* =========================
+   SOBRE / ESSÊNCIA
+========================= */
         .about-card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 48px;
+            border: 1px solid var(--borda-suave);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            transition: .3s ease;
+        }
+
+        .about-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 35px rgba(0, 0, 0, 0.07);
         }
 
         .about-content {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
             align-items: center;
-            gap: 50px;
-        }
-
-        .about-image {
-            flex: 1;
         }
 
         .about-image img {
             width: 100%;
-            border-radius: 15px;
+            height: 380px;
+            object-fit: cover;
+            border-radius: 12px;
             display: block;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, .15);
         }
 
-        .about-text {
-            flex: 1.2;
-        }
-
-        .about-text h6 {
-            color: var(--secondary);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: .85rem;
-            margin-bottom: 10px;
-        }
-
-        .about-text h2 {
-            color: var(--primary);
-            font-size: 2.2rem;
-            margin-bottom: 25px;
-        }
-
-        .about-text p {
-            color: #333;
-            line-height: 1.8;
-            margin-bottom: 15px;
-        }
-
-        /* TÍTULO */
-        .section-title {
-            text-align: center;
-            margin-bottom: 50px;
-        }
-
-        .section-title h6 {
-            color: var(--secondary);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: .85rem;
-        }
-
-        .section-title h2 {
-            color: var(--primary);
-            font-size: 2.5rem;
-            margin-top: 10px;
-        }
-
-        /* EQUIPE */
-        .team-grid {
+        /* =========================
+   CARDS DE MISSÃO, VISÃO, VALORES
+========================= */
+        .mvv-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
+            gap: 24px;
         }
 
-        .team-card {
+        .mvv-card {
             background: white;
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, .1);
+            border-radius: 16px;
+            padding: 36px 30px;
+            border: 1px solid var(--borda-suave);
+            box-shadow: 0 8px 25px rgba(0,0,0,.03);
+            transition: all 0.3s ease;
+        }
+
+        .mvv-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 18px 35px rgba(0,0,0,.08);
+            border-color: rgba(37,99,235,.3);
+        }
+
+        .icon-box {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .icon-box.azul-bg {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--azul-tech);
+        }
+
+        /* =========================
+   ESTATÍSTICAS / NÚMEROS
+========================= */
+        .stats-section {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+        }
+
+        .stats-section h2,
+        .stats-section .sub-header {
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 35px 20px;
+            border: 1px solid rgba(255,255,255,.1);
+            background: rgba(255,255,255,.04);
+            border-radius: 16px;
             transition: .3s;
         }
 
+        .stat-card:hover {
+            background: rgba(255,255,255,.07);
+            transform: translateY(-4px);
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 42px;
+            font-weight: 800;
+            color: #60a5fa;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #cbd5e1;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* =========================
+   EQUIPE
+========================= */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .team-card {
+            background: var(--card-bg);
+            border: 1px solid var(--borda-suave);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .04);
+            transition: .3s ease;
+        }
+
         .team-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, .15);
+            transform: translateY(-6px);
+            box-shadow: 0 18px 35px rgba(0, 0, 0, .08);
+            border-color: rgba(37, 99, 235, .25);
         }
 
         .team-card img {
             width: 100%;
-            height: 320px;
+            height: 300px;
             object-fit: cover;
             display: block;
         }
 
         .team-text {
-            padding: 20px;
+            padding: 22px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             text-align: center;
         }
 
         .team-text h5 {
-            font-size: 1.1rem;
-            margin-bottom: 8px;
-            color: #222;
-        }
-
-        .team-text small {
-            color: #666;
-            font-size: .9rem;
-        }
-
-        /* ABOUT CARD */
-
-        .about-card {
-            background: white;
-
-            border-radius: 30px;
-
-            padding: 50px;
-
-            box-shadow:
-                0 20px 40px rgba(0, 0, 0, .06);
-
-            transition: .4s;
-        }
-
-        .about-card:hover {
-            transform: translateY(-8px);
-
-            box-shadow:
-                0 30px 60px rgba(0, 0, 0, .10);
-        }
-
-        .about-card img {
-            transition: .6s;
-        }
-
-        .about-card:hover img {
-            transform: scale(1.04);
-        }
-
-        .text-primary-custom {
-            color: var(--primary);
-        }
-
-        /* TEAM */
-
-        .team {
-            overflow: hidden;
-            border: none;
-            border-radius: 25px;
-
-            transition: .5s;
-
-            background: white;
-
-            box-shadow:
-                0 15px 35px rgba(0, 0, 0, .06);
-        }
-
-        .team:hover {
-            transform:
-                translateY(-12px) scale(1.02);
-
-            box-shadow:
-                0 25px 50px rgba(0, 0, 0, .15);
-        }
-
-        .team img {
-            width: 100%;
-            height: 320px;
-            object-fit: cover;
-            transition: .6s;
-        }
-
-        .team:hover img {
-            transform: scale(1.08);
-        }
-
-        .team-text {
-            background:
-                linear-gradient(135deg,
-                    #072051,
-                    #0B3B7A);
-
             color: white;
-
-            text-align: center;
-
-            padding: 25px;
-        }
-
-        .team-text h5 {
-            color: white;
-            margin-bottom: 6px;
+            font-size: 17px;
             font-weight: 700;
+            margin-bottom: 5px;
         }
 
         .team-text small {
-            color: #9fd2ff;
-            font-size: 14px;
+            color: #60a5fa;
+            font-size: 13px;
+            font-weight: 600;
         }
 
         /* =========================
-FOOTER
+   CTA SECTION
 ========================= */
-
-        .footer {
-            background:
-                linear-gradient(180deg,
-                    #08192c,
-                    #050f1c);
-
+        .cta-section {
+            margin: 0 auto 90px;
+            width: 88%;
+            max-width: 1280px;
+            padding: 55px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #0f172a, #2563eb);
             color: white;
-            padding: 90px 0 20px;
-            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 30px;
         }
 
-        .footer::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 1px;
+        .cta-section h2 {
+            color: white;
+            margin-bottom: 8px;
+        }
 
-            background:
-                linear-gradient(90deg,
-                    transparent,
-                    #2F6FB2,
-                    transparent);
+        .cta-section p {
+            color: #dbeafe;
+        }
+
+        .cta-section .btn {
+            background: white;
+            color: var(--azul-institucional);
+            white-space: nowrap;
+        }
+
+        .cta-section .btn:hover {
+            background: #e2e8f0;
+        }
+
+        /* =========================
+   FOOTER
+========================= */
+        .footer {
+            background: #020617;
+            color: #94a3b8;
+            padding: 80px 0 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .footer-grid {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
             gap: 40px;
-            flex-wrap: wrap;
-        }
-
-        .footer-col {
-            flex: 1;
-            min-width: 250px;
+            margin-bottom: 60px;
         }
 
         .footer h3 {
-            color: #2F6FB2;
-            margin-bottom: 15px;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 20px;
         }
 
         .footer p {
-            color: #c7d2df;
-            font-size: 15px;
+            color: #64748b;
+            font-size: 14px;
         }
 
         .footer a {
             display: block;
-            color: #a7b4c5;
-            margin-bottom: 10px;
+            color: #94a3b8;
+            margin-bottom: 12px;
             text-decoration: none;
+            font-size: 14px;
             transition: 0.3s;
         }
 
         .footer a:hover {
-            color: #2F6FB2;
-            padding-left: 5px;
+            color: white;
         }
 
         .social {
             display: flex;
             gap: 10px;
-            margin-top: 15px;
+            margin-top: 20px;
         }
 
         .social a {
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            border: 1px solid #7B92AD;
-            transition: 0.3s;
+            color: white;
+            margin: 0;
+            text-decoration: none;
         }
 
         .social a:hover {
-            background: #2F6FB2;
-            border-color: #2F6FB2;
-            transform: translateY(-3px);
+            background: var(--azul-tech);
         }
 
         .newsletter {
             display: flex;
             margin-top: 15px;
+            gap: 8px;
         }
 
         .newsletter input {
             flex: 1;
-            padding: 12px;
-            border: none;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
             outline: none;
-            border-radius: 8px 0 0 8px;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
         }
 
         .newsletter button {
-            background: #2F6FB2;
+            background: var(--azul-tech);
             border: none;
             color: white;
             padding: 0 20px;
             cursor: pointer;
-            border-radius: 0 8px 8px 0;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .newsletter button:hover {
+            background: var(--azul-hover);
         }
 
         .copy {
             text-align: center;
-            margin-top: 40px;
-            font-size: 14px;
-            color: #9db0c7;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 13px;
+            color: #475569;
         }
 
-        /* RESPONSIVO */
-
-        @media (max-width: 768px) {
-
-            .container {
-                width: 95%;
-            }
-
-            /* TOPBAR */
-
-            .topbar {
-                padding: 12px 0;
-            }
-
-            .top-info {
-                width: 100%;
-                flex-direction: column;
-                gap: 8px;
-                text-align: center;
-            }
-
-            .top-info a {
-                font-size: 13px;
-            }
-
-            .top-icons {
-                width: 100%;
-                justify-content: center;
-                margin-top: 10px;
-            }
-
-            /* NAVBAR */
-
-            .navbar {
-                padding: 15px 0;
-            }
-
-            .navbar .flex {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .logo {
-                font-size: 24px;
-            }
-
-            .logo img {
-                width: 50px;
-            }
-
-            .menu {
-                width: 100%;
-                justify-content: center;
-                gap: 15px;
-                flex-wrap: wrap;
-            }
-
-            .menu a {
-                font-size: 14px;
-            }
-
-            .btn {
-                width: 100%;
-                text-align: center;
-                padding: 14px;
-            }
-
-            /* HERO */
-
-            .header,
-            .hero-about,
-            .planos-hero {
-                padding: 80px 15px;
-            }
-
-            .header h1,
-            .hero-about h1,
-            .planos-hero h1 {
-                font-size: 32px !important;
-                line-height: 1.2;
-            }
-
-            .header p,
-            .hero-about p,
-            .planos-hero p {
-                font-size: 15px;
-            }
-
-            /* TITULOS */
-
-            h2 {
-                font-size: 28px !important;
-            }
-
-            h3 {
-                font-size: 22px !important;
-            }
-
-            p {
-                font-size: 15px !important;
-                text-align: left;
-            }
-
-            /* ABOUT */
-
-            .about-card {
-                padding: 25px;
-            }
-
-            .about-content {
-                flex-direction: column;
-                gap: 25px;
-            }
-
-            .team-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .team-card img,
-            .team img {
-                height: 280px;
-            }
-
-            /* INDEX */
-
-            .diferenciais-topo {
-                flex-direction: column;
-                gap: 25px;
-            }
-
-            .diferenciais-texto h2,
-            .diferenciais-texto h2 span {
-                font-size: 36px !important;
-            }
-
-            .diferenciais-imagem img {
-                height: 280px;
-            }
-
-            .cards {
-                gap: 20px;
-            }
-
-            .card {
-                width: 100%;
-                max-width: none;
-            }
-
-            .services {
-                flex-direction: column;
-            }
-
-            .service {
-                min-width: 100%;
-            }
-
-            /* CONTATO */
-
-            .contact-wrapper {
-                flex-direction: column;
-                margin: 35px 0;
-            }
-
-            .contact-card {
-                min-width: 100%;
-                padding: 20px;
-            }
-
-            iframe {
-                height: 280px;
-            }
-
-            /* AVALIAÇÃO */
-
-            .stats {
-                grid-template-columns: 1fr;
-            }
-
-            .content {
-                grid-template-columns: 1fr !important;
-            }
-
-            .left-panel,
-            .right-panel {
-                padding: 25px;
-            }
-
-            .page-header h1 {
-                font-size: 30px;
-            }
-
-            .form-title {
-                font-size: 24px;
-            }
-
-            .stars {
-                justify-content: center;
-            }
-
-            .stars span {
-                font-size: 40px;
-            }
-
-            /* PLANOS */
-
-            .planos-grid {
-                gap: 20px;
-            }
-
-            .plano-card {
-                width: 100%;
-                padding: 25px;
-            }
-
-            .preco {
-                font-size: 32px;
-            }
-
-            .tabela {
-                overflow-x: auto;
-            }
-
-            .tabela table {
-                min-width: 700px;
-            }
-
-            /* FOOTER */
-
-            .footer {
-                padding: 60px 0 20px;
-            }
-
-            .footer-grid {
-                flex-direction: column;
-                gap: 25px;
-            }
-
-            .footer-col {
-                min-width: 100%;
-            }
-
-            .newsletter {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .newsletter input {
-                border-radius: 8px;
-            }
-
-            .newsletter button {
-                border-radius: 8px;
-                padding: 14px;
-            }
-
+        /* =========================
+   LOADER & ACESSIBILIDADE
+========================= */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            transition: all .8s ease;
         }
 
-
-        /* ==========================================================
-   ACESSIBILIDADE UNIFICADA GEOSYNC (MODO ZOOM IGUAL INDEX)
-========================================================== */
-        :root {
-            --font-scale: 1;
+        .loader-logo {
+            text-align: center;
         }
 
-        body {
-            zoom: var(--font-scale);
-            transition: zoom 0.2s ease-in-out;
+        .loader-logo img {
+            width: 80px;
+            animation: pulse 1.5s infinite;
         }
 
-        /* Evita que o painel flutuante sofra alteração de tamanho junto com o body */
-        
-
-        
-
-        #accessibility-toggle:hover {
-            transform: scale(1.08);
+        .loader-exit {
+            opacity: 0;
+            visibility: hidden;
         }
 
-        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .ferramentas-flutuantes-container {
+            position: fixed;
+            right: 25px;
+            bottom: 25px;
+            z-index: 999999;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            zoom: 1 !important;
+        }
+
+        .robo-floating-btn, #accessibility-toggle {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .robo-floating-btn { background: var(--azul-tech); }
+        #accessibility-toggle { background: var(--azul-institucional); font-size: 20px; }
+
+        .robo-floating-btn:hover, #accessibility-toggle:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+
+        .accessibility-container { position: relative; }
+
+        .accessibility-panel {
+            position: absolute;
+            right: 0;
+            bottom: 70px;
+            width: 280px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--borda-suave);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: .3s;
+        }
 
         .accessibility-panel.active {
             opacity: 1;
@@ -876,13 +716,14 @@ FOOTER
         }
 
         .accessibility-header {
-            background: linear-gradient(135deg, #0B3B7A, #2F6FB2);
+            background: var(--azul-institucional);
             color: white;
-            padding: 18px;
+            padding: 14px;
             font-weight: 700;
+            font-size: 14px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .accessibility-panel button {
@@ -890,272 +731,81 @@ FOOTER
             border: none;
             background: white;
             text-align: left;
-            padding: 16px 20px;
+            padding: 12px 16px;
             cursor: pointer;
-            font-family: Poppins, sans-serif;
-            font-size: 15px;
-            border-bottom: 1px solid #eee;
+            font-family: inherit;
+            font-size: 14px;
+            color: var(--texto-principal);
+            border-bottom: 1px solid var(--borda-suave);
             transition: .2s;
         }
 
         .accessibility-panel button:hover {
-            background: #f5f7fb;
-            padding-left: 28px;
+            background: var(--azul-claro);
+            color: var(--azul-tech);
         }
 
-        /* MODOS VISUAIS CRÍTICOS */
-        .dark-mode {
-            background: #121212 !important;
+        /* MODOS VISUAIS */
+        .dark-mode { background: #090d16 !important; color: #e2e8f0 !important; }
+        .dark-mode .navbar, .dark-mode .about-card, .dark-mode .mvv-card, .dark-mode .team-card {
+            background: #0f172a !important; border-color: #1e293b !important;
+        }
+        .dark-mode h1, .dark-mode h2, .dark-mode h3 { color: #f8fafc !important; }
+        .dark-mode p { color: #94a3b8 !important; }
+
+        .alto-contraste { background: #000 !important; }
+        .alto-contraste .navbar, .alto-contraste .about-card, .alto-contraste .mvv-card, .alto-contraste .team-card {
+            background: #111 !important; border: 1px solid #FFD700 !important;
+        }
+        .alto-contraste h1, .alto-contraste h2, .alto-contraste h3, .alto-contraste p, .alto-contraste a {
+            color: #FFF !important;
         }
 
-        .dark-mode .navbar,
-        .dark-mode .block,
-        .dark-mode .about-card,
-        .dark-mode .footer,
-        .dark-mode .topbar,
-        .dark-mode .feedback-card,
-        .dark-mode .stat-card,
-        .dark-mode .right-panel,
-        .dark-mode .accessibility-panel {
-            background: #1e1e1e !important;
+        /* =========================
+   RESPONSIVIDADE
+========================= */
+        @media (max-width: 992px) {
+            .about-content { grid-template-columns: 1fr; gap: 40px; }
+            .mvv-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .team-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+            .hero-about h1 { font-size: 38px; }
+            .cta-section { flex-direction: column; align-items: flex-start; }
         }
 
-        .dark-mode p,
-        .dark-mode h1,
-        .dark-mode h2,
-        .dark-mode h3,
-        .dark-mode a,
-        .dark-mode span,
-        .dark-mode label,
-        .dark-mode .form-title {
-            color: white !important;
-        }
-
-        .dark-mode input,
-        .dark-mode textarea {
-            background: #2a2a2a !important;
-            border-color: #3a3a3a !important;
-            color: white !important;
-        }
-
-        .dark-mode .accessibility-panel button {
-            background: #1e1e1e !important;
-            color: white !important;
-            border-bottom-color: #3a3a3a !important;
-        }
-
-        .dark-mode .accessibility-panel button:hover {
-            background: #2a2a2a !important;
-        }
-
-        .alto-contraste {
-            background: #111 !important;
-        }
-
-        .alto-contraste .navbar,
-        .alto-contraste .block,
-        .alto-contraste .about-card,
-        .alto-contraste .footer,
-        .alto-contraste .topbar,
-        .alto-contraste .feedback-card,
-        .alto-contraste .stat-card,
-        .alto-contraste .right-panel,
-        .alto-contraste .accessibility-panel {
-            background: #1b1b1b !important;
-            border: 1px solid #FFD700 !important;
-        }
-
-        .alto-contraste h1,
-        .alto-contraste h2,
-        .alto-contraste h3,
-        .alto-contraste p,
-        .alto-contraste span,
-        .alto-contraste label,
-        .alto-contraste .form-title {
-            color: #ffffff !important;
-        }
-
-        .alto-contraste a {
-            color: #FFD700 !important;
-        }
-
-        .alto-contraste .btn,
-        .alto-contraste .btn-submit {
-            background: #FFD700 !important;
-            color: #000 !important;
-        }
-
-        .alto-contraste img {
-            filter: contrast(110%);
-        }
-
-        .alto-contraste .accessibility-panel button {
-            background: #1b1b1b !important;
-            color: #fff !important;
-            border-bottom: 1px solid #FFD700 !important;
-        }
-
-        .alto-contraste .accessibility-panel button:hover {
-            background: #FFD700 !important;
-            color: #000 !important;
-        }
-
-        @media(max-width:768px) {
-            .accessibility-container {
-                right: 15px;
-                bottom: 15px;
-            }
-
-            .accessibility-panel {
-                width: 260px;
-                right: 80px;
-            }
-        }
-
-        /* <!-- Estilo para o botão ficar fixo no canto inferior direito da tela --> */
-        
-
-        .robo-floating-btn:hover {
-            transform: scale(1.1) translateY(-3px);
-            background-color: #1d4ed8;
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
-        }
-
-        .robo-floating-btn svg {
-            width: 30px;
-            height: 30px;
-        }
-
-        /* ==========================================================
-           BARRA FLUTUANTE DE FERRAMENTAS (ROBÔ + ACESSIBILIDADE)
-        ========================================================== */
-
-        /* Container que une os dois e os coloca lado a lado */
-        .ferramentas-flutuantes-container {
-            position: fixed;
-            right: 25px;
-            bottom: 25px;
-            z-index: 999999;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            /* Espaço milimétrico entre os dois botões */
-            zoom: 1 !important;
-            /* Protege contra o zoom do body */
-        }
-
-        /* Botão do Robô */
-        .robo-floating-btn {
-            width: 70px;
-            height: 70px;
-            background-color: #2563eb;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-
-        .robo-floating-btn:hover {
-            transform: scale(1.08) translateY(-2px);
-            background-color: #1d4ed8;
-            box-shadow: 0 12px 35px rgba(37, 99, 235, 0.5);
-        }
-
-        .robo-floating-btn svg {
-            width: 32px;
-            height: 32px;
-        }
-
-        /* Container Interno da Acessibilidade */
-        .accessibility-container {
-            position: relative;
-        }
-
-        /* Botão de Acessibilidade */
-        #accessibility-toggle {
-            width: 70px;
-            height: 70px;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            color: white;
-            font-size: 30px;
-            background: linear-gradient(135deg, #0B3B7A, #2F6FB2);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: .3s;
-        }
-
-        #accessibility-toggle:hover {
-            transform: scale(1.08) translateY(-2px);
-        }
-
-        /* Painel de Opções (Aparece em cima da barra ao clicar) */
-        .accessibility-panel {
-            position: absolute;
-            right: 0;
-            bottom: 85px;
-            /* Abre perfeitamente posicionado acima do botão */
-            width: 300px;
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, .15);
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(20px);
-            transition: .3s;
-        }
-
-        .accessibility-panel.active {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        /* Ajustes para telas de celulares */
-        @media(max-width: 768px) {
-            .ferramentas-flutuantes-container {
-                right: 15px;
-                bottom: 15px;
-                gap: 10px;
-            }
-
-            .robo-floating-btn,
-            #accessibility-toggle {
-                width: 60px;
-                height: 60px;
-                font-size: 24px;
-            }
-
-            .robo-floating-btn svg {
-                width: 26px;
-                height: 26px;
-            }
-
-            .accessibility-panel {
-                width: 260px;
-                bottom: 75px;
-            }
+        @media (max-width: 768px) {
+            .topbar { display: none; }
+            .navbar .flex { flex-direction: column; gap: 15px; }
+            .menu { gap: 15px; flex-wrap: wrap; justify-content: center; }
+            .hero-about { padding: 80px 0 60px; }
+            .hero-about p { font-size: 16px; }
+            .about-card { padding: 28px; }
+            .about-image img { height: 280px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .team-grid { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr; }
+            .cta-section { width: 88%; padding: 35px 25px; }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- BARRA FLUTUANTE DE FERRAMENTAS (Robô e Acessibilidade Lado a Lado) -->
-    <div class="ferramentas-flutuantes-container">
+    <div class="ambient-glow"></div>
+    <div class="ambient-glow-bottom"></div>
 
-        <!-- Botão do Robô (Chat I.A) -->
+    {{-- <div id="loader">
+        <div class="loader-logo">
+            <img src="{{ asset('img/Logo.png') }}" alt="GeoSync">
+            <h2 style="font-size: 24px; margin-top: 10px;">Geo<span style="color: var(--azul-tech)">Sync</span></h2>
+        </div>
+    </div> --}}
+
+    <!-- FERRAMENTAS FLUTUANTES -->
+    <div class="ferramentas-flutuantes-container">
         <a href="{{ url('/chat') }}" class="robo-floating-btn" title="Conversar com a I.A">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 8V4H8" />
                 <rect width="16" height="12" x="4" y="8" rx="2" />
                 <path d="M2 14h2" />
@@ -1165,7 +815,6 @@ FOOTER
             </svg>
         </a>
 
-        <!-- Botão de Acessibilidade -->
         <div class="accessibility-container">
             <button id="accessibility-toggle" aria-label="Abrir acessibilidade">
                 <i class="fas fa-universal-access"></i>
@@ -1184,113 +833,141 @@ FOOTER
                 <button onclick="resetarAcessibilidade()">↺ Restaurar Padrão</button>
             </div>
         </div>
-
     </div>
 
-
     <!-- TOPBAR -->
-
     <div class="topbar">
         <div class="container flex">
-
             <div class="top-info">
-
-                <a href="https://wa.me/551994010744?text=Olá!%20Seja%20Bem-vindo(a)%20à%20GeoSync!%20Como%20posso%20ajudar?"
-                    target="_blank">
-                    <i class="fas fa-phone-alt"></i>
-                    +55 (19) 99401-0744
+                <a href="https://wa.me/551994010744?text=Olá!%20Seja%20Bem-vindo(a)%20à%20GeoSync!%20Como%20posso%20ajudar?" target="_blank">
+                    <i class="fas fa-phone-alt"></i> +55 (19) 99401-0744
                 </a>
-
                 <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contatogeosync@gmail.com" target="_blank">
-                    <i class="fas fa-envelope"></i>
-                    contatogeosync@gmail.com
+                    <i class="fas fa-envelope"></i> contatogeosync@gmail.com
                 </a>
-
             </div>
-
             <div class="top-icons">
-
-                <a href="https://www.facebook.com" target="_blank">
-                    <i class="fab fa-facebook-f"></i>
-                </a>
-
-                <a href="https://x.com" target="_blank">
-                    <i class="fab fa-twitter"></i>
-                </a>
-
-                <a href="https://br.linkedin.com" target="_blank">
-                    <i class="fab fa-linkedin-in"></i>
-                </a>
-
-                <a href="https://www.instagram.com/geosync_tambau/" target="_blank">
-                    <i class="fab fa-instagram"></i>
-                </a>
-
+                <a href="https://www.facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://x.com" target="_blank"><i class="fab fa-twitter"></i></a>
+                <a href="https://br.linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                <a href="https://www.instagram.com/geosync_tambau/" target="_blank"><i class="fab fa-instagram"></i></a>
             </div>
-
         </div>
     </div>
 
     <!-- NAVBAR -->
-
     <div class="navbar">
         <div class="container flex">
-
             <a href="/" class="logo">
                 <img src="{{ asset('img/Logo.png') }}" alt="Logo">
                 <span>GeoSync</span>
             </a>
-
             <div class="menu">
                 <a href="/">Início</a>
                 <a href="/about">Sobre</a>
                 <a href="/avaliar">Comentários</a>
                 <a href="/planos">Planos</a>
             </div>
-
-            <a href="/login" class="btn">
-                Login
-            </a>
-
+            <a href="/login" class="btn">Área do Cliente</a>
         </div>
     </div>
 
-    <!-- HERO -->
+    <!-- HERO ABOUT -->
     <section class="hero-about">
         <div class="container">
-            <h1>Sobre Nós</h1>
-            <p>Conheça a história e a equipe por trás da GeoSync</p>
+            <div class="hero-tag">
+                <i class="fas fa-circle"></i> Transformando a Logística
+            </div>
+            <h1>Inovação e Precisão em <span>Rastreamento</span></h1>
+            <p>Conheça a história, os pilares e as mentes por trás da plataforma que está redefinindo a gestão de frota inteligente.</p>
         </div>
     </section>
 
-    <!-- SOBRE -->
+    <!-- SOBRE ESSÊNCIA -->
     <section class="container section">
         <div class="about-card">
             <div class="about-content">
 
                 <div class="about-image">
-                    <img src="https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&q=80&w=600"
-                        alt="Caminhão Logística">
+                    <img src="https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&q=80&w=600" alt="Caminhão Logística GeoSync">
                 </div>
 
                 <div class="about-text">
-                    <h6>Nossa Essência</h6>
+                    <span class="sub-header">Nossa Essência</span>
                     <h2>Logística rápida, segura e inteligente</h2>
 
                     <p>
-                        Unimos tecnologia de ponta e anos de experiência no setor para
-                        otimizar entregas e reduzir custos operacionais. Na GeoSync,
-                        acreditamos que a transparência em tempo real é a chave para o
-                        sucesso logístico moderno.
+                        Unimos tecnologia de ponta e anos de experiência no setor para otimizar entregas, reduzir custos operacionais e mitigar riscos nas estradas. Na GeoSync, acreditamos que a transparência em tempo real é a chave para o sucesso logístico moderno.
                     </p>
 
                     <p>
-                        Nossa plataforma foi desenhada para ser intuitiva, robusta e
-                        escalável, atendendo desde pequenos frotistas até grandes
-                        centros de distribuição.
+                        Nossa plataforma foi desenhada para ser intuitiva, robusta e altamente escalável, atendendo com eficiência desde pequenos frotistas até integradores de grandes centros de distribuição.
                     </p>
                 </div>
 
+            </div>
+        </div>
+    </section>
+
+    <!-- PILARES: MISSÃO, VISÃO E VALORES -->
+    <section class="container section" style="padding-top: 0;">
+        <div class="section-title">
+            <span class="sub-header">Nossos Compromissos</span>
+            <h2>O que nos move diariamente</h2>
+        </div>
+
+        <div class="mvv-grid">
+            <div class="mvv-card">
+                <div class="icon-box azul-bg">
+                    <i class="fas fa-bullseye"></i>
+                </div>
+                <h3>Missão</h3>
+                <p>Empoderar gestores de frota com dados em tempo real, inteligência preditiva e soluções eficientes que garantam entregas pontuais e operações seguras.</p>
+            </div>
+
+            <div class="mvv-card">
+                <div class="icon-box azul-bg">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <h3>Visão</h3>
+                <p>Ser referência nacional no ecossistema de rastreamento e telemetria, tornando o transporte rodoviário totalmente conectado, transparente e sustentável.</p>
+            </div>
+
+            <div class="mvv-card">
+                <div class="icon-box azul-bg">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Valores</h3>
+                <p>Inovação contínua, compromisso com a segurança, transparência em dados, foco absoluto na satisfação do cliente e responsabilidade ambiental.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- METRICAS / IMPACTO -->
+    <section class="section stats-section">
+        <div class="container">
+            <div class="section-title">
+                <span class="sub-header">Nosso Impacto</span>
+                <h2>Resultados que falam por si</h2>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-number">+10k</span>
+                    <span class="stat-label">Veículos Monitorados</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">99.8%</span>
+                    <span class="stat-label">Precisão na Telemetria</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">-25%</span>
+                    <span class="stat-label">Redução de Custos de Combustível</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">Suporte e Monitoramento Ativo</span>
+                </div>
             </div>
         </div>
     </section>
@@ -1298,14 +975,13 @@ FOOTER
     <!-- EQUIPE -->
     <section class="container section">
         <div class="section-title">
-            <h6>Nossa Equipe</h6>
+            <span class="sub-header">Nossa Equipe</span>
             <h2>Mentes que movem a GeoSync</h2>
         </div>
 
         <div class="team-grid">
-
             <div class="team-card">
-                <img src="{{ asset('img/murilo.png') }}" alt="Murilo">
+                <img src="{{ asset('img/murilo.png') }}" alt="Murilo Moroni Breda">
                 <div class="team-text">
                     <h5>Murilo Moroni Breda</h5>
                     <small>Full-Stack Developer - PO</small>
@@ -1313,7 +989,7 @@ FOOTER
             </div>
 
             <div class="team-card">
-                <img src="{{ asset('img/thayla.png') }}" alt="Thayla">
+                <img src="{{ asset('img/thayla.png') }}" alt="Thayla F. de Lima Ribeiro">
                 <div class="team-text">
                     <h5>Thayla F. de Lima Ribeiro</h5>
                     <small>Back-End Developer - Scrum Master</small>
@@ -1321,7 +997,7 @@ FOOTER
             </div>
 
             <div class="team-card">
-                <img src="{{ asset('img/lucas.png') }}" alt="Lucas">
+                <img src="{{ asset('img/lucas.png') }}" alt="Lucas Rizzo Bertoloto">
                 <div class="team-text">
                     <h5>Lucas Rizzo Bertoloto</h5>
                     <small>Back-End Developer</small>
@@ -1329,7 +1005,7 @@ FOOTER
             </div>
 
             <div class="team-card">
-                <img src="{{ asset('img/mickael.png') }}" alt="Mickael">
+                <img src="{{ asset('img/mickael.png') }}" alt="Mickael H. Malafatti Ezequiel">
                 <div class="team-text">
                     <h5>Mickael H. Malafatti Ezequiel</h5>
                     <small>Front-End / Banco de Dados</small>
@@ -1337,7 +1013,7 @@ FOOTER
             </div>
 
             <div class="team-card">
-                <img src="{{ asset('img/mariaClara.png') }}" alt="Maria Clara">
+                <img src="{{ asset('img/mariaClara.png') }}" alt="Maria Clara Luz da Silva">
                 <div class="team-text">
                     <h5>Maria Clara Luz da Silva</h5>
                     <small>Front-End / Banco de Dados</small>
@@ -1345,362 +1021,178 @@ FOOTER
             </div>
 
             <div class="team-card">
-                <img src="{{ asset('img/theo.png') }}" alt="Théo">
+                <img src="{{ asset('img/theo.png') }}" alt="Théo Donizetti de Souza">
                 <div class="team-text">
                     <h5>Théo Donizetti de Souza</h5>
                     <small>Front-End / Banco de Dados</small>
                 </div>
             </div>
-
         </div>
     </section>
 
+    <!-- CTA BANNER -->
+    {{-- <section class="cta-section">
+        <div>
+            <h2>Pronto para otimizar sua operação?</h2>
+            <p>Conheça nossos planos e descubra como a GeoSync transforma a gestão da sua frota.</p>
+        </div>
+        <a href="/planos" class="btn">Ver Planos e Preços</a>
+    </section> --}}
+
+    <!-- VLIBRAS -->
     <div vw class="enabled">
         <div vw-access-button class="active"></div>
         <div vw-plugin-wrapper>
             <div class="vw-plugin-top-wrapper"></div>
         </div>
     </div>
-
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
-
     <script>
         new window.VLibras.Widget('https://vlibras.gov.br/app');
     </script>
 
-    <div class="footer">
-
+    <!-- FOOTER -->
+    <footer class="footer">
         <div class="container">
-
             <div class="footer-grid">
-
-                <div class="footer-col">
-
-                    <h3>GeoSync</h3>
-
-                    <p>
-                        Sistema inteligente de rastreamento e logística em tempo real.
-                    </p>
-
+                <div>
+                    <h2 style="color: white; font-size: 22px; margin-bottom: 15px;">GeoSync</h2>
+                    <p>Ecossistema inteligente de rastreamento, telemetria e gestão de frota em tempo real.</p>
                     <div class="social">
-
                         <a href="https://www.facebook.com/geosync" target="_blank"><i class="fab fa-facebook-f"></i></a>
                         <a href="https://x.com/geosync" target="_blank"><i class="fab fa-twitter"></i></a>
-                        <a href="https://br.linkedin.com/company/geosync" target="_blank"><i
-                                class="fab fa-linkedin-in"></i></a>
-                        <a href="https://www.instagram.com/geosync_tambau/" target="_blank"><i
-                                class="fab fa-instagram"></i></a>
-
+                        <a href="https://br.linkedin.com/company/geosync" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://www.instagram.com/geosync_tambau/" target="_blank"><i class="fab fa-instagram"></i></a>
                     </div>
-
                 </div>
-
-                <div class="footer-col">
-
-                    <h3>Links</h3>
-
+                <div>
+                    <h3>Navegação</h3>
                     <a href="/">Início</a>
                     <a href="/about">Sobre</a>
                     <a href="/login">Serviço</a>
                     <a href="/avaliar">Comentários</a>
                     <a href="/planos">Planos</a>
                     <a href="/cadastro-admin">Cadastro Admin</a>
-
                 </div>
-
-                <div class="footer-col">
-
+                <div>
                     <h3>Contato</h3>
-
-                    <p>R. Cap. David, 56 - Centro, Tambaú - SP</p>
-                    <p>(19) 99401-0744</p>
+                    <p style="margin-bottom: 8px;">R. Cap. David, 56 - Centro</p>
+                    <p style="margin-bottom: 8px;">Tambaú - SP</p>
+                    <p style="margin-bottom: 8px;">(19) 99401-0744</p>
                     <p>contact@geosync.com</p>
-
                 </div>
-
-                <div class="footer-col">
-
-                    <h3>Boletim informativo</h3>
-
-                    <p>Receba novidades da plataforma.</p>
-
+                <div>
+                    <h3>Informativo</h3>
+                    <p>Assine para receber atualizações técnicas e novos recursos.</p>
                     <div class="newsletter">
-                        <input type="text" placeholder="Seu email">
-                        <button>Enviar</button>
+                        <input type="email" placeholder="Seu e-mail profissional">
+                        <button>Assinar</button>
                     </div>
-
                 </div>
-
             </div>
-
             <div class="copy">
-                © 2026 GeoSync - Todos os direitos reservados
+                © 2026 GeoSync - Todos os direitos reservados.
             </div>
-
         </div>
-
-    </div>
-
-</body>
-
-<script>
-
-    // MENU
-
-    const accessBtn =
-        document.getElementById("accessibility-toggle");
-
-    const accessPanel =
-        document.getElementById("accessibility-panel");
-
-    accessBtn.addEventListener("click", () => {
-
-        accessPanel.classList.toggle("active");
-
-    });
-
-
-    // =========================
-    // CARREGAR CONFIGURAÇÕES
-    // =========================
-
-    document.addEventListener("DOMContentLoaded", () => {
-
-        let escala =
-            localStorage.getItem("fontScale");
-
-        if (escala) {
-
-            document.documentElement
-                .style
-                .setProperty(
-                    "--font-scale",
-                    escala
-                );
-        }
-
-        if (localStorage.getItem("darkMode") === "true") {
-
-            document.body.classList.add("dark-mode");
-        }
-
-        if (localStorage.getItem("contraste") === "true") {
-
-            document.body.classList.add("alto-contraste");
-        }
-
-    });
-
-
-    // =========================
-    // FONTE
-    // =========================
-
-    function alterarFonte(valor) {
-
-        let escala =
-            parseFloat(
-                localStorage.getItem("fontScale")
-            ) || 1;
-
-        escala += valor;
-
-        if (escala < 0.8)
-            escala = 0.8;
-
-        if (escala > 1.8)
-            escala = 1.8;
-
-        document.documentElement
-            .style
-            .setProperty(
-                "--font-scale",
-                escala
-            );
-
-        localStorage.setItem(
-            "fontScale",
-            escala
-        );
-    }
-
-
-    // =========================
-    // DARK MODE
-    // =========================
-
-    function toggleDark() {
-
-        document.body.classList.toggle(
-            "dark-mode"
-        );
-
-        localStorage.setItem(
-            "darkMode",
-            document.body.classList.contains(
-                "dark-mode"
-            )
-        );
-    }
-
-
-    // =========================
-    // CONTRASTE
-    // =========================
-
-    function toggleContraste() {
-
-        document.body.classList.toggle(
-            "alto-contraste"
-        );
-
-        localStorage.setItem(
-            "contraste",
-            document.body.classList.contains(
-                "alto-contraste"
-            )
-        );
-    }
-
-
-    // =========================
-    // LEITOR
-    // =========================
-
-    function lerPagina() {
-
-        speechSynthesis.cancel();
-
-        const texto =
-            document.body.innerText;
-
-        const fala =
-            new SpeechSynthesisUtterance(
-                texto
-            );
-
-        fala.lang = "pt-BR";
-
-        fala.rate = 1;
-
-        speechSynthesis.speak(
-            fala
-        );
-    }
-
-
-    // =========================
-    // PARAR
-    // =========================
-
-    function pararLeitura() {
-
-        speechSynthesis.cancel();
-    }
-
-
-    // =========================
-    // RESETAR
-    // =========================
-
-    function resetarAcessibilidade() {
-
-        pararLeitura();
-
-        localStorage.removeItem(
-            "fontScale"
-        );
-
-        localStorage.removeItem(
-            "darkMode"
-        );
-
-        localStorage.removeItem(
-            "contraste"
-        );
-
-        document.body.classList.remove(
-            "dark-mode",
-            "alto-contraste"
-        );
-
-        document.documentElement
-            .style
-            .setProperty(
-                "--font-scale",
-                1
-            );
-    }
-
-</script>
-
-<script>
-    // Gerenciador do Painel
-    const accessBtn = document.getElementById("accessibility-toggle");
-    const accessPanel = document.getElementById("accessibility-panel");
-
-    if (accessBtn && accessPanel) {
-        accessBtn.addEventListener("click", () => {
-            accessPanel.classList.toggle("active");
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script>
+        window.addEventListener('load', function () {
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                if(loader) {
+                    loader.classList.add('loader-exit');
+                    setTimeout(() => { loader.remove(); }, 800);
+                }
+            }, 1000);
         });
-    }
 
-    // Carregamento de Estados Salvos
-    document.addEventListener("DOMContentLoaded", () => {
-        let escala = localStorage.getItem("fontScale") || "1";
-        document.documentElement.style.setProperty("--font-scale", escala);
+        // Gerenciador do Painel de Acessibilidade
+        const accessBtn = document.getElementById("accessibility-toggle");
+        const accessPanel = document.getElementById("accessibility-panel");
 
-        if (localStorage.getItem("darkMode") === "true") {
-            document.body.classList.add("dark-mode");
+        if (accessBtn && accessPanel) {
+            accessBtn.addEventListener("click", () => {
+                const isActive = accessPanel.classList.toggle("active");
+                accessBtn.setAttribute("aria-expanded", isActive);
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!accessBtn.contains(e.target) && !accessPanel.contains(e.target)) {
+                    accessPanel.classList.remove("active");
+                    accessBtn.setAttribute("aria-expanded", "false");
+                }
+            });
         }
-        if (localStorage.getItem("contraste") === "true") {
-            document.body.classList.add("alto-contraste");
+
+        // Carregamento de Preferências
+        document.addEventListener("DOMContentLoaded", () => {
+            const escala = localStorage.getItem("fontScale") || "1";
+            document.documentElement.style.setProperty("--font-scale", escala);
+
+            if (localStorage.getItem("darkMode") === "true") toggleDark(true);
+            if (localStorage.getItem("contraste") === "true") toggleContraste(true);
+        });
+
+        function alterarFonte(valor) {
+            let atual = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--font-scale")) || 1;
+            atual += valor;
+            if (atual < 0.7) atual = 0.7;
+            if (atual > 1.7) atual = 1.7;
+            atual = parseFloat(atual.toFixed(2));
+            document.documentElement.style.setProperty("--font-scale", atual);
+            localStorage.setItem("fontScale", atual);
         }
-    });
 
-    // Modificação Numérica Uniforme para a Propriedade Zoom
-    function alterarFonte(valor) {
-        let atual = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--font-scale")) || 1;
-        atual += valor;
-        if (atual < 0.7) atual = 0.7;
-        if (atual > 1.7) atual = 1.7;
+        function toggleDark(force = false) {
+            if (document.body.classList.contains("alto-contraste") && !force) toggleContraste(true);
+            const isDark = force === true ? true : document.body.classList.toggle("dark-mode");
+            if (force === true) document.body.classList.add("dark-mode");
+            localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
+        }
 
-        atual = parseFloat(atual.toFixed(2));
-        document.documentElement.style.setProperty("--font-scale", atual);
-        localStorage.setItem("fontScale", atual);
-    }
+        function toggleContraste(force = false) {
+            if (document.body.classList.contains("dark-mode") && !force) toggleDark(true);
+            const isContraste = force === true ? true : document.body.classList.toggle("alto-contraste");
+            if (force === true) document.body.classList.add("alto-contraste");
+            localStorage.setItem("contraste", document.body.classList.contains("alto-contraste"));
+        }
 
-    function toggleDark() {
-        document.body.classList.toggle("dark-mode");
-        localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
-    }
+        let sintoVoz = null;
+        function lerPagina() {
+            window.speechSynthesis.cancel();
+            let textoParaLer = window.getSelection().toString().trim();
 
-    function toggleContraste() {
-        document.body.classList.toggle("alto-contraste");
-        localStorage.setItem("contraste", document.body.classList.contains("alto-contraste"));
-    }
+            if (!textoParaLer) {
+                const elementosFoco = document.querySelectorAll('h1, h2, h3, p, span:not(.accessibility-panel span)');
+                let blocosTexto = [];
+                elementosFoco.forEach(el => {
+                    if (el.innerText && el.innerText.trim().length > 3) blocosTexto.push(el.innerText.trim());
+                });
+                textoParaLer = blocosTexto.join('. ');
+            }
 
-    function lerPagina() {
-        speechSynthesis.cancel();
-        const texto = document.body.innerText;
-        const fala = new SpeechSynthesisUtterance(texto);
-        fala.lang = "pt-BR";
-        fala.rate = 1;
-        speechSynthesis.speak(fala);
-    }
+            if (textoParaLer) {
+                sintoVoz = new SpeechSynthesisUtterance(textoParaLer);
+                sintoVoz.lang = "pt-BR";
+                sintoVoz.rate = 1.05;
+                window.speechSynthesis.speak(sintoVoz);
+            }
+        }
 
-    function pararLeitura() {
-        speechSynthesis.cancel();
-    }
+        function pararLeitura() {
+            window.speechSynthesis.cancel();
+        }
 
-    function resetarAcessibilidade() {
-        pararLeitura();
-        localStorage.removeItem("fontScale");
-        localStorage.removeItem("darkMode");
-        localStorage.removeItem("contraste");
-        document.body.classList.remove("dark-mode", "alto-contraste");
-        document.documentElement.style.setProperty("--font-scale", "1");
-    }
-</script>
-
+        function resetarAcessibilidade() {
+            pararLeitura();
+            localStorage.removeItem("fontScale");
+            localStorage.removeItem("darkMode");
+            localStorage.removeItem("contraste");
+            document.body.classList.remove("dark-mode", "alto-contraste");
+            document.documentElement.style.setProperty("--font-scale", "1");
+        }
+    </script>
+</body>
 </html>

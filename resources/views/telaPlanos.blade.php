@@ -3,25 +3,42 @@
 
 <head>
     <meta charset="utf-8">
-    <title>GeoSync - Planos</title>
+    <title>GeoSync | Planos e Soluções</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
 
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
     <style>
-        /* =========================
-PALETA
-========================= */
+
+        /* =========================================================
+           VARIÁVEIS
+        ========================================================= */
 
         :root {
-            --azul-institucional: #1C3F6E;
-            --azul-tech: #2F6FB2;
-            --azul-profundo: #0B1F36;
-            --azul-claro: #E6EEF8;
-            --azul-cinza: #7B92AD;
+            --azul-institucional: #0f172a;
+            --azul-tech: #2563eb;
+            --azul-hover: #1d4ed8;
+            --azul-profundo: #020617;
+
+            --azul-claro: #f0f6ff;
+            --texto-principal: #334155;
+            --texto-secundario: #64748b;
+            --borda-suave: #e2e8f0;
+
+            --card-bg: #ffffff;
+
+            --font-scale: 1;
         }
+
+
+        /* =========================================================
+           RESET
+        ========================================================= */
 
         * {
             margin: 0;
@@ -34,14 +51,70 @@ PALETA
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background: #f5f7fb;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #f8fafc;
+            color: var(--texto-principal);
             overflow-x: hidden;
             position: relative;
+
+            zoom: var(--font-scale);
+
+            transition: background .3s ease, color .3s ease;
         }
 
+
+        /* =========================================================
+           BACKGROUND AMBIENT
+        ========================================================= */
+
+        .ambient-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(37, 99, 235, .08) 0%,
+                    rgba(255, 255, 255, 0) 70%
+                );
+
+            top: -200px;
+            right: -200px;
+
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .ambient-glow-bottom {
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(15, 23, 42, .05) 0%,
+                    rgba(255, 255, 255, 0) 70%
+                );
+
+            bottom: -200px;
+            left: -200px;
+
+            z-index: -1;
+            pointer-events: none;
+        }
+
+
+        /* =========================================================
+           CONTAINER
+        ========================================================= */
+
         .container {
-            width: 90%;
+            width: 88%;
+            max-width: 1280px;
             margin: auto;
         }
 
@@ -49,381 +122,681 @@ PALETA
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
         }
 
-        /* Glow Background */
 
-        body::before {
-            content: "";
-            position: fixed;
-            width: 700px;
-            height: 700px;
-            background: radial-gradient(circle, #2F6FB220 0%, transparent 70%);
-            top: -250px;
-            right: -250px;
-            z-index: -1;
-        }
-
-        body::after {
-            content: "";
-            position: fixed;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, #0B3B7A15 0%, transparent 70%);
-            bottom: -250px;
-            left: -250px;
-            z-index: -1;
-        }
-
-        /* =========================
-TOPBAR
-========================= */
+        /* =========================================================
+           TOPBAR
+        ========================================================= */
 
         .topbar {
-            background: linear-gradient(90deg, #0B1F36, #1C3F6E);
+            background: var(--azul-profundo);
             padding: 10px 0;
-            color: white;
-            font-size: 14px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-        }
 
-        .topbar a {
-            color: white;
-            text-decoration: none;
-            transition: 0.3s;
-        }
+            color: #94a3b8;
 
-        .topbar a:hover {
-            color: #7fb7ff;
+            font-size: 13px;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, .08);
         }
 
         .top-info {
             display: flex;
-            gap: 20px;
+            gap: 25px;
             align-items: center;
+        }
+
+        .topbar a {
+            color: #cbd5e1;
+            text-decoration: none;
+
+            transition: .3s;
+
+            font-weight: 500;
+        }
+
+        .topbar a:hover {
+            color: #60a5fa;
         }
 
         .top-icons {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             align-items: center;
         }
 
         .top-icons a {
-            width: 34px;
-            height: 34px;
+            width: 30px;
+            height: 30px;
+
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            transition: 0.3s;
+
+            border-radius: 6px;
+
+            background: rgba(255,255,255,.05);
         }
 
         .top-icons a:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-3px);
+            background: var(--azul-tech);
+            color: white;
         }
 
-        /* =========================
-NAVBAR
-========================= */
+
+        /* =========================================================
+           NAVBAR
+        ========================================================= */
 
         .navbar {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            padding: 18px 0;
+            background: rgba(255,255,255,.88);
+
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+
+            padding: 16px 0;
+
             position: sticky;
             top: 0;
+
             z-index: 9999;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, .05);
+
+            border-bottom:
+                1px solid var(--borda-suave);
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 30px;
-            font-weight: 700;
-            color: var(--azul-institucional);
-            text-decoration: none;
-            transition: .4s;
-        }
 
-        .logo:hover {
-            transform: scale(1.04);
+            gap: 10px;
+
+            font-size: 26px;
+            font-weight: 800;
+
+            color: var(--azul-institucional);
+
+            text-decoration: none;
+
+            letter-spacing: -.5px;
         }
 
         .logo img {
-            width: 65px;
-            transition: .5s;
-        }
-
-        .logo:hover img {
-            transform: rotate(-8deg) scale(1.08);
+            width: 42px;
+            height: auto;
         }
 
         .menu {
             display: flex;
-            gap: 35px;
+            gap: 32px;
         }
 
         .menu a {
             position: relative;
+
+            color: var(--texto-principal);
+
             text-decoration: none;
-            color: var(--azul-institucional);
+
             font-size: 15px;
-            font-weight: 700;
+            font-weight: 600;
+
             transition: .3s;
-            padding-bottom: 6px;
         }
 
         .menu a:hover {
-            color: #2F6FB2;
-            transform: translateY(-2px);
+            color: var(--azul-tech);
         }
 
         .menu a::after {
             content: "";
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 0%;
-            height: 2px;
-            background: #2F6FB2;
-            transition: 0.4s;
-            border-radius: 10px;
-        }
 
+            position: absolute;
+
+            left: 0;
+            bottom: -7px;
+
+            width: 0;
+            height: 2px;
+
+            background: var(--azul-tech);
+
+            transition: .3s;
+        }
 
         .menu a:hover::after {
             width: 100%;
         }
 
+
+        /* =========================================================
+           BOTÃO
+        ========================================================= */
+
         .btn {
-            position: relative;
-            overflow: hidden;
-            background: linear-gradient(135deg,
-                    #0B3B7A,
-                    #1C5CC8);
+            display: inline-block;
+
+            background: var(--azul-tech);
+
             color: white;
-            padding: 14px 28px;
-            border-radius: 14px;
+
+            padding: 10px 24px;
+
+            border-radius: 8px;
+
             text-decoration: none;
+
             font-weight: 600;
-            transition: .4s;
+            font-size: 14px;
+
+            transition: .3s;
+
             box-shadow:
-                0 10px 25px rgba(47, 111, 178, .25);
+                0 4px 14px rgba(37,99,235,.25);
         }
 
         .btn:hover {
-            transform: translateY(-4px);
+            background: var(--azul-hover);
+
+            transform: translateY(-2px);
+
             box-shadow:
-                0 20px 40px rgba(47, 111, 178, .35);
+                0 6px 20px rgba(37,99,235,.35);
         }
 
-        .btn::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: -120%;
-            width: 100%;
-            height: 100%;
-            background:
-                linear-gradient(90deg,
-                    transparent,
-                    rgba(255, 255, 255, .4),
-                    transparent);
-            transition: .7s;
-        }
 
-        .btn:hover::before {
-            left: 120%;
-        }
-
-        /* =========================
-PLANOS
-========================= */
+        /* =========================================================
+           HERO DOS PLANOS
+        ========================================================= */
 
         .planos-hero {
+            position: relative;
+
+            padding: 105px 0 95px;
+
             background:
-                linear-gradient(rgba(11, 31, 54, 0.85), rgba(11, 31, 54, 0.85)),
-                url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
-            background-size: cover;
-            background-position: center;
-            padding: 140px 20px;
-            text-align: center;
+                linear-gradient(
+                    135deg,
+                    #0f172a 0%,
+                    #1e293b 100%
+                );
+
             color: white;
+
+            overflow: hidden;
+
+            text-align: center;
+        }
+
+        .planos-hero::before {
+            content: "";
+
+            position: absolute;
+
+            inset: 0;
+
+            background:
+                url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1920&q=80")
+                center/cover;
+
+            opacity: .10;
+        }
+
+        .planos-hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-tag {
+            display: inline-flex;
+
+            align-items: center;
+            gap: 8px;
+
+            padding: 6px 15px;
+
+            margin-bottom: 18px;
+
+            border-radius: 30px;
+
+            background: rgba(37,99,235,.15);
+
+            border:
+                1px solid rgba(96,165,250,.2);
+
+            color: #60a5fa;
+
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .hero-tag i {
+            font-size: 7px;
         }
 
         .planos-hero h1 {
-            font-size: 60px;
-            margin-bottom: 20px;
+            font-size: 50px;
+
+            line-height: 1.15;
+
+            font-weight: 800;
+
+            letter-spacing: -1.5px;
+
+            margin-bottom: 18px;
+        }
+
+        .planos-hero h1 span {
+            background:
+                linear-gradient(
+                    90deg,
+                    #60a5fa,
+                    #3b82f6
+                );
+
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .planos-hero p {
-            max-width: 800px;
+            max-width: 720px;
+
             margin: auto;
-            text-align: center;
-            color: #d8e5f7;
+
+            color: #94a3b8;
+
+            font-size: 17px;
+
+            line-height: 1.7;
         }
+
+
+        /* =========================================================
+           SEÇÃO DOS PLANOS
+        ========================================================= */
 
         .planos-section {
-            padding: 90px 0;
+            padding: 85px 0 100px;
         }
+
+        .section-heading {
+            text-align: center;
+
+            max-width: 700px;
+
+            margin:
+                0 auto 50px;
+        }
+
+        .sub-header {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: var(--azul-tech);
+
+            font-size: 13px;
+            font-weight: 700;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1.5px;
+        }
+
+        .section-heading h2 {
+            color: var(--azul-institucional);
+
+            font-size: 36px;
+
+            font-weight: 800;
+
+            letter-spacing: -.5px;
+
+            margin-bottom: 12px;
+        }
+
+        .section-heading p {
+            color: var(--texto-secundario);
+
+            line-height: 1.7;
+        }
+
+
+        /* =========================================================
+           GRID DOS PLANOS
+        ========================================================= */
 
         .planos-grid {
-            display: flex;
-            justify-content: center;
-            gap: 35px;
-            flex-wrap: wrap;
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 25px;
+
+            align-items: stretch;
         }
 
+
+        /* =========================================================
+           CARD
+        ========================================================= */
+
         .plano-card {
-            width: 350px;
-            background: white;
-            border-radius: 30px;
-            padding: 40px;
             position: relative;
-            transition: .4s;
+
+            background: white;
+
+            border:
+                1px solid var(--borda-suave);
+
+            border-radius: 16px;
+
+            padding: 34px;
+
+            display: flex;
+            flex-direction: column;
 
             box-shadow:
-                0 15px 35px rgba(0, 0, 0, .08);
+                0 8px 25px rgba(15,23,42,.04);
+
+            transition:
+                transform .3s ease,
+                box-shadow .3s ease,
+                border-color .3s ease;
         }
 
         .plano-card:hover {
-            transform: translateY(-10px);
+            transform: translateY(-7px);
+
             box-shadow:
-                0 25px 50px rgba(0, 0, 0, .15);
+                0 20px 40px rgba(15,23,42,.09);
+
+            border-color:
+                rgba(37,99,235,.3);
         }
+
+
+        /* =========================================================
+           PLANO DESTAQUE
+        ========================================================= */
 
         .plano-card.destaque {
             background:
-                linear-gradient(135deg,
-                    #1C5CC8,
-                    #0B3B7A);
+                linear-gradient(
+                    145deg,
+                    #0f172a,
+                    #1e3a68
+                );
+
+            border:
+                1px solid rgba(96,165,250,.2);
+
+            box-shadow:
+                0 18px 40px rgba(15,23,42,.18);
         }
 
         .plano-card.destaque:hover {
-            transform: scale(1.05) translateY(-10px);
+            transform: translateY(-9px);
         }
+
+
+        /* =========================================================
+           BADGE
+        ========================================================= */
 
         .badge {
             position: absolute;
+
             top: 20px;
             right: 20px;
 
-            background: #2F6FB2;
-            color: white;
+            padding: 6px 12px;
 
-            padding: 8px 16px;
-            border-radius: 50px;
-            font-size: 12px;
+            border-radius: 20px;
+
+            background:
+                rgba(37,99,235,.18);
+
+            border:
+                1px solid rgba(96,165,250,.25);
+
+            color: #93c5fd;
+
+            font-size: 10px;
+
             font-weight: 700;
+
+            letter-spacing: .5px;
         }
 
-        .plano-icon {
-            width: 90px;
-            height: 90px;
 
-            border-radius: 50%;
+        /* =========================================================
+           ÍCONE
+        ========================================================= */
+
+        .plano-icon {
+            width: 56px;
+            height: 56px;
+
+            border-radius: 12px;
 
             display: flex;
             align-items: center;
             justify-content: center;
 
-            background: #E6EEF8;
+            margin-bottom: 22px;
 
-            margin-bottom: 25px;
+            background:
+                rgba(37,99,235,.1);
+
+            color:
+                var(--azul-tech);
         }
 
         .plano-icon i {
-            font-size: 38px;
-            color: #0B3B7A;
+            font-size: 21px;
         }
 
+        .plano-card.destaque .plano-icon {
+            background:
+                rgba(96,165,250,.13);
+
+            color: #60a5fa;
+        }
+
+
+        /* =========================================================
+           TÍTULO / PREÇO
+        ========================================================= */
+
         .plano-card h3 {
-            font-size: 30px;
-            margin-bottom: 15px;
+            color: var(--azul-institucional);
+
+            font-size: 22px;
+
+            font-weight: 700;
+
+            margin-bottom: 12px;
+        }
+
+        .plano-card.destaque h3 {
+            color: white;
         }
 
         .preco {
-            font-size: 40px;
-            font-weight: 700;
-            margin-bottom: 15px;
+            color: var(--azul-institucional);
+
+            font-size: 32px;
+
+            font-weight: 800;
+
+            letter-spacing: -.7px;
+
+            margin-bottom: 14px;
         }
 
         .preco span {
-            font-size: 18px;
-            font-weight: 400;
+            color: var(--texto-secundario);
+
+            font-size: 14px;
+
+            font-weight: 500;
         }
 
+        .plano-card.destaque .preco {
+            color: white;
+        }
+
+        .plano-card.destaque .preco span {
+            color: #94a3b8;
+        }
+
+
+        /* =========================================================
+           DESCRIÇÃO
+        ========================================================= */
+
         .descricao {
-            text-align: left;
-            margin-bottom: 25px;
-            color: #666;
+            min-height: 48px;
+
+            color: var(--texto-secundario);
+
+            font-size: 14px;
+
+            line-height: 1.7;
+
+            margin-bottom: 22px;
         }
 
         .plano-card.destaque .descricao {
-            color: #d7e4f8;
+            color: #94a3b8;
         }
+
+
+        /* =========================================================
+           LISTA
+        ========================================================= */
 
         .plano-card ul {
             list-style: none;
-            margin-bottom: 30px;
+
+            margin-bottom: 28px;
+
+            flex: 1;
         }
 
         .plano-card ul li {
-            margin-bottom: 15px;
             display: flex;
+
             align-items: center;
+
             gap: 10px;
+
+            padding: 9px 0;
+
+            color: var(--texto-principal);
+
+            font-size: 14px;
+
+            border-bottom:
+                1px solid #f1f5f9;
+        }
+
+        .plano-card ul li:last-child {
+            border-bottom: none;
         }
 
         .plano-card ul li i {
-            color: #2F6FB2;
+            color: var(--azul-tech);
+
+            font-size: 13px;
+        }
+
+        .plano-card.destaque ul li {
+            color: #e2e8f0;
+
+            border-bottom-color:
+                rgba(255,255,255,.08);
         }
 
         .plano-card.destaque ul li i {
-            color: #7fb7ff;
+            color: #60a5fa;
         }
+
+
+        /* =========================================================
+           BOTÃO DO PLANO
+        ========================================================= */
 
         .btn-plano {
             display: block;
+
             width: 100%;
+
+            padding: 13px 18px;
 
             text-align: center;
 
-            padding: 16px;
-            border-radius: 14px;
+            border-radius: 8px;
+
+            background: var(--azul-tech);
+
+            color: white;
 
             text-decoration: none;
-            font-weight: 600;
 
-            background: #2F6FB2;
-            color: white;
+            font-size: 14px;
+
+            font-weight: 600;
 
             transition: .3s;
         }
 
         .btn-plano:hover {
-            transform: translateY(-3px);
+            background: var(--azul-hover);
+
+            transform: translateY(-2px);
         }
 
         .plano-card.destaque .btn-plano {
             background: white;
-            color: #0B3B7A;
+
+            color: var(--azul-institucional);
         }
+
+        .plano-card.destaque .btn-plano:hover {
+            background: #e2e8f0;
+        }
+
+
+        /* =========================================================
+           COMPARATIVO
+        ========================================================= */
 
         .comparativo {
-            margin-top: 100px;
+            margin-top: 90px;
         }
 
-        .comparativo h2 {
+        .comparativo-heading {
             text-align: center;
-            margin-bottom: 40px;
+
+            margin-bottom: 35px;
+        }
+
+        .comparativo-heading h2 {
+            color: var(--azul-institucional);
+
+            font-size: 32px;
+
+            font-weight: 800;
+        }
+
+        .comparativo-heading p {
+            color: var(--texto-secundario);
+
+            margin-top: 8px;
         }
 
         .tabela {
@@ -432,545 +805,574 @@ PLANOS
 
         .tabela table {
             width: 100%;
+
+            min-width: 700px;
+
             background: white;
-            border-radius: 20px;
-            overflow: hidden;
+
             border-collapse: collapse;
 
+            overflow: hidden;
+
+            border-radius: 14px;
+
             box-shadow:
-                0 10px 25px rgba(0, 0, 0, .08);
+                0 8px 25px rgba(15,23,42,.05);
         }
 
         .tabela th {
-            background: #0B3B7A;
+            padding: 17px;
+
+            background: var(--azul-institucional);
+
             color: white;
-            padding: 20px;
+
+            text-align: center;
+
+            font-size: 13px;
+        }
+
+        .tabela th:first-child {
+            text-align: left;
         }
 
         .tabela td {
-            padding: 18px;
+            padding: 16px 18px;
+
+            border-bottom:
+                1px solid #eef2f7;
+
             text-align: center;
-            border-bottom: 1px solid #eee;
+
+            color: var(--texto-secundario);
+
+            font-size: 14px;
         }
 
-        .tabela tr:hover {
-            background: #f7faff;
+        .tabela td:first-child {
+            text-align: left;
+
+            color: var(--texto-principal);
+
+            font-weight: 600;
         }
 
-        /* =========================
-FOOTER
-========================= */
+        .tabela tr:hover td {
+            background: #f8fbff;
+        }
+
+        .check {
+            color: #2563eb;
+
+            font-weight: 800;
+        }
+
+        .no-check {
+            color: #94a3b8;
+
+            font-weight: 700;
+        }
+
+
+        /* =========================================================
+           FOOTER
+        ========================================================= */
 
         .footer {
-            background:
-                linear-gradient(180deg,
-                    #08192c,
-                    #050f1c);
+            background: #020617;
 
-            color: white;
-            padding: 90px 0 20px;
-            position: relative;
-        }
+            color: #94a3b8;
 
-        .footer::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 1px;
+            padding: 75px 0 30px;
 
-            background:
-                linear-gradient(90deg,
-                    transparent,
-                    #2F6FB2,
-                    transparent);
+            border-top:
+                1px solid rgba(255,255,255,.08);
         }
 
         .footer-grid {
-            display: flex;
-            gap: 40px;
-            flex-wrap: wrap;
-        }
+            display: grid;
 
-        .footer-col {
-            flex: 1;
-            min-width: 250px;
+            grid-template-columns:
+                1.5fr 1fr 1fr 1.2fr;
+
+            gap: 40px;
+
+            margin-bottom: 55px;
         }
 
         .footer h3 {
-            color: #2F6FB2;
-            margin-bottom: 15px;
+            color: white;
+
+            font-size: 16px;
+
+            margin-bottom: 18px;
+        }
+
+        .footer .brand-title {
+            font-size: 22px;
+
+            font-weight: 800;
+
+            margin-bottom: 14px;
         }
 
         .footer p {
-            color: #c7d2df;
-            font-size: 15px;
+            color: #64748b;
+
+            font-size: 14px;
+
+            line-height: 1.7;
         }
 
         .footer a {
             display: block;
-            color: #a7b4c5;
-            margin-bottom: 10px;
+
+            color: #94a3b8;
+
             text-decoration: none;
-            transition: 0.3s;
+
+            font-size: 14px;
+
+            margin-bottom: 11px;
+
+            transition: .3s;
         }
 
         .footer a:hover {
-            color: #2F6FB2;
-            padding-left: 5px;
+            color: white;
+
+            transform: translateX(3px);
         }
 
         .social {
             display: flex;
-            gap: 10px;
-            margin-top: 15px;
+
+            gap: 9px;
+
+            margin-top: 20px;
         }
 
         .social a {
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
+
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            border: 1px solid #7B92AD;
-            transition: 0.3s;
+
+            border-radius: 8px;
+
+            background:
+                rgba(255,255,255,.05);
+
+            color: white;
+
+            margin: 0;
         }
 
         .social a:hover {
-            background: #2F6FB2;
-            border-color: #2F6FB2;
-            transform: translateY(-3px);
+            background: var(--azul-tech);
+
+            transform: translateY(-2px);
         }
 
         .newsletter {
             display: flex;
+
+            gap: 8px;
+
             margin-top: 15px;
         }
 
         .newsletter input {
             flex: 1;
-            padding: 12px;
-            border: none;
+
+            min-width: 0;
+
+            padding: 11px 13px;
+
+            border-radius: 8px;
+
+            border:
+                1px solid rgba(255,255,255,.1);
+
+            background:
+                rgba(255,255,255,.05);
+
+            color: white;
+
             outline: none;
-            border-radius: 8px 0 0 8px;
+
+            font-family: inherit;
         }
 
         .newsletter button {
-            background: #2F6FB2;
             border: none;
+
+            border-radius: 8px;
+
+            padding: 0 18px;
+
+            background: var(--azul-tech);
+
             color: white;
-            padding: 0 20px;
+
             cursor: pointer;
-            border-radius: 0 8px 8px 0;
+
+            font-weight: 600;
+        }
+
+        .newsletter button:hover {
+            background: var(--azul-hover);
         }
 
         .copy {
+            padding-top: 25px;
+
+            border-top:
+                1px solid rgba(255,255,255,.05);
+
             text-align: center;
-            margin-top: 40px;
-            font-size: 14px;
-            color: #9db0c7;
+
+            color: #475569;
+
+            font-size: 13px;
         }
 
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(40px);
+
+        /* =========================================================
+           LOADER
+        ========================================================= */
+
+        #loader {
+            position: fixed;
+
+            inset: 0;
+
+            background: white;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            z-index: 999999;
+
+            transition: .8s ease;
+        }
+
+        .loader-logo {
+            text-align: center;
+        }
+
+        .loader-logo img {
+            width: 75px;
+
+            animation: pulse 1.5s infinite;
+        }
+
+        .loader-logo h2 {
+            color: var(--azul-institucional);
+
+            margin-top: 10px;
+
+            font-size: 23px;
+        }
+
+        .loader-logo h2 span {
+            color: var(--azul-tech);
+        }
+
+        .loader-exit {
+            opacity: 0;
+
+            visibility: hidden;
+        }
+
+        @keyframes pulse {
+
+            0%,100% {
+                transform: scale(1);
             }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            50% {
+                transform: scale(1.08);
             }
         }
 
-        .section {
-            animation: fadeUp 1s ease;
+
+        /* =========================================================
+           FERRAMENTAS FLUTUANTES
+        ========================================================= */
+
+        .ferramentas-flutuantes-container {
+            position: fixed;
+
+            right: 25px;
+            bottom: 25px;
+
+            z-index: 999999;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            zoom: 1 !important;
         }
 
-        @media (max-width: 768px) {
+        .robo-floating-btn,
+        #accessibility-toggle {
+            width: 56px;
+            height: 56px;
 
-            .container {
-                width: 95%;
-            }
+            display: flex;
 
-            /* TOPBAR */
+            align-items: center;
+            justify-content: center;
 
-            .topbar {
-                padding: 12px 0;
-            }
+            border: none;
 
-            .top-info {
-                width: 100%;
-                flex-direction: column;
-                gap: 8px;
-                text-align: center;
-            }
+            border-radius: 14px;
 
-            .top-info a {
-                font-size: 13px;
-            }
+            color: white;
 
-            .top-icons {
-                width: 100%;
-                justify-content: center;
-                margin-top: 10px;
-            }
+            cursor: pointer;
 
-            /* NAVBAR */
+            text-decoration: none;
 
-            .navbar {
-                padding: 15px 0;
-            }
+            box-shadow:
+                0 10px 25px rgba(0,0,0,.15);
 
-            .navbar .flex {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .logo {
-                font-size: 24px;
-            }
-
-            .logo img {
-                width: 50px;
-            }
-
-            .menu {
-                width: 100%;
-                justify-content: center;
-                gap: 15px;
-                flex-wrap: wrap;
-            }
-
-            .menu a {
-                font-size: 14px;
-            }
-
-            .btn {
-                width: 100%;
-                text-align: center;
-                padding: 14px;
-            }
-
-            /* HERO */
-
-            .header,
-            .hero-about,
-            .planos-hero {
-                padding: 80px 15px;
-            }
-
-            .header h1,
-            .hero-about h1,
-            .planos-hero h1 {
-                font-size: 32px !important;
-                line-height: 1.2;
-            }
-
-            .header p,
-            .hero-about p,
-            .planos-hero p {
-                font-size: 15px;
-            }
-
-            /* TITULOS */
-
-            h2 {
-                font-size: 28px !important;
-            }
-
-            h3 {
-                font-size: 22px !important;
-            }
-
-            p {
-                font-size: 15px !important;
-                text-align: left;
-            }
-
-            /* ABOUT */
-
-            .about-card {
-                padding: 25px;
-            }
-
-            .about-content {
-                flex-direction: column;
-                gap: 25px;
-            }
-
-            .team-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .team-card img,
-            .team img {
-                height: 280px;
-            }
-
-            /* INDEX */
-
-            .diferenciais-topo {
-                flex-direction: column;
-                gap: 25px;
-            }
-
-            .diferenciais-texto h2,
-            .diferenciais-texto h2 span {
-                font-size: 36px !important;
-            }
-
-            .diferenciais-imagem img {
-                height: 280px;
-            }
-
-            .cards {
-                gap: 20px;
-            }
-
-            .card {
-                width: 100%;
-                max-width: none;
-            }
-
-            .services {
-                flex-direction: column;
-            }
-
-            .service {
-                min-width: 100%;
-            }
-
-            /* CONTATO */
-
-            .contact-wrapper {
-                flex-direction: column;
-                margin: 35px 0;
-            }
-
-            .contact-card {
-                min-width: 100%;
-                padding: 20px;
-            }
-
-            iframe {
-                height: 280px;
-            }
-
-            /* AVALIAÇÃO */
-
-            .stats {
-                grid-template-columns: 1fr;
-            }
-
-            .content {
-                grid-template-columns: 1fr !important;
-            }
-
-            .left-panel,
-            .right-panel {
-                padding: 25px;
-            }
-
-            .page-header h1 {
-                font-size: 30px;
-            }
-
-            .form-title {
-                font-size: 24px;
-            }
-
-            .stars {
-                justify-content: center;
-            }
-
-            .stars span {
-                font-size: 40px;
-            }
-
-            /* PLANOS */
-
-            .planos-grid {
-                gap: 20px;
-            }
-
-            .plano-card {
-                width: 100%;
-                padding: 25px;
-            }
-
-            .preco {
-                font-size: 32px;
-            }
-
-            .tabela {
-                overflow-x: auto;
-            }
-
-            .tabela table {
-                min-width: 700px;
-            }
-
-            /* FOOTER */
-
-            .footer {
-                padding: 60px 0 20px;
-            }
-
-            .footer-grid {
-                flex-direction: column;
-                gap: 25px;
-            }
-
-            .footer-col {
-                min-width: 100%;
-            }
-
-            .newsletter {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .newsletter input {
-                border-radius: 8px;
-            }
-
-            .newsletter button {
-                border-radius: 8px;
-                padding: 14px;
-            }
-
+            transition: .3s;
         }
 
-        /* ==========================================================
-   ACESSIBILIDADE UNIFICADA GEOSYNC (MODO ZOOM IGUAL INDEX)
-========================================================== */
-        :root {
-            --font-scale: 1;
+        .robo-floating-btn {
+            background: var(--azul-tech);
         }
 
-        body {
-            zoom: var(--font-scale);
-            transition: zoom 0.2s ease-in-out;
+        #accessibility-toggle {
+            background: var(--azul-institucional);
+
+            font-size: 20px;
         }
 
-        /* Evita que o painel flutuante sofra alteração de tamanho junto com o body */
-        
-
-        
-
+        .robo-floating-btn:hover,
         #accessibility-toggle:hover {
-            transform: scale(1.08);
+            transform: translateY(-3px);
+
+            box-shadow:
+                0 15px 30px rgba(0,0,0,.2);
         }
 
-        
+        .robo-floating-btn svg {
+            width: 25px;
+            height: 25px;
+        }
+
+
+        /* =========================================================
+           ACESSIBILIDADE
+        ========================================================= */
+
+        .accessibility-container {
+            position: relative;
+        }
+
+        .accessibility-panel {
+            position: absolute;
+
+            right: 0;
+
+            bottom: 68px;
+
+            width: 280px;
+
+            background: white;
+
+            border-radius: 12px;
+
+            overflow: hidden;
+
+            border:
+                1px solid var(--borda-suave);
+
+            box-shadow:
+                0 20px 40px rgba(0,0,0,.15);
+
+            opacity: 0;
+
+            visibility: hidden;
+
+            transform: translateY(10px);
+
+            transition: .3s;
+        }
 
         .accessibility-panel.active {
             opacity: 1;
+
             visibility: visible;
+
             transform: translateY(0);
         }
 
         .accessibility-header {
-            background: linear-gradient(135deg, #0B3B7A, #2F6FB2);
-            color: white;
-            padding: 18px;
-            font-weight: 700;
             display: flex;
+
             align-items: center;
-            gap: 10px;
+
+            gap: 8px;
+
+            padding: 14px;
+
+            background: var(--azul-institucional);
+
+            color: white;
+
+            font-size: 14px;
+
+            font-weight: 700;
         }
 
         .accessibility-panel button {
             width: 100%;
+
+            padding: 12px 16px;
+
             border: none;
+
+            border-bottom:
+                1px solid var(--borda-suave);
+
             background: white;
+
+            color: var(--texto-principal);
+
             text-align: left;
-            padding: 16px 20px;
+
             cursor: pointer;
-            font-family: Poppins, sans-serif;
-            font-size: 15px;
-            border-bottom: 1px solid #eee;
+
+            font-family: inherit;
+
+            font-size: 13px;
+
             transition: .2s;
         }
 
         .accessibility-panel button:hover {
-            background: #f5f7fb;
-            padding-left: 28px;
+            background: var(--azul-claro);
+
+            color: var(--azul-tech);
+
+            padding-left: 20px;
         }
 
-        /* MODOS VISUAIS CRÍTICOS */
+
+        /* =========================================================
+           MODO ESCURO
+        ========================================================= */
+
         .dark-mode {
-            background: #121212 !important;
+            background: #090d16 !important;
+
+            color: #e2e8f0 !important;
         }
 
-        .dark-mode th,
-        .dark-mode .badge,
-        .dark-mode .fas fa-check{
-            background: #0B1F36;
+        .dark-mode .navbar {
+            background: #0f172a !important;
+
+            border-color: #1e293b !important;
         }
 
-        .dark-mode .navbar,
-        .dark-mode .block,
-        .dark-mode .plano-card,
-        .dark-mode table,
-        .dark-mode .footer,
-        .dark-mode .topbar,
-        .dark-mode .feedback-card,
-        .dark-mode .stat-card,
-        .dark-mode .right-panel,
+        .dark-mode .menu a {
+            color: #e2e8f0;
+        }
+
+        .dark-mode .logo {
+            color: white;
+        }
+
+        .dark-mode .plano-card {
+            background: #0f172a !important;
+
+            border-color: #1e293b !important;
+        }
+
+        .dark-mode .plano-card:not(.destaque) h3,
+        .dark-mode .plano-card:not(.destaque) .preco {
+            color: #f8fafc;
+        }
+
+        .dark-mode .plano-card:not(.destaque) .descricao,
+        .dark-mode .plano-card:not(.destaque) li {
+            color: #94a3b8;
+        }
+
+        .dark-mode .section-heading h2,
+        .dark-mode .comparativo-heading h2 {
+            color: #f8fafc;
+        }
+
+        .dark-mode .section-heading p,
+        .dark-mode .comparativo-heading p {
+            color: #94a3b8;
+        }
+
+        .dark-mode .tabela table {
+            background: #0f172a;
+        }
+
+        .dark-mode .tabela td {
+            border-color: #1e293b;
+
+            color: #94a3b8;
+        }
+
+        .dark-mode .tabela td:first-child {
+            color: #e2e8f0;
+        }
+
+        .dark-mode .tabela tr:hover td {
+            background: #162033;
+        }
+
         .dark-mode .accessibility-panel {
-            background: #1e1e1e !important;
-        }
+            background: #0f172a;
 
-        .dark-mode p,
-        .dark-mode tr,
-        .dark-mode h1,
-        .dark-mode h2,
-        .dark-mode h3,
-        .dark-mode a,
-        .dark-mode span,
-        .dark-mode label,
-        .dark-mode .preco,
-        .dark-mode .form-title {
-            color: white !important;
-        }
-
-        .dark-mode input,
-        .dark-mode .btn-plano,
-        .dark-mode textarea {
-            background: #2a2a2a !important;
-            border-color: #3a3a3a !important;
-            color: white !important;
+            border-color: #1e293b;
         }
 
         .dark-mode .accessibility-panel button {
-            background: #1e1e1e !important;
-            color: white !important;
-            border-bottom-color: #3a3a3a !important;
+            background: #0f172a;
+
+            color: #e2e8f0;
+
+            border-color: #1e293b;
         }
 
         .dark-mode .accessibility-panel button:hover {
-            background: #2a2a2a !important;
+            background: #1e293b;
         }
 
+
+        /* =========================================================
+           ALTO CONTRASTE
+        ========================================================= */
+
         .alto-contraste {
-            background: #111 !important;
+            background: #000 !important;
         }
 
         .alto-contraste .navbar,
-        .alto-contraste .block,
-        .alto-contraste .card,
-        .alto-contraste .footer,
-        .alto-contraste .topbar,
-        .alto-contraste .feedback-card,
-        .alto-contraste .stat-card,
-        .alto-contraste .right-panel,
+        .alto-contraste .plano-card,
+        .alto-contraste .tabela table,
         .alto-contraste .accessibility-panel {
-            background: #1b1b1b !important;
-            border: 1px solid #FFD700 !important;
+            background: #111 !important;
+
+            border:
+                1px solid #FFD700 !important;
         }
 
         .alto-contraste h1,
@@ -979,349 +1381,573 @@ FOOTER
         .alto-contraste p,
         .alto-contraste a,
         .alto-contraste span,
-        .alto-contraste label,
-        .alto-contraste .form-title {
-            color: #ffffff !important;
-        }
-
-        .alto-contraste a {
-            color: #FFD700 !important;
+        .alto-contraste li {
+            color: #fff !important;
         }
 
         .alto-contraste .btn,
-        .alto-contraste .btn-submit {
+        .alto-contraste .btn-plano {
             background: #FFD700 !important;
+
             color: #000 !important;
         }
 
-        .alto-contraste img {
-            filter: contrast(110%);
+        .alto-contraste .tabela td,
+        .alto-contraste .tabela th {
+            border-color: #FFD700;
         }
 
         .alto-contraste .accessibility-panel button {
-            background: #1b1b1b !important;
-            color: #fff !important;
-            border-bottom: 1px solid #FFD700 !important;
+            background: #111;
+
+            color: white;
+
+            border-bottom:
+                1px solid #FFD700;
         }
 
         .alto-contraste .accessibility-panel button:hover {
-            background: #FFD700 !important;
-            color: #000 !important;
+            background: #FFD700;
+
+            color: #000;
         }
 
-        @media(max-width:768px) {
-            .accessibility-container {
-                right: 15px;
-                bottom: 15px;
+
+        /* =========================================================
+           RESPONSIVIDADE
+        ========================================================= */
+
+        @media (max-width: 992px) {
+
+            .planos-grid {
+                grid-template-columns: 1fr 1fr;
             }
 
-            .accessibility-panel {
-                width: 260px;
-                right: 80px;
+            .planos-grid .destaque {
+                grid-column: span 2;
+                max-width: 520px;
+                width: 100%;
+                margin: auto;
             }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
         }
 
-        /* <!-- Estilo para o botão ficar fixo no canto inferior direito da tela --> */
-        
 
-        .robo-floating-btn:hover {
-            transform: scale(1.1) translateY(-3px);
-            background-color: #1d4ed8;
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
-        }
+        @media (max-width: 768px) {
 
-        .robo-floating-btn svg {
-            width: 30px;
-            height: 30px;
-        }
+            .container {
+                width: 92%;
+            }
 
-        /* ==========================================================
-           BARRA FLUTUANTE DE FERRAMENTAS (ROBÔ + ACESSIBILIDADE)
-        ========================================================== */
+            .topbar {
+                display: none;
+            }
 
-        /* Container que une os dois e os coloca lado a lado */
-        .ferramentas-flutuantes-container {
-            position: fixed;
-            right: 25px;
-            bottom: 25px;
-            z-index: 999999;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            /* Espaço milimétrico entre os dois botões */
-            zoom: 1 !important;
-            /* Protege contra o zoom do body */
-        }
+            .navbar .flex {
+                flex-direction: column;
 
-        /* Botão do Robô */
-        .robo-floating-btn {
-            width: 70px;
-            height: 70px;
-            background-color: #2563eb;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
+                gap: 15px;
+            }
 
-        .robo-floating-btn:hover {
-            transform: scale(1.08) translateY(-2px);
-            background-color: #1d4ed8;
-            box-shadow: 0 12px 35px rgba(37, 99, 235, 0.5);
-        }
+            .logo {
+                font-size: 24px;
+            }
 
-        .robo-floating-btn svg {
-            width: 32px;
-            height: 32px;
-        }
+            .menu {
+                gap: 18px;
 
-        /* Container Interno da Acessibilidade */
-        .accessibility-container {
-            position: relative;
-        }
+                flex-wrap: wrap;
 
-        /* Botão de Acessibilidade */
-        #accessibility-toggle {
-            width: 70px;
-            height: 70px;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            color: white;
-            font-size: 30px;
-            background: linear-gradient(135deg, #0B3B7A, #2F6FB2);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: .3s;
-        }
+                justify-content: center;
+            }
 
-        #accessibility-toggle:hover {
-            transform: scale(1.08) translateY(-2px);
-        }
+            .menu a {
+                font-size: 13px;
+            }
 
-        /* Painel de Opções (Aparece em cima da barra ao clicar) */
-        .accessibility-panel {
-            position: absolute;
-            right: 0;
-            bottom: 85px;
-            /* Abre perfeitamente posicionado acima do botão */
-            width: 300px;
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, .15);
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(20px);
-            transition: .3s;
-        }
+            .navbar .btn {
+                width: 100%;
 
-        .accessibility-panel.active {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
+                text-align: center;
+            }
 
-        /* Ajustes para telas de celulares */
-        @media(max-width: 768px) {
+            .planos-hero {
+                padding: 75px 15px;
+            }
+
+            .planos-hero h1 {
+                font-size: 34px;
+            }
+
+            .planos-hero p {
+                font-size: 15px;
+            }
+
+            .planos-section {
+                padding: 60px 0 70px;
+            }
+
+            .section-heading h2 {
+                font-size: 28px;
+            }
+
+            .planos-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .planos-grid .destaque {
+                grid-column: auto;
+                max-width: none;
+            }
+
+            .plano-card {
+                padding: 28px;
+            }
+
+            .preco {
+                font-size: 30px;
+            }
+
+            .comparativo {
+                margin-top: 65px;
+            }
+
+            .comparativo-heading h2 {
+                font-size: 27px;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .newsletter {
+                flex-direction: column;
+            }
+
+            .newsletter button {
+                padding: 12px;
+            }
+
             .ferramentas-flutuantes-container {
                 right: 15px;
                 bottom: 15px;
-                gap: 10px;
             }
 
             .robo-floating-btn,
             #accessibility-toggle {
-                width: 60px;
-                height: 60px;
-                font-size: 24px;
-            }
-
-            .robo-floating-btn svg {
-                width: 26px;
-                height: 26px;
+                width: 52px;
+                height: 52px;
             }
 
             .accessibility-panel {
                 width: 260px;
-                bottom: 75px;
+
+                right: 0;
+
+                bottom: 64px;
             }
+
         }
+
     </style>
 </head>
 
+
 <body>
 
-    <!-- BARRA FLUTUANTE DE FERRAMENTAS (Robô e Acessibilidade Lado a Lado) -->
+    <!-- =========================================================
+         BACKGROUND
+    ========================================================= -->
+
+    <div class="ambient-glow"></div>
+    <div class="ambient-glow-bottom"></div>
+
+
+    <!-- =========================================================
+         LOADER
+    ========================================================= -->
+
+    {{-- <div id="loader">
+
+        <div class="loader-logo">
+
+            <img src="{{ asset('img/Logo.png') }}" alt="GeoSync">
+
+            <h2>
+                Geo<span>Sync</span>
+            </h2>
+
+        </div>
+
+    </div> --}}
+
+
+    <!-- =========================================================
+         FERRAMENTAS FLUTUANTES
+    ========================================================= -->
+
     <div class="ferramentas-flutuantes-container">
 
-        <!-- Botão do Robô (Chat I.A) -->
-        <a href="{{ url('/chat') }}" class="robo-floating-btn" title="Conversar com a I.A">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- ROBÔ -->
+
+        <a href="{{ url('/chat') }}"
+            class="robo-floating-btn"
+            title="Conversar com a I.A"
+            aria-label="Conversar com a inteligência artificial">
+
+            <svg xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+
                 <path d="M12 8V4H8" />
-                <rect width="16" height="12" x="4" y="8" rx="2" />
+
+                <rect
+                    width="16"
+                    height="12"
+                    x="4"
+                    y="8"
+                    rx="2" />
+
                 <path d="M2 14h2" />
                 <path d="M20 14h2" />
                 <path d="M15 13v2" />
                 <path d="M9 13v2" />
+
             </svg>
+
         </a>
 
-        <!-- Botão de Acessibilidade -->
+
+        <!-- ACESSIBILIDADE -->
+
         <div class="accessibility-container">
-            <button id="accessibility-toggle" aria-label="Abrir acessibilidade">
+
+            <button id="accessibility-toggle"
+                aria-label="Abrir acessibilidade"
+                aria-expanded="false">
+
                 <i class="fas fa-universal-access"></i>
+
             </button>
-            <div class="accessibility-panel" id="accessibility-panel">
+
+
+            <div class="accessibility-panel"
+                id="accessibility-panel">
+
                 <div class="accessibility-header">
+
                     <i class="fas fa-universal-access"></i>
+
                     <span>Acessibilidade</span>
+
                 </div>
-                <button onclick="alterarFonte(0.1)">🔍 Aumentar Fonte</button>
-                <button onclick="alterarFonte(-0.1)">🔎 Diminuir Fonte</button>
-                <button onclick="toggleDark()">🌙 Modo Escuro</button>
-                <button onclick="toggleContraste()">◐ Alto Contraste</button>
-                <button onclick="lerPagina()">🔊 Ler Página</button>
-                <button onclick="pararLeitura()">⏹ Parar Leitura</button>
-                <button onclick="resetarAcessibilidade()">↺ Restaurar Padrão</button>
+
+                <button onclick="alterarFonte(0.1)">
+                    🔍 Aumentar Fonte
+                </button>
+
+                <button onclick="alterarFonte(-0.1)">
+                    🔎 Diminuir Fonte
+                </button>
+
+                <button onclick="toggleDark()">
+                    🌙 Modo Escuro
+                </button>
+
+                <button onclick="toggleContraste()">
+                    ◐ Alto Contraste
+                </button>
+
+                <button onclick="lerPagina()">
+                    🔊 Ler Página
+                </button>
+
+                <button onclick="pararLeitura()">
+                    ⏹ Parar Leitura
+                </button>
+
+                <button onclick="resetarAcessibilidade()">
+                    ↺ Restaurar Padrão
+                </button>
+
             </div>
+
         </div>
 
     </div>
 
-    <!-- TOPBAR -->
+
+    <!-- =========================================================
+         TOPBAR
+    ========================================================= -->
 
     <div class="topbar">
+
         <div class="container flex">
 
             <div class="top-info">
 
                 <a href="https://wa.me/551994010744?text=Olá!%20Seja%20Bem-vindo(a)%20à%20GeoSync!%20Como%20posso%20ajudar?"
                     target="_blank">
+
                     <i class="fas fa-phone-alt"></i>
+
                     +55 (19) 99401-0744
+
                 </a>
 
-                <a href="mailto:murilo.breda@aluno.senai.br" target="_blank">
+
+                <a href="mailto:murilo.breda@aluno.senai.br"
+                    target="_blank">
+
                     <i class="fas fa-envelope"></i>
+
                     contact@geosync.com
+
                 </a>
 
             </div>
+
 
             <div class="top-icons">
 
-                <a href="https://www.facebook.com" target="_blank">
+                <a href="https://www.facebook.com"
+                    target="_blank"
+                    aria-label="Facebook">
+
                     <i class="fab fa-facebook-f"></i>
+
                 </a>
 
-                <a href="https://x.com" target="_blank">
+                <a href="https://x.com"
+                    target="_blank"
+                    aria-label="X">
+
                     <i class="fab fa-twitter"></i>
+
                 </a>
 
-                <a href="https://br.linkedin.com" target="_blank">
+                <a href="https://br.linkedin.com"
+                    target="_blank"
+                    aria-label="LinkedIn">
+
                     <i class="fab fa-linkedin-in"></i>
+
                 </a>
 
-                <a href="https://www.instagram.com/geosync_tambau/" target="_blank">
+                <a href="https://www.instagram.com/geosync_tambau/"
+                    target="_blank"
+                    aria-label="Instagram">
+
                     <i class="fab fa-instagram"></i>
+
                 </a>
 
             </div>
 
         </div>
+
     </div>
 
-    <!-- NAVBAR -->
+
+    <!-- =========================================================
+         NAVBAR
+    ========================================================= -->
 
     <div class="navbar">
+
         <div class="container flex">
 
             <a href="/" class="logo">
-                <img src="{{ asset('img/Logo.png') }}" alt="Logo">
+
+                <img src="{{ asset('img/Logo.png') }}"
+                    alt="Logo GeoSync">
+
                 <span>GeoSync</span>
+
             </a>
 
+
             <div class="menu">
-                <a href="/">Início</a>
-                <a href="/about">Sobre</a>
-                <a href="/avaliar">Comentários</a>
-                <a href="/planos">Planos</a>
+
+                <a href="/">
+                    Início
+                </a>
+
+                <a href="/about">
+                    Sobre
+                </a>
+
+                <a href="/avaliar">
+                    Comentários
+                </a>
+
+                <a href="/planos">
+                    Planos
+                </a>
+
             </div>
 
+
             <a href="/login" class="btn">
-                Login
+                Área do Cliente
             </a>
 
         </div>
+
     </div>
 
-    <!-- HERO -->
+
+    <!-- =========================================================
+         HERO
+    ========================================================= -->
 
     <section class="planos-hero">
 
-        <div class="container">
+        <div class="container planos-hero-content">
 
-            <h1>Planos GeoSync</h1>
+            <span class="hero-tag">
+
+                <i class="fas fa-circle"></i>
+
+                Soluções GeoSync
+
+            </span>
+
+            <h1>
+                Planos para sua
+                <span>operação logística</span>
+            </h1>
 
             <p>
+
                 Escolha a solução ideal para monitorar sua operação,
-                rastrear veículos em tempo real e otimizar sua logística.
+                rastrear veículos em tempo real e otimizar seus
+                processos logísticos.
+
             </p>
 
         </div>
 
     </section>
 
-    <!-- PLANOS -->
+
+    <!-- =========================================================
+         PLANOS
+    ========================================================= -->
 
     <section class="planos-section">
 
         <div class="container">
 
+
+            <div class="section-heading">
+
+                <span class="sub-header">
+                    Nossos planos
+                </span>
+
+                <h2>
+                    Escolha o nível ideal para sua operação
+                </h2>
+
+                <p>
+                    Comece com os recursos essenciais e evolua
+                    conforme sua operação cresce.
+                </p>
+
+            </div>
+
+
             <div class="planos-grid">
 
-                <!-- START -->
+
+                <!-- =================================================
+                     START
+                ================================================= -->
 
                 <div class="plano-card">
 
                     <div class="plano-icon">
+
                         <i class="fas fa-map-marker-alt"></i>
+
                     </div>
 
-                    <h3>GeoSync Start</h3>
+
+                    <h3>
+                        GeoSync Start
+                    </h3>
+
 
                     <div class="preco">
+
                         R$149,99
-                        <span>/mês</span>
+
+                        <span>
+                            /mês
+                        </span>
+
                     </div>
 
+
                     <p class="descricao">
-                        Ideal para pequenas empresas e autônomos.
+
+                        Ideal para pequenas empresas
+                        e profissionais autônomos.
+
                     </p>
 
+
                     <ul>
-                        <li><i class="fas fa-check"></i> Até 10 entregas</li>
-                        <li><i class="fas fa-check"></i> Rastreamento em tempo real</li>
-                        <li><i class="fas fa-check"></i> Alertas inteligentes</li>
-                        <li><i class="fas fa-check"></i> Dashboard</li>
+
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Até 10 entregas
+                        </li>
+
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Rastreamento em tempo real
+                        </li>
+
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Alertas inteligentes
+                        </li>
+
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Dashboard
+                        </li>
+
                     </ul>
 
-                    <!-- PLANO START -->
-                    <a href="/pagamento?plano=start" class="btn-plano">
+
+                    <!-- MANTIDA A LÓGICA ORIGINAL -->
+
+                    <a href="/pagamento?plano=start"
+                        class="btn-plano">
+
                         Assinar Start
+
                     </a>
 
                 </div>
 
-                <!-- PRO -->
+
+                <!-- =================================================
+                     PRO
+                ================================================= -->
 
                 <div class="plano-card destaque">
 
@@ -1329,122 +1955,317 @@ FOOTER
                         MAIS POPULAR
                     </span>
 
+
                     <div class="plano-icon">
+
                         <i class="fas fa-truck"></i>
+
                     </div>
 
-                    <h3>GeoSync Pro</h3>
+
+                    <h3>
+                        GeoSync Pro
+                    </h3>
+
 
                     <div class="preco">
+
                         R$599,99
-                        <span>/6 mês</span>
+
+                        <span>
+                            /6 mês
+                        </span>
+
                     </div>
 
+
                     <p class="descricao">
-                        Controle completo para empresas em crescimento.
+
+                        Controle completo para empresas
+                        em crescimento.
+
                     </p>
 
+
                     <ul>
-                        <li><i class="fas fa-check"></i> Até 65 entregas</li>
-                        <li><i class="fas fa-check"></i> Rastreamento em tempo real</li>
-                        <li><i class="fas fa-check"></i> Alertas inteligentes</li>
-                        <li><i class="fas fa-check"></i> Dashboard</li>
-                        <li><i class="fas fa-check"></i> Suporte prioritário</li>
+
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Até 65 entregas
+                        </li>
+
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Rastreamento em tempo real
+                        </li>
+
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Alertas inteligentes
+                        </li>
+
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Dashboard
+                        </li>
+
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Suporte prioritário
+                        </li>
+
                     </ul>
 
-                    <!-- PLANO PRO -->
-                    <a href="/pagamento?plano=pro" class="btn-plano">
+
+                    <!-- MANTIDA A LÓGICA ORIGINAL -->
+
+                    <a href="/pagamento?plano=pro"
+                        class="btn-plano">
+
                         Assinar Pro
+
                     </a>
 
                 </div>
 
-                <!-- ENTERPRISE -->
+
+                <!-- =================================================
+                     ENTERPRISE
+                ================================================= -->
 
                 <div class="plano-card">
 
                     <div class="plano-icon">
+
                         <i class="fas fa-building"></i>
+
                     </div>
 
-                    <h3>Enterprise</h3>
+
+                    <h3>
+                        Enterprise
+                    </h3>
+
 
                     <div class="preco">
                         Personalizado
                     </div>
 
+
                     <p class="descricao">
-                        Para grandes operações logísticas.
+
+                        Para grandes operações
+                        logísticas que precisam de
+                        uma solução personalizada.
+
                     </p>
 
+
                     <ul>
-                        <li><i class="fas fa-check"></i> Entregas ilimitados</li>
-                        <li><i class="fas fa-check"></i> Rastreamento em tempo real</li>
-                        <li><i class="fas fa-check"></i> Alertas inteligentes</li>
-                        <li><i class="fas fa-check"></i> Dashboard</li>
-                        <li><i class="fas fa-check"></i> Suporte prioritário</li>
+
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Entregas ilimitadas
+                        </li>
+
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Rastreamento em tempo real
+                        </li>
+
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Alertas inteligentes
+                        </li>
+
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Dashboard
+                        </li>
+
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Suporte prioritário
+                        </li>
+
                     </ul>
 
+
+                    <!-- MANTIDA A LÓGICA ORIGINAL -->
+
                     <a href="https://wa.me/551994010744?text=Olá,%20quero%20mais%20informações%20sobre%20o%20plano%20Enterprise"
-                        target="_blank" class="btn-plano">
+                        target="_blank"
+                        class="btn-plano">
+
                         Falar com Consultor
+
                     </a>
 
                 </div>
 
             </div>
 
-            <!-- TABELA COMPARATIVA -->
+
+            <!-- =================================================
+                 COMPARATIVO
+            ================================================= -->
 
             <div class="comparativo">
 
-                <h2>Compare os planos</h2>
+                <div class="comparativo-heading">
+
+                    <span class="sub-header">
+                        Comparação
+                    </span>
+
+                    <h2>
+                        Compare os planos
+                    </h2>
+
+                    <p>
+                        Veja rapidamente os recursos disponíveis
+                        em cada opção.
+                    </p>
+
+                </div>
+
 
                 <div class="tabela">
 
                     <table>
 
-                        <tr>
-                            <th>Recursos</th>
-                            <th>Start</th>
-                            <th>Pro</th>
-                            <th>Enterprise</th>
-                        </tr>
+                        <thead>
 
-                        <tr>
-                            <td>Rastreamento em tempo real</td>
-                            <td>✔</td>
-                            <td>✔</td>
-                            <td>✔</td>
-                        </tr>
+                            <tr>
 
-                        <tr>
-                            <td>Alertas inteligentes</td>
-                            <td>✔</td>
-                            <td>✔</td>
-                            <td>✔</td>
-                        </tr>
+                                <th>
+                                    Recursos
+                                </th>
 
-                        <tr>
-                            <td>Dashboard</td>
-                            <td>✔</td>
-                            <td>✔</td>
-                            <td>✔</td>
-                        </tr>
+                                <th>
+                                    Start
+                                </th>
 
-                        <tr>
-                            <td>Suporte prioritário</td>
-                            <td>✖</td>
-                            <td>✔</td>
-                            <td>✔</td>
-                        </tr>
+                                <th>
+                                    Pro
+                                </th>
 
-                        <tr>
-                            <td>Entregas</td>
-                            <td>10</td>
-                            <td>65</td>
-                            <td>Ilimitado</td>
-                        </tr>
+                                <th>
+                                    Enterprise
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            <tr>
+
+                                <td>
+                                    Rastreamento em tempo real
+                                </td>
+
+                                <td class="check">
+                                    ✔
+                                </td>
+
+                                <td class="check">
+                                    ✔
+                                </td>
+
+                                <td class="check">
+                                    ✔
+                                </td>
+
+                            </tr>
+
+
+                            <tr>
+
+                                <td>
+                                    Alertas inteligentes
+                                </td>
+
+                                <td class="check">
+                                    ✔
+                                </td>
+
+                                <td class="check">
+                                    ✔
+                                </td>
+
+                                <td class="check">
+                                    ✔
+                                </td>
+
+                            </tr>
+
+
+                            <tr>
+
+                                <td>
+                                    Dashboard
+                                </td>
+
+                                <td class="check">
+                                    ✔
+                                </td>
+
+                                <td class="check">
+                                    ✔
+                                </td>
+
+                                <td class="check">
+                                    ✔
+                                </td>
+
+                            </tr>
+
+
+                            <tr>
+
+                                <td>
+                                    Suporte prioritário
+                                </td>
+
+                                <td class="no-check">
+                                    ✖
+                                </td>
+
+                                <td class="check">
+                                    ✔
+                                </td>
+
+                                <td class="check">
+                                    ✔
+                                </td>
+
+                            </tr>
+
+
+                            <tr>
+
+                                <td>
+                                    Entregas
+                                </td>
+
+                                <td>
+                                    10
+                                </td>
+
+                                <td>
+                                    65
+                                </td>
+
+                                <td>
+                                    Ilimitado
+                                </td>
+
+                            </tr>
+
+                        </tbody>
 
                     </table>
 
@@ -1456,354 +2277,585 @@ FOOTER
 
     </section>
 
+
+    <!-- =========================================================
+         VLibras
+    ========================================================= -->
+
     <div vw class="enabled">
+
         <div vw-access-button class="active"></div>
+
         <div vw-plugin-wrapper>
+
             <div class="vw-plugin-top-wrapper"></div>
+
         </div>
+
     </div>
+
 
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
 
     <script>
-        new window.VLibras.Widget('https://vlibras.gov.br/app');
+
+        if (window.VLibras) {
+
+            new window.VLibras.Widget(
+                'https://vlibras.gov.br/app'
+            );
+
+        }
+
     </script>
 
-    <!-- FOOTER -->
 
-    <div class="footer">
+    <!-- =========================================================
+         FOOTER
+    ========================================================= -->
+
+    <footer class="footer">
 
         <div class="container">
 
             <div class="footer-grid">
 
-                <div class="footer-col">
 
-                    <h3>GeoSync</h3>
+                <div>
+
+                    <div class="brand-title">
+                        GeoSync
+                    </div>
 
                     <p>
-                        Sistema inteligente de rastreamento e logística em tempo real.
+
+                        Ecossistema inteligente de
+                        rastreamento, monitoramento
+                        e gestão logística em tempo real.
+
                     </p>
+
 
                     <div class="social">
 
-                        <a href="https://www.facebook.com/geosync" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                        <a href="https://x.com/geosync" target="_blank"><i class="fab fa-twitter"></i></a>
-                        <a href="https://br.linkedin.com/company/geosync" target="_blank"><i
-                                class="fab fa-linkedin-in"></i></a>
-                        <a href="https://www.instagram.com/geosync_tambau/" target="_blank"><i
-                                class="fab fa-instagram"></i></a>
+                        <a href="https://www.facebook.com/geosync"
+                            target="_blank">
+
+                            <i class="fab fa-facebook-f"></i>
+
+                        </a>
+
+                        <a href="https://x.com/geosync"
+                            target="_blank">
+
+                            <i class="fab fa-twitter"></i>
+
+                        </a>
+
+                        <a href="https://br.linkedin.com/company/geosync"
+                            target="_blank">
+
+                            <i class="fab fa-linkedin-in"></i>
+
+                        </a>
+
+                        <a href="https://www.instagram.com/geosync_tambau/"
+                            target="_blank">
+
+                            <i class="fab fa-instagram"></i>
+
+                        </a>
 
                     </div>
 
                 </div>
 
-                <div class="footer-col">
 
-                    <h3>Links</h3>
+                <div>
 
-                    <a href="/">Início</a>
-                    <a href="/about">Sobre</a>
-                    <a href="/login">Serviço</a>
-                    <a href="/avaliar">Comentários</a>
-                    <a href="/planos">Planos</a>
-                    <a href="/cadastro-admin">Cadastro Admin</a>
+                    <h3>
+                        Navegação
+                    </h3>
+
+                    <a href="/">
+                        Início
+                    </a>
+
+                    <a href="/about">
+                        Sobre
+                    </a>
+
+                    <a href="/login">
+                        Serviço
+                    </a>
+
+                    <a href="/avaliar">
+                        Comentários
+                    </a>
+
+                    <a href="/planos">
+                        Planos
+                    </a>
+
+                    <a href="/cadastro-admin">
+                        Cadastro Admin
+                    </a>
 
                 </div>
 
-                <div class="footer-col">
 
-                    <h3>Contato</h3>
+                <div>
 
-                    <p>R. Cap. David, 56 - Centro, Tambaú - SP</p>
-                    <p>(19) 99401-0744</p>
-                    <p>contact@geosync.com</p>
+                    <h3>
+                        Contato
+                    </h3>
+
+                    <p>
+                        R. Cap. David, 56 - Centro
+                    </p>
+
+                    <p>
+                        Tambaú - SP
+                    </p>
+
+                    <p>
+                        (19) 99401-0744
+                    </p>
+
+                    <p>
+                        contact@geosync.com
+                    </p>
 
                 </div>
 
-                <div class="footer-col">
 
-                    <h3>Boletim informativo</h3>
+                <div>
 
-                    <p>Receba novidades da plataforma.</p>
+                    <h3>
+                        Informativo
+                    </h3>
+
+                    <p>
+                        Receba novidades e atualizações
+                        sobre a plataforma GeoSync.
+                    </p>
+
 
                     <div class="newsletter">
-                        <input type="text" placeholder="Seu email">
-                        <button>Enviar</button>
+
+                        <input
+                            type="email"
+                            placeholder="Seu e-mail profissional">
+
+                        <button type="button">
+                            Assinar
+                        </button>
+
                     </div>
 
                 </div>
 
             </div>
 
+
             <div class="copy">
-                © 2026 GeoSync - Todos os direitos reservados
+
+                © 2026 GeoSync -
+                Todos os direitos reservados.
+
             </div>
 
         </div>
 
-    </div>
-
-</body>
-
-<script>
-
-    // MENU
-
-    const accessBtn =
-        document.getElementById("accessibility-toggle");
-
-    const accessPanel =
-        document.getElementById("accessibility-panel");
-
-    accessBtn.addEventListener("click", () => {
-
-        accessPanel.classList.toggle("active");
-
-    });
+    </footer>
 
 
-    // =========================
-    // CARREGAR CONFIGURAÇÕES
-    // =========================
+    <!-- =========================================================
+         JAVASCRIPT
+    ========================================================= -->
 
-    document.addEventListener("DOMContentLoaded", () => {
+    <script>
 
-        let escala =
-            localStorage.getItem("fontScale");
+        /* =====================================================
+           LOADER
+        ===================================================== */
 
-        if (escala) {
+        window.addEventListener('load', function () {
 
-            document.documentElement
-                .style
-                .setProperty(
-                    "--font-scale",
+            setTimeout(function () {
+
+                const loader =
+                    document.getElementById('loader');
+
+                if (!loader) return;
+
+                loader.classList.add('loader-exit');
+
+                setTimeout(function () {
+
+                    loader.remove();
+
+                }, 800);
+
+            }, 700);
+
+        });
+
+
+        /* =====================================================
+           ACESSIBILIDADE
+        ===================================================== */
+
+        document.addEventListener(
+            'DOMContentLoaded',
+            function () {
+
+                const accessBtn =
+                    document.getElementById(
+                        'accessibility-toggle'
+                    );
+
+                const accessPanel =
+                    document.getElementById(
+                        'accessibility-panel'
+                    );
+
+
+                if (accessBtn && accessPanel) {
+
+                    accessBtn.setAttribute(
+                        'aria-expanded',
+                        'false'
+                    );
+
+
+                    accessBtn.addEventListener(
+                        'click',
+                        function (event) {
+
+                            event.stopPropagation();
+
+                            const active =
+                                accessPanel.classList.toggle(
+                                    'active'
+                                );
+
+                            accessBtn.setAttribute(
+                                'aria-expanded',
+                                String(active)
+                            );
+
+                        }
+                    );
+
+
+                    document.addEventListener(
+                        'click',
+                        function (event) {
+
+                            if (
+                                !accessBtn.contains(
+                                    event.target
+                                ) &&
+                                !accessPanel.contains(
+                                    event.target
+                                )
+                            ) {
+
+                                accessPanel.classList.remove(
+                                    'active'
+                                );
+
+                                accessBtn.setAttribute(
+                                    'aria-expanded',
+                                    'false'
+                                );
+
+                            }
+
+                        }
+                    );
+
+                }
+
+
+                /* Recuperar tamanho da fonte */
+
+                const escala =
+                    localStorage.getItem(
+                        'fontScale'
+                    ) || '1';
+
+                document.documentElement.style.setProperty(
+                    '--font-scale',
                     escala
                 );
-        }
-
-        if (localStorage.getItem("darkMode") === "true") {
-
-            document.body.classList.add("dark-mode");
-        }
-
-        if (localStorage.getItem("contraste") === "true") {
-
-            document.body.classList.add("alto-contraste");
-        }
-
-    });
 
 
-    // =========================
-    // FONTE
-    // =========================
+                /* Recuperar modo escuro */
 
-    function alterarFonte(valor) {
+                if (
+                    localStorage.getItem(
+                        'darkMode'
+                    ) === 'true'
+                ) {
 
-        let escala =
-            parseFloat(
-                localStorage.getItem("fontScale")
-            ) || 1;
+                    document.body.classList.add(
+                        'dark-mode'
+                    );
 
-        escala += valor;
+                }
 
-        if (escala < 0.8)
-            escala = 0.8;
 
-        if (escala > 1.8)
-            escala = 1.8;
+                /* Recuperar contraste */
 
-        document.documentElement
-            .style
-            .setProperty(
-                "--font-scale",
-                escala
+                if (
+                    localStorage.getItem(
+                        'contraste'
+                    ) === 'true'
+                ) {
+
+                    document.body.classList.add(
+                        'alto-contraste'
+                    );
+
+                }
+
+            }
+        );
+
+
+        /* =====================================================
+           AUMENTAR / DIMINUIR FONTE
+        ===================================================== */
+
+        function alterarFonte(valor) {
+
+            const atual =
+                parseFloat(
+                    getComputedStyle(
+                        document.documentElement
+                    ).getPropertyValue(
+                        '--font-scale'
+                    )
+                ) || 1;
+
+
+            let novaEscala =
+                atual + valor;
+
+
+            if (novaEscala < 0.7) {
+                novaEscala = 0.7;
+            }
+
+
+            if (novaEscala > 1.7) {
+                novaEscala = 1.7;
+            }
+
+
+            novaEscala =
+                parseFloat(
+                    novaEscala.toFixed(2)
+                );
+
+
+            document.documentElement.style.setProperty(
+                '--font-scale',
+                novaEscala
             );
 
-        localStorage.setItem(
-            "fontScale",
-            escala
-        );
-    }
 
-
-    // =========================
-    // DARK MODE
-    // =========================
-
-    function toggleDark() {
-
-        document.body.classList.toggle(
-            "dark-mode"
-        );
-
-        localStorage.setItem(
-            "darkMode",
-            document.body.classList.contains(
-                "dark-mode"
-            )
-        );
-    }
-
-
-    // =========================
-    // CONTRASTE
-    // =========================
-
-    function toggleContraste() {
-
-        document.body.classList.toggle(
-            "alto-contraste"
-        );
-
-        localStorage.setItem(
-            "contraste",
-            document.body.classList.contains(
-                "alto-contraste"
-            )
-        );
-    }
-
-
-    // =========================
-    // LEITOR
-    // =========================
-
-    function lerPagina() {
-
-        speechSynthesis.cancel();
-
-        const texto =
-            document.body.innerText;
-
-        const fala =
-            new SpeechSynthesisUtterance(
-                texto
+            localStorage.setItem(
+                'fontScale',
+                String(novaEscala)
             );
 
-        fala.lang = "pt-BR";
-
-        fala.rate = 1;
-
-        speechSynthesis.speak(
-            fala
-        );
-    }
+        }
 
 
-    // =========================
-    // PARAR
-    // =========================
+        /* =====================================================
+           MODO ESCURO
+        ===================================================== */
 
-    function pararLeitura() {
+        function toggleDark() {
 
-        speechSynthesis.cancel();
-    }
-
-
-    // =========================
-    // RESETAR
-    // =========================
-
-    function resetarAcessibilidade() {
-
-        pararLeitura();
-
-        localStorage.removeItem(
-            "fontScale"
-        );
-
-        localStorage.removeItem(
-            "darkMode"
-        );
-
-        localStorage.removeItem(
-            "contraste"
-        );
-
-        document.body.classList.remove(
-            "dark-mode",
-            "alto-contraste"
-        );
-
-        document.documentElement
-            .style
-            .setProperty(
-                "--font-scale",
-                1
+            document.body.classList.toggle(
+                'dark-mode'
             );
-    }
 
-</script>
 
-<script>
-    // Gerenciador do Painel
-    const accessBtn = document.getElementById("accessibility-toggle");
-    const accessPanel = document.getElementById("accessibility-panel");
+            localStorage.setItem(
+                'darkMode',
+                String(
+                    document.body.classList.contains(
+                        'dark-mode'
+                    )
+                )
+            );
 
-    if (accessBtn && accessPanel) {
-        accessBtn.addEventListener("click", () => {
-            accessPanel.classList.toggle("active");
-        });
-    }
-
-    // Carregamento de Estados Salvos
-    document.addEventListener("DOMContentLoaded", () => {
-        let escala = localStorage.getItem("fontScale") || "1";
-        document.documentElement.style.setProperty("--font-scale", escala);
-
-        if (localStorage.getItem("darkMode") === "true") {
-            document.body.classList.add("dark-mode");
         }
-        if (localStorage.getItem("contraste") === "true") {
-            document.body.classList.add("alto-contraste");
+
+
+        /* =====================================================
+           ALTO CONTRASTE
+        ===================================================== */
+
+        function toggleContraste() {
+
+            document.body.classList.toggle(
+                'alto-contraste'
+            );
+
+
+            localStorage.setItem(
+                'contraste',
+                String(
+                    document.body.classList.contains(
+                        'alto-contraste'
+                    )
+                )
+            );
+
         }
-    });
 
-    // Modificação Numérica Uniforme para a Propriedade Zoom
-    function alterarFonte(valor) {
-        let atual = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--font-scale")) || 1;
-        atual += valor;
-        if (atual < 0.7) atual = 0.7;
-        if (atual > 1.7) atual = 1.7;
 
-        atual = parseFloat(atual.toFixed(2));
-        document.documentElement.style.setProperty("--font-scale", atual);
-        localStorage.setItem("fontScale", atual);
-    }
+        /* =====================================================
+           LEITURA DA PÁGINA
+        ===================================================== */
 
-    function toggleDark() {
-        document.body.classList.toggle("dark-mode");
-        localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
-    }
+        function lerPagina() {
 
-    function toggleContraste() {
-        document.body.classList.toggle("alto-contraste");
-        localStorage.setItem("contraste", document.body.classList.contains("alto-contraste"));
-    }
+            if (!window.speechSynthesis) {
+                return;
+            }
 
-    function lerPagina() {
-        speechSynthesis.cancel();
-        const texto = document.body.innerText;
-        const fala = new SpeechSynthesisUtterance(texto);
-        fala.lang = "pt-BR";
-        fala.rate = 1;
-        speechSynthesis.speak(fala);
-    }
 
-    function pararLeitura() {
-        speechSynthesis.cancel();
-    }
+            window.speechSynthesis.cancel();
 
-    function resetarAcessibilidade() {
-        pararLeitura();
-        localStorage.removeItem("fontScale");
-        localStorage.removeItem("darkMode");
-        localStorage.removeItem("contraste");
-        document.body.classList.remove("dark-mode", "alto-contraste");
-        document.documentElement.style.setProperty("--font-scale", "1");
-    }
-</script>
+
+            let texto =
+                window.getSelection()
+                    .toString()
+                    .trim();
+
+
+            if (!texto) {
+
+                const elementos =
+                    document.querySelectorAll(
+                        'h1, h2, h3, p, li, span'
+                    );
+
+
+                let blocos = [];
+
+
+                elementos.forEach(function (elemento) {
+
+                    if (
+                        elemento.innerText &&
+                        elemento.innerText.trim().length > 3 &&
+                        !elemento.closest(
+                            '.accessibility-panel'
+                        )
+                    ) {
+
+                        blocos.push(
+                            elemento.innerText.trim()
+                        );
+
+                    }
+
+                });
+
+
+                texto =
+                    blocos.join('. ');
+
+            }
+
+
+            if (!texto) {
+                return;
+            }
+
+
+            const fala =
+                new SpeechSynthesisUtterance(
+                    texto
+                );
+
+
+            fala.lang = 'pt-BR';
+
+            fala.rate = 1.05;
+
+            fala.pitch = 1;
+
+
+            window.speechSynthesis.speak(
+                fala
+            );
+
+        }
+
+
+        /* =====================================================
+           PARAR LEITURA
+        ===================================================== */
+
+        function pararLeitura() {
+
+            if (
+                window.speechSynthesis
+            ) {
+
+                window.speechSynthesis.cancel();
+
+            }
+
+        }
+
+
+        /* =====================================================
+           RESTAURAR ACESSIBILIDADE
+        ===================================================== */
+
+        function resetarAcessibilidade() {
+
+            pararLeitura();
+
+
+            localStorage.removeItem(
+                'fontScale'
+            );
+
+            localStorage.removeItem(
+                'darkMode'
+            );
+
+            localStorage.removeItem(
+                'contraste'
+            );
+
+
+            document.body.classList.remove(
+                'dark-mode',
+                'alto-contraste'
+            );
+
+
+            document.documentElement.style.setProperty(
+                '--font-scale',
+                '1'
+            );
+
+        }
+
+    </script>
+
+</body>
 
 </html>

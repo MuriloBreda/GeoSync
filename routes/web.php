@@ -15,6 +15,8 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 
 /* --- PÁGINAS PÚBLICAS --- */
 Route::get('/', function () { return view('index'); });
@@ -97,3 +99,35 @@ return redirect('/service-cliente');
 }
 return redirect('/login');
 })->name('dashboard');
+
+
+
+
+Route::post('/forgot-password', function (Request $request) {
+
+    // Validação do e-mail
+    $request->validate([
+        'email' => ['required', 'email'],
+    ]);
+
+    // Envia o link de recuperação
+    $status = Password::sendResetLink(
+        $request->only('email')
+    );
+
+    // E-mail encontrado e link enviado
+    if ($status === Password::RESET_LINK_SENT) {
+
+        return back()->with(
+            'success',
+            'Enviamos um link de recuperação para o seu e-mail.'
+        );
+    }
+
+    // E-mail não encontrado ou erro
+    return back()->withErrors([
+        'email' => 'Não foi possível encontrar uma conta com este e-mail.'
+    ]);
+
+})->middleware('guest')->name('password.email');
+
