@@ -628,15 +628,45 @@
             z-index: 1;
         }
 
+        .mobile-menu-toggle { display: none; }
+
         @media (max-width: 768px) {
             .sidebar {
                 left: -280px;
                 position: fixed;
                 width: 280px !important;
+                z-index: 1000002 !important;
             }
 
             body.sidebar-open .sidebar {
                 left: 0;
+            }
+
+            .mobile-menu-toggle {
+                display: inline-flex !important;
+                position: fixed;
+                top: 16px;
+                left: 16px;
+                z-index: 1000003;
+                width: 44px;
+                height: 44px;
+                align-items: center;
+                justify-content: center;
+                border: 0;
+                border-radius: 12px;
+                background: var(--sidebar);
+                color: #fff;
+                box-shadow: 0 8px 22px rgba(11, 31, 54, .28);
+                font-size: 1.1rem;
+            }
+
+            .mobile-menu-backdrop { display: none; }
+            body.sidebar-open .mobile-menu-backdrop {
+                display: block;
+                position: fixed;
+                inset: 0;
+                z-index: 1000001;
+                background: rgba(11, 31, 54, .45);
             }
 
             .main-content {
@@ -690,6 +720,11 @@
             </div>
         </div>
     </div>
+
+    <button type="button" class="mobile-menu-toggle" onclick="document.body.classList.toggle('sidebar-open')" aria-label="Abrir ou fechar menu">
+        <i class="fas fa-bars"></i>
+    </button>
+    <div class="mobile-menu-backdrop" onclick="document.body.classList.remove('sidebar-open')"></div>
 
     <div class="layout">
         <aside class="sidebar">
@@ -1332,6 +1367,45 @@
             }
 
 
+            // Em computadores sem GPS, usa uma posição aproximada pela rede/IP.
+            let fallbackPorIpAtivo = false;
+
+            const usarLocalizacaoPorIp = async () => {
+                if (fallbackPorIpAtivo) return;
+                fallbackPorIpAtivo = true;
+
+                statusSpan.style.color = 'var(--alert-info)';
+                statusSpan.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Obtendo localização aproximada pela rede...';
+
+                try {
+                    const resposta = await fetch('https://ipwho.is/');
+                    const dados = await resposta.json();
+                    const latitude = Number(dados.latitude);
+                    const longitude = Number(dados.longitude);
+
+                    if (!resposta.ok || !dados.success || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+                        throw new Error('Serviço de localização por IP indisponível.');
+                    }
+
+                    ultimaLatitude = latitude;
+                    ultimaLongitude = longitude;
+                    configurarMarcadorMapa(latitude, longitude);
+                    await enviarLocalizacao(latitude, longitude, remessaId);
+
+                    statusSpan.style.color = 'var(--alert-warning)';
+                    statusSpan.innerHTML = '<i class="fas fa-triangle-exclamation"></i> Localização aproximada por IP sincronizada.';
+                } catch (erro) {
+                    console.error('Erro ao localizar pelo IP:', erro);
+                    statusSpan.style.color = 'var(--alert-danger)';
+                    statusSpan.innerHTML = '<i class="fas fa-ban"></i> GPS e localização por IP indisponíveis.';
+                }
+            };
+
+            if (!navigator.geolocation) {
+                usarLocalizacaoPorIp();
+                return;
+            }
+
             // Verifica suporte ao GPS
 
             if (!navigator.geolocation) {
@@ -1359,6 +1433,20 @@
             document.getElementById('btnPararGPS').style.display =
                 'inline-flex';
 
+
+            // Registra uma posição já no início, sem aguardar a próxima atualização.
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    ultimaLatitude = latitude;
+                    ultimaLongitude = longitude;
+                    configurarMarcadorMapa(latitude, longitude);
+                    enviarLocalizacao(latitude, longitude, remessaId);
+                },
+                () => usarLocalizacaoPorIp(),
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 }
+            );
 
             // ==========================================
             // WATCH POSITION
@@ -1395,6 +1483,11 @@
                         "ERRO COMPLETO DO GPS:",
                         error
                     );
+
+                    if ([1, 2, 3].includes(error.code)) {
+                        usarLocalizacaoPorIp();
+                        return;
+                    }
 
                     switch (error.code) {
 

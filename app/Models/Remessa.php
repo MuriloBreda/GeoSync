@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Remessa extends Model
 {
@@ -22,5 +23,10 @@ class Remessa extends Model
     public function cliente()
     {
         return $this->belongsTo(User::class, 'cliente_id');
+    }
+
+    public function localizacoes(): HasMany
+    {
+        return $this->hasMany(Localizacao::class, 'remessa_id');
     }
 }

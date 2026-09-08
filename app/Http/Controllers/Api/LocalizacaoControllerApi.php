@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Localizacao;
+use App\Models\Remessa;
 use Illuminate\Http\Request;
 
 class LocalizacaoControllerApi extends Controller
@@ -130,6 +131,13 @@ class LocalizacaoControllerApi extends Controller
 
     public function porRemessa($remessa_id)
     {
+        if (!Remessa::whereKey($remessa_id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Remessa não encontrada.'
+            ], 404);
+        }
+
         $localizacoes = Localizacao::where(
             'remessa_id',
             $remessa_id
@@ -151,6 +159,13 @@ class LocalizacaoControllerApi extends Controller
 
     public function ultimaPorRemessa($remessa_id)
     {
+        if (!Remessa::whereKey($remessa_id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Remessa não encontrada.'
+            ], 404);
+        }
+
         $localizacao = Localizacao::where(
             'remessa_id',
             $remessa_id

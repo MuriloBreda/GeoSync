@@ -75,36 +75,6 @@
         /* =========================
            LOADER
         ========================= */
-        #loader {
-            position: fixed;
-            inset: 0;
-            background: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 999999;
-            transition: all .8s ease;
-        }
-
-        .loader-logo {
-            text-align: center;
-        }
-
-        .loader-logo img {
-            width: 80px;
-            animation: pulse 1.5s infinite;
-        }
-
-        .loader-exit {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.08); }
-        }
-
         /* =========================
            LAYOUT BASE
         ========================= */
@@ -125,16 +95,18 @@
         ========================= */
         .topbar {
             background: var(--azul-profundo);
-            padding: 10px 0;
+            padding: 9px 0;
+
             color: #94a3b8;
-            font-size: 13px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 12px;
+
+            border-bottom: 1px solid rgba(255,255,255,.07);
         }
 
         .topbar a {
             color: #cbd5e1;
             text-decoration: none;
-            transition: 0.3s;
+            transition: .3s;
             font-weight: 500;
         }
 
@@ -144,78 +116,126 @@
 
         .top-info {
             display: flex;
-            gap: 25px;
+            gap: 28px;
             align-items: center;
+        }
+
+        .top-info i {
+            margin-right: 6px;
+            color: #60a5fa;
         }
 
         .top-icons {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             align-items: center;
         }
 
         .top-icons a {
-            width: 30px;
-            height: 30px;
+            width: 29px;
+            height: 29px;
+
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.05);
-            transition: 0.3s;
+
+            border-radius: 7px;
+
+            background: rgba(255,255,255,.05);
+
+            transition: .3s;
         }
 
         .top-icons a:hover {
             background: var(--azul-tech);
             color: white;
+            transform: translateY(-2px);
         }
 
-        /* =========================
-           NAVBAR (PADRÃO INDEX)
-        ========================= */
+
+        /* =====================================================
+           NAVBAR
+        ===================================================== */
+
         .navbar {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            padding: 16px 0;
+            background: rgba(255,255,255,.92);
+
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+
+            padding: 17px 0;
+
             position: sticky;
             top: 0;
+
             z-index: 9999;
-            border-bottom: 1px solid var(--borda-suave);
+
+            border-bottom: 1px solid rgba(226,232,240,.85);
+
+            transition: .3s;
         }
 
         .logo {
             display: flex;
             align-items: center;
+
             gap: 10px;
-            font-size: 26px;
+
+            font-size: 25px;
             font-weight: 800;
+
             color: var(--azul-institucional);
+
             text-decoration: none;
-            letter-spacing: -0.5px;
+
+            letter-spacing: -.8px;
         }
 
         .logo img {
-            width: 42px;
+            width: 40px;
             height: auto;
         }
 
         .menu {
             display: flex;
-            gap: 32px;
+            gap: 34px;
         }
 
         .menu a {
             position: relative;
+
             text-decoration: none;
-            color: var(--texto-principal);
-            font-size: 15px;
+
+            color: #475569;
+
+            font-size: 14px;
             font-weight: 600;
+
+            transition: .3s;
+        }
+
+        .menu a::after {
+            content: "";
+
+            position: absolute;
+
+            left: 0;
+            bottom: -8px;
+
+            width: 0;
+            height: 2px;
+
+            background: var(--azul-tech);
+
             transition: .3s;
         }
 
         .menu a:hover {
             color: var(--azul-tech);
+        }
+
+        .menu a:hover::after {
+            width: 100%;
         }
 
         .btn {
@@ -748,14 +768,6 @@
     <div class="ambient-glow"></div>
     <div class="ambient-glow-bottom"></div>
 
-    <!-- LOADER -->
-    {{-- <div id="loader">
-        <div class="loader-logo">
-            <img src="{{ asset('img/Logo.png') }}" alt="GeoSync">
-            <h2 style="font-size: 24px; margin-top: 10px;">Geo<span style="color: var(--azul-tech)">Sync</span></h2>
-        </div>
-    </div> --}}
-
     <!-- FERRAMENTAS FLUTUANTES -->
     <div class="ferramentas-flutuantes-container">
         <a href="{{ url('/chat') }}" class="robo-floating-btn" title="Conversar com a I.A">
@@ -819,7 +831,7 @@
             <div class="menu">
                 <a href="/">Início</a>
                 <a href="/about">Sobre</a>
-                <a href="/avaliar">Comentários</a>
+                <a href="/avaliar" class="active" aria-current="page">Comentários</a>
                 <a href="/planos">Planos</a>
             </div>
             <a href="/login" class="btn">Área do Cliente</a>
@@ -963,17 +975,6 @@
 
     <!-- SCRIPTS -->
     <script>
-        // LOADER
-        window.addEventListener('load', function () {
-            setTimeout(() => {
-                const loader = document.getElementById('loader');
-                if (loader) {
-                    loader.classList.add('loader-exit');
-                    setTimeout(() => { loader.remove(); }, 800);
-                }
-            }, 1000);
-        });
-
         // ESTRELAS
         const stars = document.querySelectorAll('#stars span');
         const inputNota = document.getElementById('inputNota');

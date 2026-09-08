@@ -85,6 +85,11 @@ CREATE TABLE avaliacoes (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+ALTER TABLE avaliacoes ADD COLUMN nome_exibicao VARCHAR(255) NULL AFTER user_id;
+
+ALTER TABLE avaliacoes DROP FOREIGN KEY avaliacoes_ibfk_1;
+ALTER TABLE avaliacoes DROP COLUMN user_id;
+
 -- 7. TABELA DE CONTATOS
 CREATE TABLE contatos (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

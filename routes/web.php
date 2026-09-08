@@ -34,14 +34,13 @@ Route::get('/avaliar', [AvaliacaoController::class, 'index'])->name('avaliacao.i
 Route::get('/chat', [ChatController::class, 'index'])->name('chat');
 Route::post('/chat/iniciar', [ChatController::class, 'iniciar'])->name('chat.iniciar');
 Route::post('/chat/enviar', [ChatController::class, 'enviar'])->name('chat.enviar');
-Route::get('/teste-ia', [ChatController::class, 'testeIA']);
 
 /* --- AUTENTICAÇÃO COMUM --- */
 Route::get('/login', function () { return view('login'); })->name('login');
 Route::get('/register', function () { return view('createAccount'); });
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.login');
 Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
 
@@ -65,29 +64,27 @@ Route::get('/ia-antifraude/{id?}', [IAController::class, 'antifraude']);
 
 Route::resource('remessas', RemessaController::class);
 Route::resource('alertas', AlertaController::class);
-Route::post('/alerta', [AlertaController::class, 'store'])->name('alerta.store');
 Route::resource('localizacoes', LocalizacaoController::class);
-Route::post('/localizacao', [LocalizacaoController::class, 'store'])->name('localizacao.store');
 Route::post('/pagamento/store', [PagamentoController::class, 'store'])->name('pagamento.store');
 
-Route::get('/service-cliente', [RemessaController::class, 'dashboardCliente'])->name('cliente.dashboard');
+Route::get('/service-cliente', [RemessaController::class, 'dashboardCliente'])->middleware('role:cliente')->name('cliente.dashboard');
 // Use o middleware 'auth' para garantir que o usuário está logado
 Route::middleware(['auth'])->group(function () {
-    Route::get('/service-motorista', [RemessaController::class, 'dashboardMotorista'])->name('motorista.dashboard');
+    Route::get('/service-motorista', [RemessaController::class, 'dashboardMotorista'])->middleware('role:motorista')->name('motorista.dashboard');
 });
-Route::post('/motorista/aceitar', [RemessaController::class, 'aceitarRemessa'])->name('motorista.aceitar');
-Route::post('/motorista/status', [RemessaController::class, 'atualizarStatus'])->name('motorista.status');
+Route::post('/motorista/aceitar', [RemessaController::class, 'aceitarRemessa'])->middleware('role:motorista')->name('motorista.aceitar');
+Route::post('/motorista/status', [RemessaController::class, 'atualizarStatus'])->middleware('role:motorista')->name('motorista.status');
 
-Route::get('/admin-dashboard', [RemessaController::class, 'adminDashboard'])->name('admin.dashboard');
-Route::post('/admin/store-motorista', [RemessaController::class, 'storeMotorista'])->name('admin.storeMotorista');
+Route::get('/admin-dashboard', [AdminController::class, 'dashboard'])->middleware('admin')->name('admin.dashboard');
+Route::post('/admin/store-motorista', [AdminController::class, 'storeMotorista'])->middleware('admin')->name('admin.storeMotorista');
 
 Route::delete('/admin/user/{id}',
     [AdminController::class,'deleteUser'])
-    ->name('admin.deleteUser');
+    ->middleware('admin')->name('admin.deleteUser');
 
 Route::delete('/admin/remessa/{id}',
     [AdminController::class,'deleteRemessa'])
-    ->name('admin.deleteRemessa');
+    ->middleware('admin')->name('admin.deleteRemessa');
 });
 
 /* --- REDIRECIONAMENTO SEGURO --- */
@@ -130,4 +127,3 @@ Route::post('/forgot-password', function (Request $request) {
     ]);
 
 })->middleware('guest')->name('password.email');
-

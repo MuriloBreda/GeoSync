@@ -112,6 +112,8 @@
 
         <label>Status</label>
         <select name="status">
+            <option value="Pendente" {{ $remessa->status == 'Pendente' ? 'selected' : '' }}>Pendente</option>
+            <option value="Em Rota" {{ $remessa->status == 'Em Rota' ? 'selected' : '' }}>Em rota</option>
             <option value="Em transporte" {{ $remessa->status == 'Em transporte' ? 'selected' : '' }}>Em transporte</option>
             <option value="Entregue" {{ $remessa->status == 'Entregue' ? 'selected' : '' }}>Entregue</option>
             <option value="Atrasado" {{ $remessa->status == 'Atrasado' ? 'selected' : '' }}>Atrasado</option>
@@ -119,7 +121,7 @@
 
         <div class="actions">
             <button type="submit" class="btn btn-salvar">Salvar Alterações</button>
-            <a href="/service" class="btn btn-voltar">
+            <a href="{{ route('dashboard') }}" class="btn btn-voltar">
                 Voltar
             </a>
         </div>

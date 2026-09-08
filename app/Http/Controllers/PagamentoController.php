@@ -20,7 +20,7 @@ class PagamentoController extends Controller
         try {
             Pagamento::create([
                 // Pega o ID do usuário logado, se não houver, usa o ID 1 para teste de TCC
-                'user_id' => Auth::id() ?? 1, 
+                'user_id' => Auth::id(),
                 'valor'   => $request->valor,
                 'status'  => 'Aprovado', // No TCC simulamos a aprovação imediata
             ]);

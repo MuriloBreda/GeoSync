@@ -131,28 +131,18 @@
 
         .topbar {
             background: var(--azul-profundo);
-            padding: 10px 0;
+            padding: 9px 0;
 
             color: #94a3b8;
+            font-size: 12px;
 
-            font-size: 13px;
-
-            border-bottom:
-                1px solid rgba(255, 255, 255, .08);
-        }
-
-        .top-info {
-            display: flex;
-            gap: 25px;
-            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,.07);
         }
 
         .topbar a {
             color: #cbd5e1;
             text-decoration: none;
-
             transition: .3s;
-
             font-weight: 500;
         }
 
@@ -160,50 +150,65 @@
             color: #60a5fa;
         }
 
+        .top-info {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+
+        .top-info i {
+            margin-right: 6px;
+            color: #60a5fa;
+        }
+
         .top-icons {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             align-items: center;
         }
 
         .top-icons a {
-            width: 30px;
-            height: 30px;
+            width: 29px;
+            height: 29px;
 
             display: flex;
             align-items: center;
             justify-content: center;
 
-            border-radius: 6px;
+            border-radius: 7px;
 
             background: rgba(255,255,255,.05);
+
+            transition: .3s;
         }
 
         .top-icons a:hover {
             background: var(--azul-tech);
             color: white;
+            transform: translateY(-2px);
         }
 
 
-        /* =========================================================
+        /* =====================================================
            NAVBAR
-        ========================================================= */
+        ===================================================== */
 
         .navbar {
-            background: rgba(255,255,255,.88);
+            background: rgba(255,255,255,.92);
 
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
 
-            padding: 16px 0;
+            padding: 17px 0;
 
             position: sticky;
             top: 0;
 
             z-index: 9999;
 
-            border-bottom:
-                1px solid var(--borda-suave);
+            border-bottom: 1px solid rgba(226,232,240,.85);
+
+            transition: .3s;
         }
 
         .logo {
@@ -212,41 +217,37 @@
 
             gap: 10px;
 
-            font-size: 26px;
+            font-size: 25px;
             font-weight: 800;
 
             color: var(--azul-institucional);
 
             text-decoration: none;
 
-            letter-spacing: -.5px;
+            letter-spacing: -.8px;
         }
 
         .logo img {
-            width: 42px;
+            width: 40px;
             height: auto;
         }
 
         .menu {
             display: flex;
-            gap: 32px;
+            gap: 34px;
         }
 
         .menu a {
             position: relative;
 
-            color: var(--texto-principal);
-
             text-decoration: none;
 
-            font-size: 15px;
+            color: #475569;
+
+            font-size: 14px;
             font-weight: 600;
 
             transition: .3s;
-        }
-
-        .menu a:hover {
-            color: var(--azul-tech);
         }
 
         .menu a::after {
@@ -255,7 +256,7 @@
             position: absolute;
 
             left: 0;
-            bottom: -7px;
+            bottom: -8px;
 
             width: 0;
             height: 2px;
@@ -263,6 +264,10 @@
             background: var(--azul-tech);
 
             transition: .3s;
+        }
+
+        .menu a:hover {
+            color: var(--azul-tech);
         }
 
         .menu a:hover::after {
@@ -1044,62 +1049,6 @@
            LOADER
         ========================================================= */
 
-        #loader {
-            position: fixed;
-
-            inset: 0;
-
-            background: white;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            z-index: 999999;
-
-            transition: .8s ease;
-        }
-
-        .loader-logo {
-            text-align: center;
-        }
-
-        .loader-logo img {
-            width: 75px;
-
-            animation: pulse 1.5s infinite;
-        }
-
-        .loader-logo h2 {
-            color: var(--azul-institucional);
-
-            margin-top: 10px;
-
-            font-size: 23px;
-        }
-
-        .loader-logo h2 span {
-            color: var(--azul-tech);
-        }
-
-        .loader-exit {
-            opacity: 0;
-
-            visibility: hidden;
-        }
-
-        @keyframes pulse {
-
-            0%,100% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.08);
-            }
-        }
-
 
         /* =========================================================
            FERRAMENTAS FLUTUANTES
@@ -1572,20 +1521,6 @@
          LOADER
     ========================================================= -->
 
-    {{-- <div id="loader">
-
-        <div class="loader-logo">
-
-            <img src="{{ asset('img/Logo.png') }}" alt="GeoSync">
-
-            <h2>
-                Geo<span>Sync</span>
-            </h2>
-
-        </div>
-
-    </div> --}}
-
 
     <!-- =========================================================
          FERRAMENTAS FLUTUANTES
@@ -1711,7 +1646,7 @@
 
                     <i class="fas fa-envelope"></i>
 
-                    contact@geosync.com
+                    contatogeosync@gmail.com
 
                 </a>
 
@@ -1791,7 +1726,7 @@
                     Comentários
                 </a>
 
-                <a href="/planos">
+                <a href="/planos" class="active" aria-current="page">
                     Planos
                 </a>
 
@@ -2475,31 +2410,6 @@
     ========================================================= -->
 
     <script>
-
-        /* =====================================================
-           LOADER
-        ===================================================== */
-
-        window.addEventListener('load', function () {
-
-            setTimeout(function () {
-
-                const loader =
-                    document.getElementById('loader');
-
-                if (!loader) return;
-
-                loader.classList.add('loader-exit');
-
-                setTimeout(function () {
-
-                    loader.remove();
-
-                }, 800);
-
-            }, 700);
-
-        });
 
 
         /* =====================================================

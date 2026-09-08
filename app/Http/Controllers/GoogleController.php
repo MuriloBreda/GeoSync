@@ -29,7 +29,7 @@ class GoogleController extends Controller
 
         // Redireciona conforme o tipo
         if ($user->tipo == 'admin') {
-            return redirect('/admin')
+            return redirect()->route('admin.dashboard')
                 ->with('success', 'Login realizado com sucesso!');
         }
 

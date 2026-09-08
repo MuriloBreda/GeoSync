@@ -1969,6 +1969,169 @@
             }
         }
 
+        #loader {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at center, #0a1120 0%, #020617 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 999999;
+        transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+    }
+
+    .loader-content {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        max-width: 300px;
+        width: 100%;
+    }
+
+    .glow-effect {
+        position: absolute;
+        width: 180px;
+        height: 180px;
+        background: radial-gradient(circle, rgba(37, 99, 235, 0.35) 0%, rgba(37, 99, 235, 0) 70%);
+        border-radius: 50%;
+        top: -20px;
+        animation: ambientPulse 3s ease-in-out infinite alternate;
+        pointer-events: none;
+    }
+
+    .loader-icon-wrapper {
+        position: relative;
+        width: 110px;
+        height: 110px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(37, 99, 235, 0.2);
+        margin-bottom: 24px;
+    }
+
+    .radar-sweep {
+        position: absolute;
+        inset: -2px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        border-top-color: #2563eb;
+        border-right-color: rgba(37, 99, 235, 0.3);
+        animation: radarSpin 1.2s linear infinite;
+    }
+
+    .loader-img {
+        width: 54px;
+        height: auto;
+        z-index: 2;
+        filter: drop-shadow(0 0 12px rgba(37, 99, 235, 0.6));
+        animation: logoBounce 2s ease-in-out infinite;
+    }
+
+    .loader-text h2 {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 26px;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: -0.5px;
+        margin: 0 0 6px 0;
+        text-align: center;
+    }
+
+    .loader-text h2 span {
+        color: #3b82f6;
+        background: linear-gradient(90deg, #60a5fa, #2563eb);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .status-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .status-container p {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 13px;
+        color: #94a3b8;
+        font-weight: 500;
+        margin: 0;
+        letter-spacing: 0.2px;
+    }
+
+    .status-dots {
+        display: inline-flex;
+        gap: 4px;
+    }
+
+    .dot {
+        width: 4px;
+        height: 4px;
+        background-color: #3b82f6;
+        border-radius: 50%;
+        animation: dotPulse 1.4s infinite ease-in-out both;
+    }
+
+    .dot:nth-child(1) { animation-delay: -0.32s; }
+    .dot:nth-child(2) { animation-delay: -0.16s; }
+
+    .progress-bar-container {
+        width: 100%;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .progress-bar {
+        position: absolute;
+        height: 100%;
+        width: 40%;
+        background: linear-gradient(90deg, transparent, #2563eb, #60a5fa, transparent);
+        border-radius: 10px;
+        animation: progressSlide 1.5s infinite ease-in-out;
+    }
+
+    .loader-exit {
+        opacity: 0 !important;
+        visibility: hidden !important;
+    }
+
+    @keyframes radarSpin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @keyframes logoBounce {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.06); }
+    }
+
+    @keyframes ambientPulse {
+        0% { opacity: 0.3; transform: scale(0.9); }
+        100% { opacity: 0.8; transform: scale(1.2); }
+    }
+
+    @keyframes dotPulse {
+        0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+        40% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes progressSlide {
+        0% { left: -40%; }
+        100% { left: 100%; }
+    }
+
     </style>
 </head>
 
@@ -1984,17 +2147,27 @@
     ====================================================== -->
 
     <div id="loader">
-
-        <div class="loader-logo">
-
-            <img src="{{ asset('img/Logo.png') }}" alt="GeoSync">
-
-            <h2 style="font-size:24px;margin-top:10px;">
-                Geo<span style="color:var(--azul-tech)">Sync</span>
-            </h2>
-
+        <div class="loader-content">
+            <div class="glow-effect"></div>
+            <div class="loader-icon-wrapper">
+                <div class="radar-sweep"></div>
+                <img src="{{ asset('img/Logo.png') }}" alt="GeoSync Logo" class="loader-img">
+            </div>
+            <div class="loader-text">
+                <h2>Geo<span>Sync</span></h2>
+                <div class="status-container">
+                    <span class="status-dots">
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </span>
+                    <p>Sincronizando telemetria em tempo real</p>
+                </div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar"></div>
+            </div>
         </div>
-
     </div>
 
 
@@ -2102,71 +2275,22 @@
     ====================================================== -->
 
     <div class="topbar">
-
         <div class="container flex">
-
             <div class="top-info">
-
-                <a href="https://wa.me/551994010744?text=Olá!%20Seja%20Bem-vindo(a)%20à%20GeoSync!%20Como%20posso%20ajudar?"
-                   target="_blank">
-
-                    <i class="fas fa-phone-alt"></i>
-
-                    +55 (19) 99401-0744
-
+                <a href="https://wa.me/551994010744?text=Olá!%20Seja%20Bem-vindo(a)%20à%20GeoSync!%20Como%20posso%20ajudar?" target="_blank">
+                    <i class="fas fa-phone-alt"></i> +55 (19) 99401-0744
                 </a>
-
-
-                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contatogeosync@gmail.com"
-                   target="_blank">
-
-                    <i class="fas fa-envelope"></i>
-
-                    contatogeosync@gmail.com
-
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contatogeosync@gmail.com" target="_blank">
+                    <i class="fas fa-envelope"></i> contatogeosync@gmail.com
                 </a>
-
             </div>
-
-
             <div class="top-icons">
-
-                <a href="https://www.facebook.com"
-                   target="_blank"
-                   aria-label="Facebook">
-
-                    <i class="fab fa-facebook-f"></i>
-
-                </a>
-
-                <a href="https://x.com"
-                   target="_blank"
-                   aria-label="X">
-
-                    <i class="fab fa-twitter"></i>
-
-                </a>
-
-                <a href="https://br.linkedin.com"
-                   target="_blank"
-                   aria-label="LinkedIn">
-
-                    <i class="fab fa-linkedin-in"></i>
-
-                </a>
-
-                <a href="https://www.instagram.com/geosync_tambau/"
-                   target="_blank"
-                   aria-label="Instagram">
-
-                    <i class="fab fa-instagram"></i>
-
-                </a>
-
+                <a href="https://www.facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://x.com" target="_blank"><i class="fab fa-twitter"></i></a>
+                <a href="https://br.linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                <a href="https://www.instagram.com/geosync_tambau/" target="_blank"><i class="fab fa-instagram"></i></a>
             </div>
-
         </div>
-
     </div>
 
 
@@ -2174,39 +2298,21 @@
          NAVBAR
     ====================================================== -->
 
+    <!-- NAVBAR -->
     <div class="navbar">
-
         <div class="container flex">
-
             <a href="/" class="logo">
-
-                <img src="{{ asset('img/Logo.png') }}"
-                     alt="Logo GeoSync">
-
+                <img src="{{ asset('img/Logo.png') }}" alt="Logo">
                 <span>GeoSync</span>
-
             </a>
-
-
             <div class="menu">
-
                 <a href="/">Início</a>
-
                 <a href="/about">Sobre</a>
-
                 <a href="/avaliar">Comentários</a>
-
                 <a href="/planos">Planos</a>
-
             </div>
-
-
-            <a href="/login" class="btn">
-                Área do Cliente
-            </a>
-
+            <a href="/login" class="btn">Área do Cliente</a>
         </div>
-
     </div>
 
 
@@ -3998,6 +4104,21 @@
             }
         );
 
+    </script>
+
+    <script>
+        window.addEventListener('load', function () {
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                if (!loader) return;
+                
+                loader.classList.add('loader-exit');
+                
+                setTimeout(() => {
+                    loader.remove();
+                }, 600);
+            }, 800);
+        });
     </script>
 
 </body>

@@ -74,7 +74,9 @@ class RemessaController extends Controller
         $userId = auth()->id();
 
         // SUBSTITUÍMOS 'user_id' POR 'cliente_id' (que é o nome real da coluna no seu SQL)
-        $remessas = Remessa::where('cliente_id', $userId)->get();
+        $remessas = Remessa::with('motorista')
+            ->where('cliente_id', $userId)
+            ->get();
 
         $total = Remessa::where('cliente_id', $userId)->count();
         $transito = Remessa::where('cliente_id', $userId)->where('status', 'Em trânsito')->count();
@@ -113,6 +115,7 @@ class RemessaController extends Controller
      */
     public function store(Request $request)
     {
+        abort_unless(in_array(Auth::user()->tipo, ['admin', 'cliente'], true), 403);
         $request->validate([
             'codigo_rastreio' => 'required|string|max:100|unique:remessas',
             'origem' => 'required|string|max:100',
@@ -125,6 +128,8 @@ class RemessaController extends Controller
             'motorista_id' => 'nullable|exists:users,id',
         ]);
 
+        $clienteId = Auth::user()->tipo === 'cliente' ? Auth::id() : $request->cliente_id;
+
         Remessa::create([
             'codigo_rastreio' => $request->codigo_rastreio,
             'origem' => $request->origem,
@@ -133,7 +138,7 @@ class RemessaController extends Controller
             'peso' => $request->peso,
             'previsao_entrega' => $request->previsao_entrega,
             'status' => $request->status,
-            'cliente_id' => $request->cliente_id,
+            'cliente_id' => $clienteId,
             'motorista_id' => $request->motorista_id,
         ]);
 
@@ -142,28 +147,56 @@ class RemessaController extends Controller
 
     public function index() { return redirect()->route('dashboard'); }
     public function create() { return view('cadastromercadoria'); }
-    public function show($id) { return view('welcome'); }
-    public function edit($id) { return view('welcome'); }
-    public function update(Request $request, $id) { return redirect()->back(); }
-    public function destroy($id) { return redirect()->back(); }
+    public function show($id)
+    {
+        $remessa = Remessa::with(['cliente', 'motorista', 'localizacoes'])->findOrFail($id);
+        $this->authorizeAccess($remessa);
+        return view('remessaShow', compact('remessa'));
+    }
+
+    public function edit($id)
+    {
+        $remessa = Remessa::findOrFail($id);
+        $this->authorizeManagement($remessa);
+        return view('remessaEdit', compact('remessa'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $remessa = Remessa::findOrFail($id);
+        $this->authorizeManagement($remessa);
+        $data = $this->validatedRemessa($request, $remessa->id);
+        $remessa->update($data);
+        return redirect()->route('remessas.show', $remessa)->with('success', 'Remessa atualizada com sucesso.');
+    }
+
+    public function destroy($id)
+    {
+        $remessa = Remessa::findOrFail($id);
+        $this->authorizeManagement($remessa);
+        $remessa->delete();
+        return redirect()->route('dashboard')->with('success', 'Remessa removida com sucesso.');
+    }
     
     public function aceitarRemessa(Request $request)
     {
         $request->validate(['remessa_id' => 'required|exists:remessas,id']);
+        abort_unless(Auth::user()->tipo === 'motorista', 403);
         $remessa = Remessa::findOrFail($request->remessa_id);
+        abort_if($remessa->motorista_id || $remessa->status !== 'Pendente', 422, 'Esta remessa não está disponível.');
         $remessa->update(['motorista_id' => Auth::id(), 'status' => 'Em Rota']);
         return redirect()->back()->with('success', 'Viagem aceita!');
     }
 
     public function atualizarStatus(Request $request)
     {
+        $request->validate(['remessa_id' => 'required|exists:remessas,id', 'status' => 'required|string|max:50']);
         $remessa = Remessa::findOrFail($request->remessa_id);
+        abort_unless(Auth::user()->tipo === 'admin' || $remessa->motorista_id === Auth::id(), 403);
         if($remessa->status === 'Entregue') {
             return redirect()->back()->with('error', 'Esta carga já foi entregue!');
         }
 
-        $request->validate(['remessa_id' => 'required|exists:remessas,id', 'status' => 'required|string']);
-        
         $remessa->update(['status' => $request->status]);
         return redirect()->back()->with('success', 'Status atualizado!');
     }
@@ -185,5 +218,30 @@ class RemessaController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Alerta enviado com sucesso!');
+    }
+
+    private function validatedRemessa(Request $request, ?int $id = null): array
+    {
+        return $request->validate([
+            'codigo_rastreio' => 'required|string|max:100|unique:remessas,codigo_rastreio,' . $id,
+            'origem' => 'required|string|max:100',
+            'destino' => 'required|string|max:100',
+            'tipo_carga' => 'nullable|string|max:100',
+            'peso' => 'nullable|numeric|min:0',
+            'previsao_entrega' => 'nullable|date',
+            'status' => 'required|string|max:50',
+        ]);
+    }
+
+    private function authorizeAccess(Remessa $remessa): void
+    {
+        $user = Auth::user();
+        abort_unless($user->tipo === 'admin' || $remessa->cliente_id === $user->id || $remessa->motorista_id === $user->id, 403);
+    }
+
+    private function authorizeManagement(Remessa $remessa): void
+    {
+        $this->authorizeAccess($remessa);
+        abort_unless(in_array(Auth::user()->tipo, ['admin', 'cliente'], true), 403);
     }
 }

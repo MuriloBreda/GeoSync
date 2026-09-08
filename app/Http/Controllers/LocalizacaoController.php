@@ -31,7 +31,7 @@ class LocalizacaoController extends Controller
             'remessa_id' => 'required|exists:remessas,id'
         ]);
 
-        Localizacao::create($request->all());
+        Localizacao::create($request->only(['latitude', 'longitude', 'remessa_id']));
 
         return redirect()->back()->with('success', 'Localização adicionada!');
     }
@@ -61,7 +61,7 @@ class LocalizacaoController extends Controller
         ]);
 
         $localizacao = Localizacao::findOrFail($id);
-        $localizacao->update($request->all());
+        $localizacao->update($request->only(['latitude', 'longitude']));
 
         return redirect()->route('localizacoes.index')
             ->with('success', 'Localização atualizada!');

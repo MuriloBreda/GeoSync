@@ -13,7 +13,7 @@ class ProfileController extends Controller
 
         $request->validate([
             'name' => 'required|max:255',
-            'email' => 'required|email|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'telefone' => 'nullable|max:20',
             'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
@@ -43,10 +43,9 @@ class ProfileController extends Controller
 
             $arquivo->move(public_path('uploads/perfis'), $nome);
 
-            $user->foto = 'uploads/perfis/'.$nome;
+            $data['foto'] = 'uploads/perfis/'.$nome;
         }
 
-        $user->save();
         $user->update($data);
 
         return back()->with('success', 'Perfil atualizado com sucesso!');

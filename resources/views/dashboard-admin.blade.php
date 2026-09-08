@@ -698,15 +698,45 @@
             background: var(--bg);
         }
 
+        .mobile-menu-toggle { display: none; }
+
         @media (max-width: 768px) {
             .sidebar {
                 left: -280px;
                 position: fixed;
                 width: 280px !important;
+                z-index: 1000002 !important;
             }
 
             body.sidebar-open .sidebar {
                 left: 0;
+            }
+
+            .mobile-menu-toggle {
+                display: inline-flex !important;
+                position: fixed;
+                top: 16px;
+                left: 16px;
+                z-index: 1000003;
+                width: 44px;
+                height: 44px;
+                align-items: center;
+                justify-content: center;
+                border: 0;
+                border-radius: 12px;
+                background: var(--sidebar);
+                color: #fff;
+                box-shadow: 0 8px 22px rgba(11, 31, 54, .28);
+                font-size: 1.1rem;
+            }
+
+            .mobile-menu-backdrop { display: none; }
+            body.sidebar-open .mobile-menu-backdrop {
+                display: block;
+                position: fixed;
+                inset: 0;
+                z-index: 1000001;
+                background: rgba(11, 31, 54, .45);
             }
 
             .main-content {
@@ -771,6 +801,11 @@
         </div>
 
     </div>
+
+    <button type="button" class="mobile-menu-toggle" onclick="document.body.classList.toggle('sidebar-open')" aria-label="Abrir ou fechar menu">
+        <i class="fas fa-bars"></i>
+    </button>
+    <div class="mobile-menu-backdrop" onclick="document.body.classList.remove('sidebar-open')"></div>
 
     <div class="layout">
         <aside class="sidebar">

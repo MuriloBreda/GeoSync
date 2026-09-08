@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Remessa;
+use App\Models\Alerta;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
@@ -80,13 +81,18 @@ class AdminController extends Controller
             'motoristasAtivos' => $motoristasAtivos,
             'alertasCriticos' => $alertasCriticos,
             'motoristas' => $motoristas,
-            'clientes' => $clientes
+            'clientes' => $clientes,
+            'usuarios' => User::all(),
+            'remessas' => Remessa::all(),
+            'alertas' => Alerta::latest()->get(),
         ]);
     }
 
     public function deleteUser($id)
     {
-        User::findOrFail($id)->delete();
+        $user = User::findOrFail($id);
+        abort_if($user->id === Auth::id(), 422, 'Você não pode excluir a própria conta.');
+        $user->delete();
 
         return back()->with(
             'success',
