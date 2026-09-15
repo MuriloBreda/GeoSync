@@ -3,187 +3,71 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Localizacao;
-use App\Models\Remessa;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LocalizacaoControllerApi extends Controller
 {
-    // ==========================================
-    // LISTAR TODAS AS LOCALIZAÇÕES
-    // ==========================================
-
-    public function index()
-    {
-        $localizacoes = Localizacao::all();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Localizações encontradas com sucesso.',
-            'data' => $localizacoes
-        ], 200);
-    }
-
-
-    // ==========================================
-    // CADASTRAR LOCALIZAÇÃO
-    // ==========================================
-
+    /**
+     * Recebe a localização enviada pelo ESP32/GPS
+     */
     public function store(Request $request)
     {
-        $dados = $request->validate([
+        $request->validate([
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
-            'remessa_id' => 'required|integer|exists:remessas,id'
+            'remessa_id' => 'required|integer|exists:remessas,id',
         ]);
 
-        $localizacao = Localizacao::create($dados);
+        $localizacao = DB::table('localizacoes')->insertGetId([
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'remessa_id' => $request->remessa_id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Localização cadastrada com sucesso.',
-            'data' => $localizacao
+            'message' => 'Localização recebida com sucesso!',
+            'id' => $localizacao,
+            'remessa_id' => $request->remessa_id,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
         ], 201);
     }
 
-
-    // ==========================================
-    // BUSCAR LOCALIZAÇÃO PELO ID
-    // ==========================================
-
-    public function show($id)
+    /**
+     * Retorna as localizações para o mapa
+     */
+    public function index(Request $request)
     {
-        $localizacao = Localizacao::find($id);
+        $query = DB::table('localizacoes')
+            ->join('remessas', 'localizacoes.remessa_id', '=', 'remessas.id')
+            ->select(
+                'localizacoes.id',
+                'localizacoes.latitude',
+                'localizacoes.longitude',
+                'localizacoes.remessa_id',
+                'localizacoes.created_at',
+                'remessas.codigo_rastreio',
+                'remessas.origem',
+                'remessas.destino',
+                'remessas.status'
+            );
 
-        if (!$localizacao) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Localização não encontrada.'
-            ], 404);
+        if ($request->has('remessa_id')) {
+            $query->where(
+                'localizacoes.remessa_id',
+                $request->remessa_id
+            );
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Localização encontrada com sucesso.',
-            'data' => $localizacao
-        ], 200);
-    }
-
-
-    // ==========================================
-    // ATUALIZAR LOCALIZAÇÃO
-    // ==========================================
-
-    public function update(Request $request, $id)
-    {
-        $localizacao = Localizacao::find($id);
-
-        if (!$localizacao) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Localização não encontrada.'
-            ], 404);
-        }
-
-        $dados = $request->validate([
-            'latitude' => 'sometimes|numeric|between:-90,90',
-            'longitude' => 'sometimes|numeric|between:-180,180',
-            'remessa_id' => 'sometimes|integer|exists:remessas,id'
+            'data' => $query
+                ->orderBy('localizacoes.created_at', 'desc')
+                ->get()
         ]);
-
-        $localizacao->update($dados);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Localização atualizada com sucesso.',
-            'data' => $localizacao
-        ], 200);
-    }
-
-
-    // ==========================================
-    // EXCLUIR LOCALIZAÇÃO
-    // ==========================================
-
-    public function destroy($id)
-    {
-        $localizacao = Localizacao::find($id);
-
-        if (!$localizacao) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Localização não encontrada.'
-            ], 404);
-        }
-
-        $localizacao->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Localização excluída com sucesso.'
-        ], 200);
-    }
-
-
-    // ==========================================
-    // HISTÓRICO DE UMA REMESSA
-    // ==========================================
-
-    public function porRemessa($remessa_id)
-    {
-        if (!Remessa::whereKey($remessa_id)->exists()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Remessa não encontrada.'
-            ], 404);
-        }
-
-        $localizacoes = Localizacao::where(
-            'remessa_id',
-            $remessa_id
-        )
-        ->orderBy('created_at', 'asc')
-        ->get();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Histórico de localização da remessa.',
-            'data' => $localizacoes
-        ], 200);
-    }
-
-
-    // ==========================================
-    // ÚLTIMA LOCALIZAÇÃO DE UMA REMESSA
-    // ==========================================
-
-    public function ultimaPorRemessa($remessa_id)
-    {
-        if (!Remessa::whereKey($remessa_id)->exists()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Remessa não encontrada.'
-            ], 404);
-        }
-
-        $localizacao = Localizacao::where(
-            'remessa_id',
-            $remessa_id
-        )
-        ->orderBy('created_at', 'desc')
-        ->first();
-
-        if (!$localizacao) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Nenhuma localização encontrada para esta remessa.'
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Última localização encontrada.',
-            'data' => $localizacao
-        ], 200);
     }
 }

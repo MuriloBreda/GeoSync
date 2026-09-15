@@ -18,6 +18,25 @@ CREATE TABLE users (
     updated_at TIMESTAMP NULL
 );
 
+-- 2. TABELA DE TOKENS DA API (Laravel Sanctum)
+CREATE TABLE personal_access_tokens (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tokenable_type VARCHAR(255) NOT NULL,
+    tokenable_id BIGINT UNSIGNED NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    token VARCHAR(64) NOT NULL UNIQUE,
+    abilities TEXT NULL,
+    last_used_at TIMESTAMP NULL,
+    expires_at TIMESTAMP NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+
+    INDEX personal_access_tokens_tokenable_type_tokenable_id_index (
+        tokenable_type,
+        tokenable_id
+    )
+);
+
 -- 2. TABELA DE REMESSAS (Com os IDs corretos e limpos)
 CREATE TABLE remessas (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -101,6 +120,8 @@ CREATE TABLE contatos (
 );
 
 select * from users;
+
+select * from personal_access_tokens;
 
 select * from remessas;
 

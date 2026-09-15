@@ -976,7 +976,7 @@
                         </div>
 
                         <div class="plans">
-                            <div class="plan active" onclick="selectPlan(this,'GeoSync Start',149.99)">
+                            <div class="plan" onclick="selectPlan(this,'GeoSync Start',149.99)">
                                 <strong>GeoSync Start</strong>
                                 <div class="price">R$ 149,99 <span>/mês</span></div>
                             </div>

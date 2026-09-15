@@ -79,7 +79,12 @@ class RemessaController extends Controller
             ->get();
 
         $total = Remessa::where('cliente_id', $userId)->count();
-        $transito = Remessa::where('cliente_id', $userId)->where('status', 'Em trânsito')->count();
+        $transito = $remessas->filter(function ($remessa) {
+            return in_array(
+                strtolower(trim($remessa->status)),
+                ['em rota', 'em trânsito', 'em transito']
+            );
+        })->count();
         $entregues = Remessa::where('cliente_id', $userId)->where('status', 'Entregue')->count();
         $atrasadas = Remessa::where('cliente_id', $userId)->where('status', 'Pendente')->count();
 

@@ -919,6 +919,7 @@
             font-weight: 800;
 
             margin-bottom: 14px;
+            color: white;
         }
 
         .footer p {

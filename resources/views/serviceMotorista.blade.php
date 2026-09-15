@@ -278,6 +278,64 @@
             margin-bottom: 1.5rem;
         }
 
+
+        /* DASHBOARD DO MOTORISTA */
+        .driver-hero {
+            background: linear-gradient(135deg, var(--sidebar), var(--primary));
+            border-radius: 22px;
+            padding: 2rem;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .driver-hero::after {
+            content: '';
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.06);
+            right: -90px;
+            top: -130px;
+        }
+        .driver-hero h1 { color:#fff; margin:0 0 .45rem; font-size:1.8rem; }
+        .driver-hero p { color:#cbd5e1; margin:0; max-width:620px; }
+        .driver-live { position:relative; z-index:1; display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.12); padding:12px 16px; border-radius:14px; white-space:nowrap; }
+        .driver-live .online-dot { width:9px; height:9px; margin:0; }
+        .driver-stat { position:relative; overflow:hidden; }
+        .driver-stat::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--primary-hover); }
+        .driver-stat .stat-caption { font-size:.78rem; color:var(--text-muted); margin-top:4px; }
+        .dashboard-driver-grid { display:grid; grid-template-columns:1.35fr .85fr; gap:1.5rem; margin-bottom:1.5rem; }
+        .current-trip { background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.75rem; box-shadow:var(--shadow-md); }
+        .section-kicker { color:var(--primary-hover); font-size:.75rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin-bottom:.45rem; }
+        .trip-route { display:flex; align-items:center; gap:14px; margin:1.25rem 0; }
+        .route-point { min-width:0; flex:1; }
+        .route-point span { display:block; color:var(--text-muted); font-size:.75rem; margin-bottom:4px; }
+        .route-point strong { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .route-line { flex:0 0 70px; height:2px; background:var(--border); position:relative; }
+        .route-line::after { content:'➜'; position:absolute; right:-3px; top:50%; transform:translateY(-58%); color:var(--primary-hover); background:var(--card); padding-left:5px; }
+        .trip-meta { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:1rem; }
+        .trip-meta-item { background:var(--input-bg); border:1px solid var(--border); border-radius:12px; padding:12px; }
+        .trip-meta-item small { color:var(--text-muted); display:block; margin-bottom:3px; }
+        .trip-actions { display:flex; gap:10px; margin-top:1.25rem; flex-wrap:wrap; }
+        .btn-driver { border:none; border-radius:11px; padding:11px 16px; cursor:pointer; font-weight:700; font-family:inherit; background:var(--primary); color:#fff; text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
+        .btn-driver.secondary { background:var(--input-bg); color:var(--text-main); border:1px solid var(--border); }
+        .driver-panel { background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.5rem; box-shadow:var(--shadow-md); }
+        .quick-actions { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:1rem; }
+        .quick-action { background:var(--input-bg); border:1px solid var(--border); border-radius:12px; padding:15px; cursor:pointer; text-align:left; font:inherit; color:var(--text-main); }
+        .quick-action i { color:var(--primary-hover); font-size:1.15rem; margin-bottom:9px; display:block; }
+        .quick-action strong { display:block; font-size:.88rem; }
+        .quick-action small { color:var(--text-muted); display:block; margin-top:4px; font-size:.72rem; }
+        .empty-trip { text-align:center; padding:2.3rem 1rem; color:var(--text-muted); }
+        .empty-trip i { font-size:2.3rem; color:var(--primary-hover); margin-bottom:12px; }
+        @media (max-width: 900px) { .dashboard-driver-grid { grid-template-columns:1fr; } }
+        @media (max-width: 600px) { .driver-hero { padding:1.4rem; align-items:flex-start; flex-direction:column; } .trip-route { gap:8px; } .route-line { flex-basis:32px; } .trip-meta { grid-template-columns:1fr; } .quick-actions { grid-template-columns:1fr 1fr; } }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -628,6 +686,103 @@
             z-index: 1;
         }
 
+
+        /* PAINEL DE VIAGEM / ROTA */
+        .viagem-info {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin: 18px 0;
+        }
+
+        .viagem-info-card {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 15px;
+        }
+
+        .viagem-info-card .icone {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(47, 111, 178, .12);
+            color: var(--primary-hover);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 9px;
+        }
+
+        .viagem-info-card small {
+            display: block;
+            color: var(--text-muted);
+            font-size: .72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+
+        .viagem-info-card strong {
+            display: block;
+            font-size: 1rem;
+        }
+
+        .rota-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 12px 0 0;
+            color: var(--text-muted);
+            font-size: .85rem;
+            font-weight: 600;
+        }
+
+        .destino-marker {
+            background: var(--alert-danger);
+            color: #fff;
+            width: 34px;
+            height: 34px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #fff;
+            box-shadow: 0 3px 10px rgba(0,0,0,.25);
+        }
+
+        .destino-marker i {
+            transform: rotate(45deg);
+            font-size: 14px;
+        }
+
+        .motorista-marker {
+            background: var(--primary);
+            color: #fff;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #fff;
+            box-shadow: 0 3px 12px rgba(0,0,0,.28);
+            font-size: 16px;
+        }
+
+        @media (max-width: 900px) {
+            .viagem-info {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 520px) {
+            .viagem-info {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .mobile-menu-toggle { display: none; }
 
         @media (max-width: 768px) {
@@ -791,66 +946,101 @@
 
         <main class="main-content">
 
-            <!-- ABA 1: MINHAS VIAGENS -->
+            <!-- ABA 1: PAINEL DO MOTORISTA -->
             <section id="overview" class="page active">
-                <h1 style="margin-bottom: 1.5rem;">Minhas Viagens Atribuídas</h1>
-                
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div>
-                            <h4>Total Atribuído</h4>
-                            <h2>{{ $total }}</h2>
-                        </div>
-                        <i class="fas fa-boxes-stacked" style="color: var(--alert-info)"></i>
+                @php
+                    $emRota = $remessas->filter(fn($r) => in_array(strtolower(trim($r->status ?? '')), ['em rota','em trânsito','em transito']))->count();
+                    $atrasadasMotorista = $remessas->filter(fn($r) => strtolower(trim($r->status ?? '')) === 'atrasado')->count();
+                    $viagemAtual = $remessas->first(function($r) {
+                        return !in_array(strtolower(trim($r->status ?? '')), ['entregue','concluída','concluida']);
+                    });
+                @endphp
+
+                <div class="driver-hero">
+                    <div>
+                        <h1>Olá, {{ explode(' ', trim(Auth::user()->name))[0] }}! <i class="fas fa-road"></i></h1>
+                        <p>Este é o seu centro de viagens. Acompanhe suas entregas, atualize o status e mantenha sua localização sincronizada.</p>
                     </div>
-                    <div class="stat-card">
-                        <div>
-                            <h4>Entregues</h4>
-                            <h2>{{ $entregues }}</h2>
+                    <div class="driver-live"><span class="online-dot"></span> Sistema operacional</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card driver-stat">
+                        <div><h4>Minhas Viagens</h4><h2>{{ $total ?? $remessas->count() }}</h2><div class="stat-caption">Total atribuído a você</div></div>
+                        <i class="fas fa-route" style="color:var(--primary-hover)"></i>
+                    </div>
+                    <div class="stat-card driver-stat">
+                        <div><h4>Em Rota</h4><h2>{{ $emRota }}</h2><div class="stat-caption">Viagens em andamento</div></div>
+                        <i class="fas fa-truck-fast" style="color:var(--alert-info)"></i>
+                    </div>
+                    <div class="stat-card driver-stat">
+                        <div><h4>Entregues</h4><h2>{{ $entregues ?? 0 }}</h2><div class="stat-caption">Entregas concluídas</div></div>
+                        <i class="fas fa-circle-check" style="color:var(--alert-success)"></i>
+                    </div>
+                    <div class="stat-card driver-stat">
+                        <div><h4>Ocorrências</h4><h2>{{ $atrasadasMotorista }}</h2><div class="stat-caption">Viagens com atraso</div></div>
+                        <i class="fas fa-triangle-exclamation" style="color:var(--alert-danger)"></i>
+                    </div>
+                </div>
+
+                <div class="dashboard-driver-grid">
+                    <div class="current-trip">
+                        <div class="section-kicker">Viagem em foco</div>
+                        @if($viagemAtual)
+                            <div style="display:flex;justify-content:space-between;gap:15px;align-items:flex-start;">
+                                <div><h2 style="margin:0;">#{{ $viagemAtual->codigo_rastreio }}</h2><p style="color:var(--text-muted);margin:.35rem 0 0;">Carga atribuída para acompanhamento</p></div>
+                                <span class="badge {{ $viagemAtual->status == 'Atrasado' ? 'atrasado' : ($viagemAtual->status == 'Entregue' ? 'entregue' : 'transito') }}"><i class="fas fa-circle"></i> {{ $viagemAtual->status }}</span>
+                            </div>
+                            <div class="trip-route">
+                                <div class="route-point"><span>ORIGEM</span><strong>{{ $viagemAtual->origem }}</strong></div>
+                                <div class="route-line"></div>
+                                <div class="route-point"><span>DESTINO</span><strong>{{ $viagemAtual->destino }}</strong></div>
+                            </div>
+                            <div class="trip-meta">
+                                <div class="trip-meta-item"><small>Tipo de carga</small><strong>{{ $viagemAtual->tipo_carga ?? 'Não informado' }}</strong></div>
+                                <div class="trip-meta-item"><small>Previsão</small><strong>{{ !empty($viagemAtual->previsao_entrega) ? \Carbon\Carbon::parse($viagemAtual->previsao_entrega)->format('d/m/Y') : 'Não informada' }}</strong></div>
+                            </div>
+                            <div class="trip-actions">
+                                <button class="btn-driver" onclick="showPage('localizacao', document.querySelector('[onclick*=localizacao]'))"><i class="fas fa-location-crosshairs"></i> Iniciar rastreamento</button>
+                                <button class="btn-driver secondary" onclick="showPage('status-page', document.querySelector('[onclick*=status-page]'))"><i class="fas fa-pen-to-square"></i> Atualizar status</button>
+                            </div>
+                        @else
+                            <div class="empty-trip"><i class="fas fa-truck"></i><h3 style="color:var(--text-main);margin-bottom:7px;">Nenhuma viagem ativa</h3><p>Quando uma nova remessa for atribuída, ela aparecerá aqui.</p></div>
+                        @endif
+                    </div>
+
+                    <div class="driver-panel">
+                        <div class="section-kicker">Ações rápidas</div>
+                        <h2 style="margin:0;">Controle da viagem</h2>
+                        <div class="quick-actions">
+                            <button class="quick-action" onclick="showPage('localizacao', document.querySelector('[onclick*=localizacao]'))"><i class="fas fa-map-location-dot"></i><strong>Localização</strong><small>Enviar posição</small></button>
+                            <button class="quick-action" onclick="showPage('status-page', document.querySelector('[onclick*=status-page]'))"><i class="fas fa-arrows-rotate"></i><strong>Status</strong><small>Atualizar entrega</small></button>
+                            <button class="quick-action" onclick="showPage('criar-alerta-page', document.querySelector('[onclick*=criar-alerta-page]'))"><i class="fas fa-triangle-exclamation"></i><strong>Ocorrência</strong><small>Avisar a central</small></button>
+                            <button class="quick-action" onclick="showPage('config', document.querySelector('[onclick*=config]'))"><i class="fas fa-user-gear"></i><strong>Perfil</strong><small>Configurações</small></button>
                         </div>
-                        <i class="fas fa-circle-check" style="color: var(--alert-success)"></i>
                     </div>
                 </div>
 
                 <div class="content-card">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-                        <h2>Histórico e Cargas</h2>
-                        <span style="color:var(--text-muted)">Total: {{ count($remessas) }}</span>
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:15px;">
+                        <div><div class="section-kicker">Resumo operacional</div><h2 style="margin:0;">Minhas últimas viagens</h2></div>
+                        <span style="color:var(--text-muted);font-size:.85rem;">{{ $remessas->count() }} remessas encontradas</span>
                     </div>
-
                     <div class="table-res">
                         <table>
-                            <thead>
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Origem</th>
-                                    <th>Destino</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>Rastreio</th><th>Rota</th><th>Previsão</th><th>Status</th><th>Ação</th></tr></thead>
                             <tbody>
-                                @foreach($remessas as $r)
+                                @forelse($remessas->take(6) as $r)
                                     <tr>
                                         <td><strong>#{{ $r->codigo_rastreio }}</strong></td>
-                                        <td>{{ $r->origem }}</td>
-                                        <td>{{ $r->destino }}</td>
-                                        <td>
-                                            @if($r->status == 'Entregue')
-                                                <span class="badge entregue">
-                                                    <i class="fas fa-circle-check"></i> {{ $r->status }}
-                                                </span>
-                                            @elseif($r->status == 'Atrasado')
-                                                <span class="badge atrasado">
-                                                    <i class="fas fa-circle-exclamation"></i> {{ $r->status }}
-                                                </span>
-                                            @else
-                                                <span class="badge transito">
-                                                    <i class="fas fa-truck-fast"></i> {{ $r->status }}
-                                                </span>
-                                            @endif
-                                        </td>
+                                        <td><strong>{{ $r->origem }}</strong><div style="font-size:.78rem;color:var(--text-muted);margin-top:4px;"><i class="fas fa-arrow-right"></i> {{ $r->destino }}</div></td>
+                                        <td>{{ !empty($r->previsao_entrega) ? \Carbon\Carbon::parse($r->previsao_entrega)->format('d/m/Y') : '-' }}</td>
+                                        <td>@if($r->status == 'Entregue')<span class="badge entregue"><i class="fas fa-circle-check"></i> Entregue</span>@elseif($r->status == 'Atrasado')<span class="badge atrasado"><i class="fas fa-triangle-exclamation"></i> Atrasado</span>@else<span class="badge transito"><i class="fas fa-truck-fast"></i> {{ $r->status }}</span>@endif</td>
+                                        <td><button class="btn-driver secondary" style="padding:8px 11px;" onclick="showPage('localizacao', document.querySelector('[onclick*=localizacao]'))"><i class="fas fa-map"></i></button></td>
                                     </tr>
-                                @endforeach
+                                @empty
+                                    <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:30px;">Nenhuma viagem atribuída no momento.</td></tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -886,7 +1076,16 @@
 
                         @foreach($remessas->where('status', '!=', 'Entregue') as $r)
 
-                            <option value="{{ $r->id }}">
+                            <option
+                                value="{{ $r->id }}"
+                                data-codigo="{{ $r->codigo_rastreio }}"
+                                data-origem="{{ $r->origem }}"
+                                data-destino="{{ $r->destino }}"
+                                data-status="{{ $r->status }}"
+                                data-lat-destino="{{ $r->latitude_destino ?? '' }}"
+                                data-lng-destino="{{ $r->longitude_destino ?? '' }}"
+                                data-cep-destino="{{ $r->destino_cep ?? '' }}"
+                            >
                                 #{{ $r->codigo_rastreio }}
                                 |
                                 {{ $r->origem }}
@@ -898,6 +1097,37 @@
 
                     </select>
 
+                    <!-- INFORMAÇÕES DA VIAGEM -->
+                    <div class="viagem-info" id="viagemInfo" style="display:none;">
+                        <div class="viagem-info-card">
+                            <div class="icone"><i class="fas fa-location-dot"></i></div>
+                            <small>Local atual</small>
+                            <strong id="viagemLocalAtual">Aguardando GPS</strong>
+                        </div>
+
+                        <div class="viagem-info-card">
+                            <div class="icone"><i class="fas fa-road"></i></div>
+                            <small>Distância restante</small>
+                            <strong id="viagemDistancia">--</strong>
+                        </div>
+
+                        <div class="viagem-info-card">
+                            <div class="icone"><i class="fas fa-clock"></i></div>
+                            <small>Tempo estimado</small>
+                            <strong id="viagemTempo">--</strong>
+                        </div>
+
+                        <div class="viagem-info-card">
+                            <div class="icone"><i class="fas fa-flag-checkered"></i></div>
+                            <small>Chegada estimada</small>
+                            <strong id="viagemETA">--</strong>
+                        </div>
+                    </div>
+
+                    <div class="rota-status" id="rotaStatus">
+                        <i class="fas fa-circle-info"></i>
+                        Selecione uma remessa e inicie o rastreamento para calcular a rota.
+                    </div>
 
                     <!-- MAPA -->
                     <div
@@ -1301,28 +1531,28 @@
         }
     </script>
 
-    <!-- MAPA + GPS EM TEMPO REAL -->
+    <!-- MAPA + GPS EM TEMPO REAL + ROTA DO MOTORISTA -->
     <script>
-
         let mapa = null;
         let marcador = null;
+        let marcadorDestino = null;
+        let rotaLinha = null;
         let watchId = null;
 
         let ultimaLatitude = null;
         let ultimaLongitude = null;
+        let remessaAtivaId = null;
 
+        // Cada remessa possui seu próprio destino.
+        const destinosCacheMotorista = {};
 
         // ==========================================
         // INICIALIZAR MAPA
         // ==========================================
-
         document.addEventListener("DOMContentLoaded", function () {
-
             const mapBox = document.getElementById('mapaBox');
 
-            if (!mapBox) {
-                return;
-            }
+            if (!mapBox) return;
 
             mapa = L.map('mapaBox').setView(
                 [-14.2350, -51.9253],
@@ -1336,127 +1566,132 @@
                 }
             ).addTo(mapa);
 
+            const select = document.getElementById('remessaGPS');
+
+            if (select) {
+                select.addEventListener('change', function () {
+                    prepararRemessaSelecionada(this.value);
+                });
+            }
         });
 
+        // ==========================================
+        // SELECIONAR REMESSA
+        // ==========================================
+        function prepararRemessaSelecionada(remessaId) {
+            remessaAtivaId = remessaId || null;
+
+            limparRota();
+
+            const info = document.getElementById('viagemInfo');
+            const rotaStatus = document.getElementById('rotaStatus');
+
+            if (!remessaId) {
+                if (info) info.style.display = 'none';
+
+                if (rotaStatus) {
+                    rotaStatus.innerHTML =
+                        '<i class="fas fa-circle-info"></i> Selecione uma remessa para visualizar a viagem.';
+                }
+
+                return;
+            }
+
+            if (info) info.style.display = 'grid';
+
+            const option = document.querySelector(
+                '#remessaGPS option[value="' + CSS.escape(String(remessaId)) + '"]'
+            );
+
+            if (option) {
+                const destino = option.dataset.destino || 'Destino não informado';
+
+                if (rotaStatus) {
+                    rotaStatus.innerHTML =
+                        '<i class="fas fa-location-arrow"></i> Destino: <strong>' +
+                        escaparHTML(destino) +
+                        '</strong>. Inicie o rastreamento para calcular a rota.';
+                }
+            }
+        }
 
         // ==========================================
         // INICIAR RASTREAMENTO
         // ==========================================
-
         function iniciarRastreamento() {
-
-            const remessaId =
-                document.getElementById('remessaGPS').value;
-
-            const statusSpan =
-                document.getElementById('geoStatus');
-
-
-            // Verifica se selecionou remessa
+            const remessaId = document.getElementById('remessaGPS').value;
+            const statusSpan = document.getElementById('geoStatus');
 
             if (!remessaId) {
-
                 Swal.fire({
                     icon: 'warning',
                     title: 'Selecione uma remessa',
                     text: 'Escolha a remessa que você está transportando.',
                     confirmButtonColor: '#1C3F6E'
                 });
-
                 return;
             }
 
-
-            // Em computadores sem GPS, usa uma posição aproximada pela rede/IP.
-            let fallbackPorIpAtivo = false;
-
-            const usarLocalizacaoPorIp = async () => {
-                if (fallbackPorIpAtivo) return;
-                fallbackPorIpAtivo = true;
-
-                statusSpan.style.color = 'var(--alert-info)';
-                statusSpan.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Obtendo localização aproximada pela rede...';
-
-                try {
-                    const resposta = await fetch('https://ipwho.is/');
-                    const dados = await resposta.json();
-                    const latitude = Number(dados.latitude);
-                    const longitude = Number(dados.longitude);
-
-                    if (!resposta.ok || !dados.success || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-                        throw new Error('Serviço de localização por IP indisponível.');
-                    }
-
-                    ultimaLatitude = latitude;
-                    ultimaLongitude = longitude;
-                    configurarMarcadorMapa(latitude, longitude);
-                    await enviarLocalizacao(latitude, longitude, remessaId);
-
-                    statusSpan.style.color = 'var(--alert-warning)';
-                    statusSpan.innerHTML = '<i class="fas fa-triangle-exclamation"></i> Localização aproximada por IP sincronizada.';
-                } catch (erro) {
-                    console.error('Erro ao localizar pelo IP:', erro);
-                    statusSpan.style.color = 'var(--alert-danger)';
-                    statusSpan.innerHTML = '<i class="fas fa-ban"></i> GPS e localização por IP indisponíveis.';
-                }
-            };
-
-            if (!navigator.geolocation) {
-                usarLocalizacaoPorIp();
-                return;
+            // Se já havia outro rastreamento, encerra antes de começar.
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
             }
 
-            // Verifica suporte ao GPS
+            remessaAtivaId = remessaId;
+            prepararRemessaSelecionada(remessaId);
 
-            if (!navigator.geolocation) {
+            document.getElementById('btnIniciarGPS').style.display = 'none';
+            document.getElementById('btnPararGPS').style.display = 'inline-flex';
 
-                Swal.fire({
-                    icon: 'error',
-                    title: 'GPS indisponível',
-                    text: 'Seu navegador não possui suporte à localização.'
-                });
-
-                return;
-            }
-
-
-            statusSpan.style.color =
-                'var(--alert-info)';
-
+            statusSpan.style.color = 'var(--alert-info)';
             statusSpan.innerHTML =
                 '<i class="fas fa-spinner fa-spin"></i> Obtendo localização...';
 
+            // Se o navegador não possui geolocalização, usa a posição aproximada por IP.
+            if (!navigator.geolocation) {
+                usarLocalizacaoPorIp(remessaId);
+                return;
+            }
 
-            document.getElementById('btnIniciarGPS').style.display =
-                'none';
-
-            document.getElementById('btnPararGPS').style.display =
-                'inline-flex';
-
-
-            // Registra uma posição já no início, sem aguardar a próxima atualização.
+            // Obtém uma posição imediatamente.
             navigator.geolocation.getCurrentPosition(
-                (position) => {
+                async function (position) {
+                    if (remessaAtivaId !== remessaId) return;
+
                     const latitude = position.coords.latitude;
                     const longitude = position.coords.longitude;
+
                     ultimaLatitude = latitude;
                     ultimaLongitude = longitude;
+
                     configurarMarcadorMapa(latitude, longitude);
-                    enviarLocalizacao(latitude, longitude, remessaId);
+                    await enviarLocalizacao(latitude, longitude, remessaId);
+                    calcularRotaReal(latitude, longitude, remessaId);
                 },
-                () => usarLocalizacaoPorIp(),
-                { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 }
+                function (error) {
+                    console.error('Erro inicial do GPS:', error);
+
+                    // Só usa IP como fallback quando o GPS não conseguiu obter posição.
+                    if ([1, 2, 3].includes(error.code)) {
+                        usarLocalizacaoPorIp(remessaId);
+                    }
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 30000
+                }
             );
 
             // ==========================================
             // WATCH POSITION
             // ==========================================
-
             watchId = navigator.geolocation.watchPosition(
+                async function (position) {
+                    if (remessaAtivaId !== remessaId) return;
 
-                function (position) {
-
-                    console.log("GPS recebido:", position);
+                    console.log('GPS recebido:', position);
 
                     const latitude = position.coords.latitude;
                     const longitude = position.coords.longitude;
@@ -1464,64 +1699,46 @@
                     ultimaLatitude = latitude;
                     ultimaLongitude = longitude;
 
-                    configurarMarcadorMapa(
-                        latitude,
-                        longitude
-                    );
+                    configurarMarcadorMapa(latitude, longitude);
 
-                    enviarLocalizacao(
-                        latitude,
-                        longitude,
-                        remessaId
-                    );
+                    await enviarLocalizacao(latitude, longitude, remessaId);
 
+                    // Recalcula a rota a cada atualização do GPS.
+                    calcularRotaReal(latitude, longitude, remessaId);
                 },
 
                 function (error) {
+                    console.error('ERRO COMPLETO DO GPS:', error);
 
-                    console.error(
-                        "ERRO COMPLETO DO GPS:",
-                        error
-                    );
+                    const statusSpan = document.getElementById('geoStatus');
 
                     if ([1, 2, 3].includes(error.code)) {
-                        usarLocalizacaoPorIp();
+                        usarLocalizacaoPorIp(remessaId);
                         return;
                     }
 
                     switch (error.code) {
-
                         case 1:
-
                             statusSpan.innerHTML =
                                 '<i class="fas fa-ban"></i> Permissão de localização negada.';
-
                             break;
 
                         case 2:
-
                             statusSpan.innerHTML =
                                 '<i class="fas fa-location-dot"></i> Localização indisponível.';
-
                             break;
 
                         case 3:
-
                             statusSpan.innerHTML =
                                 '<i class="fas fa-clock"></i> Tempo limite para obter GPS.';
-
                             break;
 
                         default:
-
                             statusSpan.innerHTML =
                                 '<i class="fas fa-circle-xmark"></i> Erro desconhecido no GPS.';
-
                     }
 
-                    statusSpan.style.color =
-                        'var(--alert-danger)';
-
+                    statusSpan.style.color = 'var(--alert-danger)';
                 },
 
                 {
@@ -1529,246 +1746,564 @@
                     maximumAge: 5000,
                     timeout: 30000
                 }
-
             );
-
         }
 
+        // ==========================================
+        // FALLBACK POR IP
+        // ==========================================
+        let fallbackPorIpAtivo = false;
+
+        async function usarLocalizacaoPorIp(remessaId) {
+            if (fallbackPorIpAtivo || remessaAtivaId !== remessaId) return;
+
+            fallbackPorIpAtivo = true;
+
+            const statusSpan = document.getElementById('geoStatus');
+
+            statusSpan.style.color = 'var(--alert-info)';
+            statusSpan.innerHTML =
+                '<i class="fas fa-spinner fa-spin"></i> Obtendo localização aproximada pela rede...';
+
+            try {
+                const resposta = await fetch('https://ipwho.is/');
+                const dados = await resposta.json();
+
+                const latitude = Number(dados.latitude);
+                const longitude = Number(dados.longitude);
+
+                if (
+                    !resposta.ok ||
+                    !dados.success ||
+                    !Number.isFinite(latitude) ||
+                    !Number.isFinite(longitude)
+                ) {
+                    throw new Error('Serviço de localização por IP indisponível.');
+                }
+
+                if (remessaAtivaId !== remessaId) return;
+
+                ultimaLatitude = latitude;
+                ultimaLongitude = longitude;
+
+                configurarMarcadorMapa(latitude, longitude);
+
+                await enviarLocalizacao(latitude, longitude, remessaId);
+
+                calcularRotaReal(latitude, longitude, remessaId);
+
+                statusSpan.style.color = 'var(--alert-warning)';
+                statusSpan.innerHTML =
+                    '<i class="fas fa-triangle-exclamation"></i> Localização aproximada por IP sincronizada.';
+            } catch (erro) {
+                console.error('Erro ao localizar pelo IP:', erro);
+
+                statusSpan.style.color = 'var(--alert-danger)';
+                statusSpan.innerHTML =
+                    '<i class="fas fa-ban"></i> GPS e localização por IP indisponíveis.';
+            } finally {
+                fallbackPorIpAtivo = false;
+            }
+        }
 
         // ==========================================
         // PARAR RASTREAMENTO
         // ==========================================
-
         function pararRastreamento() {
-
             if (watchId !== null) {
-
-                navigator.geolocation.clearWatch(
-                    watchId
-                );
-
+                navigator.geolocation.clearWatch(watchId);
                 watchId = null;
-
             }
 
+            const statusSpan = document.getElementById('geoStatus');
 
-            const statusSpan =
-                document.getElementById('geoStatus');
-
-
-            statusSpan.style.color =
-                'var(--text-muted)';
-
+            statusSpan.style.color = 'var(--text-muted)';
             statusSpan.innerHTML =
                 '<i class="fas fa-location-dot"></i> GPS parado';
 
+            document.getElementById('btnIniciarGPS').style.display = 'inline-flex';
+            document.getElementById('btnPararGPS').style.display = 'none';
 
-            document.getElementById('btnIniciarGPS').style.display =
-                'inline-flex';
+            const rotaStatus = document.getElementById('rotaStatus');
 
-            document.getElementById('btnPararGPS').style.display =
-                'none';
-
+            if (rotaStatus && remessaAtivaId) {
+                rotaStatus.innerHTML =
+                    '<i class="fas fa-pause-circle"></i> Rastreamento pausado. A última posição continua no mapa.';
+            }
         }
 
-
         // ==========================================
-        // CONFIGURAR MARCADOR
+        // MARCADOR DO MOTORISTA
         // ==========================================
+        function configurarMarcadorMapa(lat, lon) {
+            if (!mapa) return;
 
-        function configurarMarcadorMapa(
-            lat,
-            lon
-        ) {
+            const statusSpan = document.getElementById('geoStatus');
 
-            if (!mapa) {
-                return;
-            }
-
-
-            const statusSpan =
-                document.getElementById('geoStatus');
-
-
-            statusSpan.style.color =
-                'var(--alert-success)';
-
-
+            statusSpan.style.color = 'var(--alert-success)';
             statusSpan.innerHTML =
                 '<i class="fas fa-circle-check"></i> GPS conectado';
 
-
-            // Atualiza marcador existente
+            const iconeMotorista = L.divIcon({
+                className: '',
+                html: '<div class="motorista-marker"><i class="fas fa-truck"></i></div>',
+                iconSize: [38, 38],
+                iconAnchor: [19, 19],
+                popupAnchor: [0, -20]
+            });
 
             if (marcador) {
-
-                marcador.setLatLng([
-                    lat,
-                    lon
-                ]);
-
+                marcador.setLatLng([lat, lon]);
+                marcador.setIcon(iconeMotorista);
+            } else {
+                marcador = L.marker([lat, lon], {
+                    icon: iconeMotorista
+                }).addTo(mapa);
             }
 
-            // Cria marcador
-
-            else {
-
-                marcador = L.marker([
-                    lat,
-                    lon
-                ])
-                .addTo(mapa);
-
-            }
-
-
-            marcador
-                .bindPopup(
-                    '<b>Localização atual</b><br>' +
-                    'GPS sincronizado.'
-                );
-
-
-            mapa.setView(
-                [lat, lon],
-                15
+            marcador.bindPopup(
+                '<b>Você está aqui</b><br>Localização do motorista.'
             );
 
+            document.getElementById('infoGPS').style.display = 'block';
 
-            // Informações
-
-            document.getElementById(
-                'infoGPS'
-            ).style.display = 'block';
-
-
-            document.getElementById(
-                'latitudeAtual'
-            ).textContent =
+            document.getElementById('latitudeAtual').textContent =
                 lat.toFixed(8);
 
-
-            document.getElementById(
-                'longitudeAtual'
-            ).textContent =
+            document.getElementById('longitudeAtual').textContent =
                 lon.toFixed(8);
 
+            const agora = new Date();
 
-            const agora =
-                new Date();
-
-
-            document.getElementById(
-                'ultimaSincronizacao'
-            ).textContent =
+            document.getElementById('ultimaSincronizacao').textContent =
                 agora.toLocaleTimeString('pt-BR');
 
+            const localAtual = document.getElementById('viagemLocalAtual');
+
+            if (localAtual) {
+                localAtual.textContent =
+                    lat.toFixed(5) + ', ' + lon.toFixed(5);
+            }
         }
 
+        // ==========================================
+        // DESTINO DA REMESSA
+        // ==========================================
+        // Primeiro usa latitude/longitude salvas na remessa.
+        // Assim o mapa nunca precisa adivinhar a cidade pelo texto.
+        // Para remessas antigas sem coordenadas, tenta geocodificar o endereço.
+        async function obterCoordenadasDestino(destino, remessaId) {
+            if (destinosCacheMotorista[remessaId]) {
+                return destinosCacheMotorista[remessaId];
+            }
+
+            const option = document.querySelector(
+                '#remessaGPS option[value="' + CSS.escape(String(remessaId)) + '"]'
+            );
+
+            if (!option) {
+                throw new Error('Remessa não encontrada.');
+            }
+
+            const latSalva = Number(option.dataset.latDestino);
+            const lngSalva = Number(option.dataset.lngDestino);
+
+            // CAMINHO PRINCIPAL: coordenadas exatas cadastradas pelo administrador.
+            if (
+                Number.isFinite(latSalva) &&
+                Number.isFinite(lngSalva) &&
+                latSalva >= -35 &&
+                latSalva <= 6 &&
+                lngSalva >= -75 &&
+                lngSalva <= -30
+            ) {
+                const coordenadasSalvas = {
+                    lat: latSalva,
+                    lon: lngSalva,
+                    nome: destino || 'Destino da remessa',
+                    origem: 'Coordenadas cadastradas na remessa'
+                };
+
+                destinosCacheMotorista[remessaId] = coordenadasSalvas;
+                return coordenadasSalvas;
+            }
+
+            // FALLBACK: remessa antiga sem latitude/longitude.
+            if (!destino) {
+                throw new Error('Esta remessa não possui destino informado.');
+            }
+
+            const cep = String(option.dataset.cepDestino || '')
+                .replace(/\D/g, '');
+
+            const consultas = [];
+
+            // O CEP reduz bastante a chance de escolher outra cidade.
+            if (cep.length === 8) {
+                consultas.push(cep + ', Brasil');
+            }
+
+            consultas.push(destino + ', Brasil');
+
+            let ultimoErro = null;
+
+            for (const consulta of consultas) {
+                try {
+                    const params = new URLSearchParams({
+                        q: consulta,
+                        format: 'jsonv2',
+                        addressdetails: '1',
+                        limit: '1',
+                        countrycodes: 'br'
+                    });
+
+                    const resposta = await fetch(
+                        'https://nominatim.openstreetmap.org/search?' + params.toString(),
+                        { headers: { 'Accept': 'application/json' } }
+                    );
+
+                    if (!resposta.ok) {
+                        throw new Error('Serviço de geocodificação indisponível.');
+                    }
+
+                    const resultados = await resposta.json();
+
+                    if (!Array.isArray(resultados) || resultados.length === 0) {
+                        throw new Error('Endereço não encontrado.');
+                    }
+
+                    const resultado = resultados[0];
+                    const lat = Number(resultado.lat);
+                    const lon = Number(resultado.lon);
+
+                    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+                        throw new Error('Coordenadas do destino inválidas.');
+                    }
+
+                    const coordenadas = {
+                        lat: lat,
+                        lon: lon,
+                        nome: resultado.display_name || destino,
+                        origem: 'Geocodificação do endereço'
+                    };
+
+                    destinosCacheMotorista[remessaId] = coordenadas;
+                    return coordenadas;
+
+                } catch (erro) {
+                    ultimoErro = erro;
+                }
+            }
+
+            throw ultimoErro || new Error(
+                'Não foi possível localizar o endereço do destino.'
+            );
+        }
+
+        // ==========================================
+        // CALCULAR ROTA REAL PELAS ESTRADAS
+        // ==========================================
+        async function calcularRotaReal(lat, lon, remessaId) {
+            if (!mapa || !remessaId) return;
+
+            const remessaDaRota = String(remessaId);
+
+            if (String(remessaAtivaId) !== remessaDaRota) return;
+
+            const option = document.querySelector(
+                '#remessaGPS option[value="' + CSS.escape(remessaDaRota) + '"]'
+            );
+
+            if (!option) return;
+
+            const destinoTexto = option.dataset.destino || '';
+
+            if (!destinoTexto) return;
+
+            const rotaStatus = document.getElementById('rotaStatus');
+
+            try {
+                if (rotaStatus) {
+                    rotaStatus.innerHTML =
+                        '<i class="fas fa-spinner fa-spin"></i> Calculando rota até ' +
+                        escaparHTML(destinoTexto) + '...';
+                }
+
+                const destino = await obterCoordenadasDestino(
+                    destinoTexto,
+                    remessaDaRota
+                );
+
+                if (rotaStatus) {
+                    const fonte = destino.origem === 'Coordenadas cadastradas na remessa'
+                        ? 'Destino exato cadastrado'
+                        : 'Destino localizado pelo endereço';
+
+                    rotaStatus.innerHTML =
+                        '<i class="fas fa-location-dot"></i> ' +
+                        escaparHTML(fonte) +
+                        ': <strong>' +
+                        escaparHTML(destinoTexto) +
+                        '</strong>';
+                }
+
+                // Impede que uma resposta antiga desenhe a rota de outra remessa.
+                if (String(remessaAtivaId) !== remessaDaRota) return;
+
+                const url =
+                    'https://router.project-osrm.org/route/v1/driving/' +
+                    lon + ',' + lat + ';' +
+                    destino.lon + ',' + destino.lat +
+                    '?overview=full&geometries=geojson';
+
+                const resposta = await fetch(url);
+
+                if (!resposta.ok) {
+                    throw new Error('Servidor de rotas indisponível.');
+                }
+
+                const dados = await resposta.json();
+
+                if (
+                    !dados.routes ||
+                    !dados.routes.length ||
+                    String(remessaAtivaId) !== remessaDaRota
+                ) {
+                    throw new Error('Rota não encontrada.');
+                }
+
+                const rota = dados.routes[0];
+
+                // Remove a rota anterior.
+                if (rotaLinha) {
+                    mapa.removeLayer(rotaLinha);
+                }
+
+                rotaLinha = L.geoJSON(rota.geometry, {
+                    style: {
+                        weight: 6,
+                        opacity: 0.85
+                    }
+                }).addTo(mapa);
+
+                // Marcador do destino.
+                const iconeDestino = L.divIcon({
+                    className: '',
+                    html: '<div class="destino-marker"><i class="fas fa-flag"></i></div>',
+                    iconSize: [34, 34],
+                    iconAnchor: [17, 34],
+                    popupAnchor: [0, -34]
+                });
+
+                if (marcadorDestino) {
+                    marcadorDestino.setLatLng([
+                        destino.lat,
+                        destino.lon
+                    ]);
+                    marcadorDestino.setIcon(iconeDestino);
+                } else {
+                    marcadorDestino = L.marker(
+                        [destino.lat, destino.lon],
+                        { icon: iconeDestino }
+                    ).addTo(mapa);
+                }
+
+                marcadorDestino.bindPopup(
+                    '<b>Destino</b><br>' +
+                    escaparHTML(destinoTexto)
+                );
+
+                // Distância em km.
+                const distanciaKm = rota.distance / 1000;
+
+                // Duração em minutos.
+                const duracaoMin = Math.max(
+                    1,
+                    Math.round(rota.duration / 60)
+                );
+
+                document.getElementById('viagemDistancia').textContent =
+                    formatarDistancia(distanciaKm);
+
+                document.getElementById('viagemTempo').textContent =
+                    formatarDuracao(duracaoMin);
+
+                const eta = new Date(
+                    Date.now() + rota.duration * 1000
+                );
+
+                document.getElementById('viagemETA').textContent =
+                    eta.toLocaleTimeString('pt-BR', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                if (rotaStatus) {
+                    rotaStatus.innerHTML =
+                        '<i class="fas fa-route"></i> Rota ativa até <strong>' +
+                        escaparHTML(destinoTexto) +
+                        '</strong>. Última atualização: ' +
+                        new Date().toLocaleTimeString('pt-BR');
+                }
+
+                // Enquadra motorista + destino + rota.
+                const grupo = L.featureGroup([
+                    marcador,
+                    marcadorDestino,
+                    rotaLinha
+                ].filter(Boolean));
+
+                mapa.fitBounds(grupo.getBounds(), {
+                    padding: [35, 35]
+                });
+
+            } catch (erro) {
+                console.error('Erro ao calcular rota:', erro);
+
+                if (String(remessaAtivaId) !== remessaDaRota) return;
+
+                if (rotaStatus) {
+                    rotaStatus.innerHTML =
+                        '<i class="fas fa-triangle-exclamation"></i> ' +
+                        escaparHTML(erro.message || 'Não foi possível calcular a rota.');
+                }
+            }
+        }
+
+        // ==========================================
+        // FORMATADORES
+        // ==========================================
+        function formatarDistancia(km) {
+            if (!Number.isFinite(km)) return '--';
+
+            if (km < 1) {
+                return Math.round(km * 1000) + ' m';
+            }
+
+            return km.toLocaleString('pt-BR', {
+                minimumFractionDigits: km < 10 ? 1 : 0,
+                maximumFractionDigits: 1
+            }) + ' km';
+        }
+
+        function formatarDuracao(minutos) {
+            if (!Number.isFinite(minutos)) return '--';
+
+            const horas = Math.floor(minutos / 60);
+            const mins = minutos % 60;
+
+            if (horas <= 0) {
+                return mins + ' min';
+            }
+
+            if (mins === 0) {
+                return horas + (horas === 1 ? ' hora' : ' horas');
+            }
+
+            return horas + (horas === 1 ? ' hora e ' : ' horas e ') +
+                mins + ' min';
+        }
+
+        function escaparHTML(valor) {
+            return String(valor ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // ==========================================
+        // LIMPAR ROTA
+        // ==========================================
+        function limparRota() {
+            if (!mapa) return;
+
+            if (rotaLinha) {
+                mapa.removeLayer(rotaLinha);
+                rotaLinha = null;
+            }
+
+            if (marcadorDestino) {
+                mapa.removeLayer(marcadorDestino);
+                marcadorDestino = null;
+            }
+
+            if (marcador) {
+                mapa.removeLayer(marcador);
+                marcador = null;
+            }
+
+            ultimaLatitude = null;
+            ultimaLongitude = null;
+
+            const distancia = document.getElementById('viagemDistancia');
+            const tempo = document.getElementById('viagemTempo');
+            const eta = document.getElementById('viagemETA');
+            const local = document.getElementById('viagemLocalAtual');
+
+            if (distancia) distancia.textContent = '--';
+            if (tempo) tempo.textContent = '--';
+            if (eta) eta.textContent = '--';
+            if (local) local.textContent = 'Aguardando GPS';
+        }
 
         // ==========================================
         // ENVIAR LOCALIZAÇÃO PARA API
         // ==========================================
-
-        async function enviarLocalizacao(
-            latitude,
-            longitude,
-            remessaId
-        ) {
-
-            const statusSpan =
-                document.getElementById('geoStatus');
-
+        async function enviarLocalizacao(latitude, longitude, remessaId) {
+            const statusSpan = document.getElementById('geoStatus');
 
             try {
+                const resposta = await fetch(
+                    '/api/localizacao',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            latitude: latitude,
+                            longitude: longitude,
+                            remessa_id: remessaId
+                        })
+                    }
+                );
 
-                const resposta =
-                    await fetch(
-                        '/api/localizacao',
-                        {
-
-                            method: 'POST',
-
-                            headers: {
-
-                                'Content-Type':
-                                    'application/json',
-
-                                'Accept':
-                                    'application/json'
-
-                            },
-
-                            body: JSON.stringify({
-
-                                latitude:
-                                    latitude,
-
-                                longitude:
-                                    longitude,
-
-                                remessa_id:
-                                    remessaId
-
-                            })
-
-                        }
-                    );
-
-
-                const dados =
-                    await resposta.json();
-
+                const dados = await resposta.json();
 
                 if (!resposta.ok) {
+                    console.error('Erro da API:', dados);
 
-                    console.error(
-                        'Erro da API:',
-                        dados
-                    );
-
-                    statusSpan.style.color =
-                        'var(--alert-danger)';
-
+                    statusSpan.style.color = 'var(--alert-danger)';
                     statusSpan.innerHTML =
                         '<i class="fas fa-circle-xmark"></i> Erro ao sincronizar GPS';
 
                     return;
                 }
 
+                console.log('Localização enviada:', dados);
 
-                console.log(
-                    'Localização enviada:',
-                    dados
-                );
-
-
-                statusSpan.style.color =
-                    'var(--alert-success)';
-
+                statusSpan.style.color = 'var(--alert-success)';
                 statusSpan.innerHTML =
                     '<i class="fas fa-circle-check"></i> Localização sincronizada';
 
+            } catch (erro) {
+                console.error('Erro ao enviar localização:', erro);
 
-            }
-            catch (erro) {
-
-                console.error(
-                    'Erro ao enviar localização:',
-                    erro
-                );
-
-
-                statusSpan.style.color =
-                    'var(--alert-danger)';
-
+                statusSpan.style.color = 'var(--alert-danger)';
                 statusSpan.innerHTML =
                     '<i class="fas fa-wifi"></i> Erro de conexão com o servidor';
-
             }
-
         }
 
+        // Se a página for fechada, encerra o watch do navegador.
+        window.addEventListener('beforeunload', function () {
+            if (watchId !== null && navigator.geolocation) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+        });
     </script>
 
     <!-- PAINEL DE ACESSIBILIDADE E TEMAS -->

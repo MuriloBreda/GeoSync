@@ -39,6 +39,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('avaliacoes', [AvaliacaoControllerApi::class, 'store']);
 });
 
+Route::post('/localizacao', [LocalizacaoControllerApi::class, 'store']);
+Route::get('/localizacao', [LocalizacaoControllerApi::class, 'index']);
+
 
 // LISTAR TODAS
 Route::get('/localizacao', [

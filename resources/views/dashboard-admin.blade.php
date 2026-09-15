@@ -447,6 +447,106 @@
             text-align: left;
         }
 
+        /* ===== ENDEREÇO DE DESTINO / CEP ===== */
+        .destino-box {
+            grid-column: 1 / -1;
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--input-bg);
+            margin-top: 2px;
+        }
+
+        .destino-box-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        .destino-box-header h4 {
+            margin: 0 0 4px;
+            font-size: .95rem;
+            color: var(--text-main);
+        }
+
+        .destino-box-header p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: .74rem;
+            line-height: 1.45;
+        }
+
+        .cep-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: .72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .cep-status.success { color: #059669; }
+        .cep-status.error { color: #dc2626; }
+        .cep-status.loading { color: var(--primary-hover); }
+
+        .destino-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr 1.5fr;
+            gap: 12px;
+        }
+
+        .destino-grid .wide {
+            grid-column: span 2;
+        }
+
+        .destino-grid .full {
+            grid-column: 1 / -1;
+        }
+
+        .destino-coord-status {
+            margin-top: 2px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(59,130,246,.08);
+            border: 1px solid rgba(59,130,246,.15);
+            color: var(--text-muted);
+            font-size: .72rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .destino-coord-status.ok {
+            background: rgba(16,185,129,.08);
+            border-color: rgba(16,185,129,.18);
+            color: #059669;
+        }
+
+        .destino-coord-status.error {
+            background: rgba(239,68,68,.08);
+            border-color: rgba(239,68,68,.18);
+            color: #dc2626;
+        }
+
+        .map-route-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            color: var(--text-muted);
+            font-size: .72rem;
+        }
+
+        @media (max-width: 768px) {
+            .destino-grid { grid-template-columns: 1fr; }
+            .destino-grid .wide, .destino-grid .full { grid-column: 1; }
+            .destino-box-header { flex-direction: column; }
+            .cep-status { white-space: normal; }
+        }
+
         .full {
             grid-column: 1 / -1;
         }
@@ -757,6 +857,115 @@
             position: relative;
             height: 380px;
         }
+
+
+        /* ===== NOVO DASHBOARD ADMINISTRATIVO ===== */
+        .admin-dashboard-header {
+            display:flex;
+            align-items:flex-end;
+            justify-content:space-between;
+            gap:20px;
+            margin-bottom:24px;
+        }
+        .admin-dashboard-header .eyebrow {
+            display:flex;
+            align-items:center;
+            gap:8px;
+            color:var(--primary-hover);
+            font-size:.78rem;
+            font-weight:800;
+            text-transform:uppercase;
+            letter-spacing:1.2px;
+            margin-bottom:7px;
+        }
+        .admin-dashboard-header .eyebrow .online-dot { margin-right:0; width:7px; height:7px; }
+        .admin-dashboard-header h1 { margin:0 0 7px; font-size:2rem; letter-spacing:-.7px; }
+        .admin-dashboard-header p { color:var(--text-muted); font-size:.92rem; margin:0; }
+        .admin-header-actions { display:flex; gap:10px; flex-wrap:wrap; }
+        .admin-quick-btn {
+            border:1px solid var(--border); background:var(--card); color:var(--text-main);
+            padding:11px 15px; border-radius:11px; text-decoration:none; font-weight:700;
+            display:inline-flex; align-items:center; gap:8px; transition:.2s; box-shadow:var(--shadow-sm);
+            cursor:pointer;
+        }
+        .admin-quick-btn:hover { border-color:var(--primary-hover); color:var(--primary-hover); transform:translateY(-1px); }
+        .admin-quick-btn.primary { background:var(--primary); color:#fff; border-color:var(--primary); }
+        .admin-quick-btn.primary:hover { background:var(--primary-hover); color:#fff; }
+
+        .admin-kpi-grid {
+            display:grid;
+            grid-template-columns:repeat(5, minmax(0,1fr));
+            gap:14px;
+            margin-bottom:18px;
+        }
+        .admin-kpi {
+            position:relative; overflow:hidden; background:var(--card); border:1px solid var(--border);
+            border-radius:16px; padding:18px; box-shadow:var(--shadow-sm); min-height:126px;
+        }
+        .admin-kpi::before { content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--kpi-color,var(--primary)); }
+        .admin-kpi-top { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+        .admin-kpi-label { color:var(--text-muted); font-size:.74rem; font-weight:800; text-transform:uppercase; letter-spacing:.55px; }
+        .admin-kpi-icon {
+            width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center;
+            color:var(--kpi-color,var(--primary)); background:color-mix(in srgb, var(--kpi-color,var(--primary)) 10%, transparent); font-size:1rem;
+        }
+        .admin-kpi-value { font-size:1.85rem; font-weight:800; margin-top:15px; letter-spacing:-.5px; }
+        .admin-kpi-note { color:var(--text-muted); font-size:.73rem; margin-top:3px; }
+
+        .admin-dashboard-grid { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(310px,.85fr); gap:18px; margin-bottom:18px; }
+        .admin-panel { background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-sm); overflow:hidden; }
+        .admin-panel-head { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:18px 20px 10px; }
+        .admin-panel-head h3 { margin:0; font-size:1rem; }
+        .admin-panel-head p { margin:4px 0 0; color:var(--text-muted); font-size:.75rem; }
+        .admin-panel-body { padding:10px 20px 20px; }
+        .admin-chart-box { height:300px; position:relative; }
+        .admin-chart-box canvas { width:100% !important; height:100% !important; }
+        .admin-status-list { display:flex; flex-direction:column; gap:12px; padding-top:6px; }
+        .admin-status-row { display:grid; grid-template-columns:125px 1fr 36px; align-items:center; gap:10px; }
+        .admin-status-name { font-size:.78rem; color:var(--text-muted); font-weight:700; }
+        .admin-status-bar { height:8px; background:var(--input-bg); border-radius:99px; overflow:hidden; border:1px solid var(--border); }
+        .admin-status-fill { height:100%; border-radius:99px; background:var(--status-color,var(--primary-hover)); min-width:0; }
+        .admin-status-number { font-size:.8rem; font-weight:800; text-align:right; }
+        .admin-health { margin-top:18px; padding:13px 14px; border-radius:12px; background:rgba(16,185,129,.08); border:1px solid rgba(16,185,129,.18); display:flex; align-items:center; gap:10px; }
+        .admin-health i { color:var(--alert-success); }
+        .admin-health strong { font-size:.8rem; }
+        .admin-health span { display:block; color:var(--text-muted); font-size:.7rem; margin-top:2px; }
+
+        .admin-bottom-grid { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(300px,.8fr); gap:18px; }
+        .admin-table { width:100%; min-width:0; }
+        .admin-table th { background:transparent; padding:10px 12px; font-size:.68rem; }
+        .admin-table td { padding:12px; font-size:.78rem; }
+        .admin-table tbody tr:last-child td { border-bottom:0; }
+        .admin-route { color:var(--text-muted); font-size:.72rem; white-space:nowrap; }
+        .admin-code { font-weight:800; color:var(--primary); white-space:nowrap; }
+        .admin-mini-alert { display:flex; gap:11px; padding:12px 0; border-bottom:1px solid var(--border); }
+        .admin-mini-alert:last-child { border-bottom:0; }
+        .admin-mini-alert-icon { width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; background:#fee2e2; color:#dc2626; }
+        .admin-mini-alert strong { display:block; font-size:.78rem; }
+        .admin-mini-alert p { color:var(--text-muted); font-size:.7rem; margin:3px 0 0; line-height:1.45; }
+        .admin-mini-alert small { display:block; color:var(--text-muted); font-size:.65rem; margin-top:4px; }
+        .admin-empty { text-align:center; color:var(--text-muted); padding:35px 10px; font-size:.8rem; }
+        .admin-see-all { color:var(--primary-hover); text-decoration:none; font-size:.72rem; font-weight:800; }
+        .admin-see-all:hover { text-decoration:underline; }
+
+        @media (max-width:1200px) {
+            .admin-kpi-grid { grid-template-columns:repeat(3,1fr); }
+            .admin-dashboard-grid, .admin-bottom-grid { grid-template-columns:1fr; }
+        }
+        @media (max-width:768px) {
+            .admin-dashboard-header { align-items:flex-start; flex-direction:column; padding-top:48px; }
+            .admin-dashboard-header h1 { font-size:1.55rem; }
+            .admin-kpi-grid { grid-template-columns:1fr 1fr; gap:10px; }
+            .admin-kpi { min-height:112px; padding:15px; }
+            .admin-kpi-value { font-size:1.55rem; }
+            .admin-panel-head, .admin-panel-body { padding-left:14px; padding-right:14px; }
+            .admin-status-row { grid-template-columns:95px 1fr 30px; }
+            .admin-table { min-width:620px; }
+            .admin-header-actions { width:100%; }
+            .admin-quick-btn { flex:1; justify-content:center; }
+        }
+        @media (max-width:480px) { .admin-kpi-grid { grid-template-columns:1fr; } }
+
     </style>
 </head>
 
@@ -888,41 +1097,109 @@
         <!-- CONTEÚDO PRINCIPAL -->
         <main class="main-content">
 
-            <!-- ABA 1: OVERVIEW -->
+            <!-- ABA 1: DASHBOARD ADMINISTRATIVO -->
             <section id="dashboard" class="page active">
-                <h1 style="margin-bottom: 1.5rem;">Visão Geral da Operação</h1>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div>
-                            <h4>Cargas Ativas</h4>
-                            <h2>{{ $total ?? 0 }}</h2>
-                        </div>
-                        <i class="fas fa-boxes-stacked" style="color: var(--alert-info)"></i>
+                <div class="admin-dashboard-header">
+                    <div>
+                        <div class="eyebrow"><span class="online-dot"></span> Central de Controle</div>
+                        <h1>Visão Geral da Operação</h1>
+                        <p>Acompanhe usuários, remessas, motoristas e ocorrências do GeoSync em um só lugar.</p>
                     </div>
-                    <div class="stat-card">
-                        <div>
-                            <h4>Motoristas Ativos</h4>
-                            <h2>{{ $motoristasAtivos ?? 0 }}</h2>
-                        </div>
-                        <i class="fas fa-truck-moving" style="color: var(--alert-success)"></i>
-                    </div>
-                    <div class="stat-card">
-                        <div>
-                            <h4>Alertas de Risco</h4>
-                            <h2>{{ $alertas->count() }}</h2>
-                        </div>
-                        <i class="fas fa-triangle-exclamation" style="color: var(--alert-danger)"></i>
+                    <div class="admin-header-actions">
+                        <button class="admin-quick-btn" type="button" onclick="abrirAdminPagina('usuarios')"><i class="fas fa-users"></i> Usuários</button>
+                        <button class="admin-quick-btn primary" type="button" onclick="abrirAdminPagina('nova-remessa')"><i class="fas fa-plus"></i> Nova remessa</button>
                     </div>
                 </div>
 
-                <div class="charts-grid">
-                    <div class="content-card">
-                        <h3 style="margin-bottom:15px;">Status Geral das Remessas</h3>
-                        <canvas id="chartLinhaAdmin"></canvas>
+                <div class="admin-kpi-grid">
+                    <div class="admin-kpi" style="--kpi-color:#2563eb;">
+                        <div class="admin-kpi-top"><span class="admin-kpi-label">Total de remessas</span><span class="admin-kpi-icon"><i class="fas fa-boxes-stacked"></i></span></div>
+                        <div class="admin-kpi-value">{{ $total ?? $remessas->count() }}</div>
+                        <div class="admin-kpi-note">Operações cadastradas</div>
                     </div>
-                    <div class="content-card">
-                        <h3 style="margin-bottom:15px;">Status dos Usuários</h3>
-                        <canvas id="chartPizzaAdmin"></canvas>
+                    <div class="admin-kpi" style="--kpi-color:#0ea5e9;">
+                        <div class="admin-kpi-top"><span class="admin-kpi-label">Em rota</span><span class="admin-kpi-icon"><i class="fas fa-truck-fast"></i></span></div>
+                        <div class="admin-kpi-value">{{ $remessas->filter(function($r){ return in_array(mb_strtolower(trim($r->status ?? '')), ['em rota','em trânsito','em transito']); })->count() }}</div>
+                        <div class="admin-kpi-note">Cargas em transporte</div>
+                    </div>
+                    <div class="admin-kpi" style="--kpi-color:#10b981;">
+                        <div class="admin-kpi-top"><span class="admin-kpi-label">Entregues</span><span class="admin-kpi-icon"><i class="fas fa-circle-check"></i></span></div>
+                        <div class="admin-kpi-value">{{ $remessas->where('status','Entregue')->count() }}</div>
+                        <div class="admin-kpi-note">Operações concluídas</div>
+                    </div>
+                    <div class="admin-kpi" style="--kpi-color:#ef4444;">
+                        <div class="admin-kpi-top"><span class="admin-kpi-label">Atrasadas</span><span class="admin-kpi-icon"><i class="fas fa-triangle-exclamation"></i></span></div>
+                        <div class="admin-kpi-value">{{ $remessas->where('status','Atrasado')->count() }}</div>
+                        <div class="admin-kpi-note">Exigem atenção</div>
+                    </div>
+                    <div class="admin-kpi" style="--kpi-color:#8b5cf6;">
+                        <div class="admin-kpi-top"><span class="admin-kpi-label">Usuários</span><span class="admin-kpi-icon"><i class="fas fa-users"></i></span></div>
+                        <div class="admin-kpi-value">{{ $usuarios->count() }}</div>
+                        <div class="admin-kpi-note">Clientes, motoristas e admins</div>
+                    </div>
+                </div>
+
+                <div class="admin-dashboard-grid">
+                    <div class="admin-panel">
+                        <div class="admin-panel-head">
+                            <div><h3>Distribuição das remessas</h3><p>Visão operacional por status</p></div>
+                            <a href="javascript:void(0)" class="admin-see-all" onclick="abrirAdminPagina('remessas')">Ver todas</a>
+                        </div>
+                        <div class="admin-panel-body"><div class="admin-chart-box"><canvas id="chartLinhaAdmin"></canvas></div></div>
+                    </div>
+
+                    <div class="admin-panel">
+                        <div class="admin-panel-head"><div><h3>Composição da base</h3><p>Distribuição dos usuários</p></div></div>
+                        <div class="admin-panel-body">
+                            <div class="admin-chart-box" style="height:225px;"><canvas id="chartPizzaAdmin"></canvas></div>
+                            <div class="admin-health">
+                                <i class="fas fa-shield-halved"></i>
+                                <div><strong>Sistema operacional</strong><span>Monitoramento e serviços disponíveis</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-bottom-grid">
+                    <div class="admin-panel">
+                        <div class="admin-panel-head">
+                            <div><h3>Últimas remessas</h3><p>Atividade operacional mais recente</p></div>
+                            <a href="javascript:void(0)" class="admin-see-all" onclick="abrirAdminPagina('remessas')">Gerenciar</a>
+                        </div>
+                        <div class="table-res" style="margin-top:0;padding:0 8px 8px;">
+                            <table class="admin-table">
+                                <thead><tr><th>Rastreio</th><th>Cliente</th><th>Rota</th><th>Status</th></tr></thead>
+                                <tbody>
+                                    @forelse($remessas->sortByDesc('created_at')->take(5) as $r)
+                                        <tr>
+                                            <td class="admin-code">#{{ $r->codigo_rastreio }}</td>
+                                            <td>{{ $r->cliente->name ?? '-' }}</td>
+                                            <td class="admin-route">{{ $r->origem }} → {{ $r->destino }}</td>
+                                            <td><span class="badge {{ $r->status == 'Entregue' ? 'entregue' : ($r->status == 'Atrasado' ? 'atrasado' : 'transito') }}">{{ $r->status }}</span></td>
+                                        </tr>
+                                    @empty
+                                        <tr><td colspan="4" class="admin-empty">Nenhuma remessa cadastrada.</td></tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="admin-panel">
+                        <div class="admin-panel-head">
+                            <div><h3>Alertas recentes</h3><p>Ocorrências que merecem atenção</p></div>
+                            <a href="javascript:void(0)" class="admin-see-all" onclick="abrirAdminPagina('alertas-page')">Ver alertas</a>
+                        </div>
+                        <div class="admin-panel-body" style="padding-top:0;">
+                            @forelse($alertas->sortByDesc('created_at')->take(4) as $alerta)
+                                <div class="admin-mini-alert">
+                                    <div class="admin-mini-alert-icon"><i class="fas fa-triangle-exclamation"></i></div>
+                                    <div><strong>{{ $alerta->tipo }}</strong><p>{{ \Illuminate\Support\Str::limit($alerta->mensagem ?? 'Ocorrência registrada.', 70) }}</p><small>{{ optional($alerta->created_at)->format('d/m/Y H:i') }}</small></div>
+                                </div>
+                            @empty
+                                <div class="admin-empty"><i class="fas fa-circle-check" style="font-size:1.5rem;color:var(--alert-success);display:block;margin-bottom:8px;"></i>Nenhum alerta pendente.</div>
+                            @endforelse
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1116,10 +1393,91 @@
                         <div class="section-form">
                             <h3>🚚 Rota e Logística</h3>
                             <div class="form-grid">
-                                <div><label>Ponto de Origem</label><input type="text" name="origem" required placeholder="Cidade / Estado"></div>
-                                <div><label>Ponto de Destino</label><input type="text" name="destino" required placeholder="Destino Final"></div>
-                                <div><label>Tipo de Carga</label><input type="text" name="tipo_carga" required placeholder="Ex: Eletrodomésticos"></div>
-                                <div><label>Peso Total (kg)</label><input type="number" step="0.01" name="peso" required></div>
+                                <div>
+                                    <label for="origemRemessa">Ponto de Origem</label>
+                                    <input type="text" id="origemRemessa" name="origem" required placeholder="Ex: Campinas / SP" autocomplete="address-level2">
+                                </div>
+
+                                <div>
+                                    <label for="destinoCidadeBusca">Ponto de Destino</label>
+                                    <input type="text" id="destinoCidadeBusca" placeholder="Digite a cidade ou região" autocomplete="address-level2" required>
+                                    <small style="display:block;color:var(--text-muted);font-size:.7rem;margin-top:-7px;margin-bottom:10px;">Depois informe o CEP para localizar o endereço exato.</small>
+                                </div>
+
+                                <div class="destino-box">
+                                    <div class="destino-box-header">
+                                        <div>
+                                            <h4><i class="fas fa-location-dot" style="color:var(--primary-hover);"></i> Endereço exato de entrega</h4>
+                                            <p>Informe o CEP. Rua, bairro, cidade e estado serão preenchidos automaticamente.</p>
+                                        </div>
+                                        <span id="cepStatus" class="cep-status"><i class="fas fa-circle-info"></i> Aguardando CEP</span>
+                                    </div>
+
+                                    <div class="destino-grid">
+                                        <div>
+                                            <label for="destinoCep">CEP</label>
+                                            <input type="text" id="destinoCep" name="destino_cep" placeholder="00000-000" inputmode="numeric" maxlength="9" autocomplete="postal-code" required>
+                                        </div>
+
+                                        <div class="wide">
+                                            <label for="destinoRua">Rua / Avenida</label>
+                                            <input type="text" id="destinoRua" name="destino_rua" placeholder="Preenchido pelo CEP" autocomplete="street-address" required>
+                                        </div>
+
+                                        <div>
+                                            <label for="destinoNumero">Número</label>
+                                            <input type="text" id="destinoNumero" name="destino_numero" placeholder="Ex: 150" inputmode="numeric" autocomplete="off" required>
+                                        </div>
+
+                                        <div>
+                                            <label for="destinoComplemento">Complemento</label>
+                                            <input type="text" id="destinoComplemento" name="destino_complemento" placeholder="Apto, bloco, galpão..." autocomplete="address-line2">
+                                        </div>
+
+                                        <div>
+                                            <label for="destinoBairro">Bairro</label>
+                                            <input type="text" id="destinoBairro" name="destino_bairro" placeholder="Preenchido pelo CEP" autocomplete="address-level3" required>
+                                        </div>
+
+                                        <div>
+                                            <label for="destinoCidade">Cidade</label>
+                                            <input type="text" id="destinoCidade" name="destino_cidade" placeholder="Preenchido pelo CEP" autocomplete="address-level2" required>
+                                        </div>
+
+                                        <div>
+                                            <label for="destinoEstado">Estado (UF)</label>
+                                            <input type="text" id="destinoEstado" name="destino_estado" placeholder="UF" maxlength="2" autocomplete="address-level1" required>
+                                        </div>
+
+                                        <!-- Coordenadas ficam disponíveis para o backend/mapa sem alterar o campo destino existente. -->
+                                        <input type="hidden" id="destinoLatitude" name="latitude_destino">
+                                        <input type="hidden" id="destinoLongitude" name="longitude_destino">
+
+                                        <div class="full">
+                                            <div id="destinoCoordStatus" class="destino-coord-status">
+                                                <i class="fas fa-route"></i>
+                                                <span>Aguardando endereço para gerar as coordenadas da rota.</span>
+                                            </div>
+                                            <div class="map-route-hint">
+                                                <i class="fas fa-map-location-dot"></i>
+                                                O endereço será convertido em latitude/longitude para facilitar a rota do motorista até o destino.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Mantém compatibilidade com a coluna destino atual do banco. -->
+                                    <input type="hidden" id="destinoRemessa" name="destino">
+                                </div>
+
+                                <div>
+                                    <label for="tipoCargaRemessa">Tipo de Carga</label>
+                                    <input type="text" id="tipoCargaRemessa" name="tipo_carga" required placeholder="Ex: Eletrodomésticos">
+                                </div>
+
+                                <div>
+                                    <label for="pesoRemessa">Peso Total (kg)</label>
+                                    <input type="number" id="pesoRemessa" step="0.01" min="0.01" name="peso" required placeholder="Ex: 250.50">
+                                </div>
                             </div>
                         </div>
 
@@ -1340,6 +1698,12 @@
             }
         }
 
+        function abrirAdminPagina(id) {
+            const link = Array.from(document.querySelectorAll('.sidebar .nav-link'))
+                .find(el => (el.getAttribute('onclick') || '').includes("'" + id + "'"));
+            showPage(id, link || null);
+        }
+
         function showPage(id, el) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
@@ -1428,16 +1792,297 @@
             document.getElementById('formCadastrarMotorista').submit();
         }
 
-        function salvarRemessa(e) {
+        async function salvarRemessa(e) {
             e.preventDefault();
+
+            const form = document.getElementById('formCadastrarRemessa');
+            const destino = montarDestinoCompleto();
+
+            if (!destino) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Endereço incompleto',
+                    text: 'Preencha o CEP e confirme rua, número, bairro, cidade e estado antes de cadastrar a remessa.',
+                    confirmButtonColor: '#1C3F6E'
+                });
+                return;
+            }
+
+            // Garante coordenadas exatas para a futura rota do mapa.
+            const coordenadasProntas = document.getElementById('destinoLatitude').value &&
+                                       document.getElementById('destinoLongitude').value;
+
+            if (!coordenadasProntas) {
+                atualizarStatusCoordenadas('Gerando coordenadas do destino...', 'loading');
+                const conseguiuGeocodificar = await geocodificarDestino();
+
+                if (!conseguiuGeocodificar) {
+                    const continuar = await Swal.fire({
+                        icon: 'warning',
+                        title: 'Não foi possível localizar o destino no mapa',
+                        text: 'O endereço está preenchido, mas o serviço de mapas não retornou coordenadas. Você pode cadastrar mesmo assim; a rota poderá ser localizada depois.',
+                        showCancelButton: true,
+                        confirmButtonText: 'Cadastrar mesmo assim',
+                        cancelButtonText: 'Revisar endereço',
+                        confirmButtonColor: '#1C3F6E',
+                        cancelButtonColor: '#64748b'
+                    });
+
+                    if (!continuar.isConfirmed) return;
+                }
+            }
+
+            // Recalcula o destino final depois do preenchimento do endereço.
+            montarDestinoCompleto();
+
             Swal.fire({
                 title: 'Cadastrando...',
-                text: 'Processando a nova ordem de remessa.',
+                text: 'Processando a nova ordem de remessa e preparando o destino para o mapa.',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); }
             });
-            document.getElementById('formCadastrarRemessa').submit();
+
+            form.submit();
         }
+
+        // ============================================================
+        // DESTINO POR CEP + GEOCODIFICAÇÃO PARA A ROTA DO MAPA
+        // ============================================================
+        function somenteNumeros(valor) {
+            return String(valor || '').replace(/\D/g, '');
+        }
+
+        function atualizarStatusCep(texto, tipo = '') {
+            const el = document.getElementById('cepStatus');
+            if (!el) return;
+
+            el.className = `cep-status ${tipo}`.trim();
+            const icones = {
+                loading: 'fa-spinner fa-spin',
+                success: 'fa-circle-check',
+                error: 'fa-circle-exclamation'
+            };
+            const icone = icones[tipo] || 'fa-circle-info';
+            el.innerHTML = `<i class="fas ${icone}"></i> ${texto}`;
+        }
+
+        function atualizarStatusCoordenadas(texto, tipo = '') {
+            const el = document.getElementById('destinoCoordStatus');
+            if (!el) return;
+
+            el.className = `destino-coord-status ${tipo === 'success' ? 'ok' : tipo === 'error' ? 'error' : ''}`.trim();
+            const icones = {
+                loading: 'fa-spinner fa-spin',
+                success: 'fa-location-dot',
+                error: 'fa-triangle-exclamation'
+            };
+            const icone = icones[tipo] || 'fa-route';
+            el.innerHTML = `<i class="fas ${icone}"></i><span>${texto}</span>`;
+        }
+
+        function aplicarMascaraCep() {
+            const cep = document.getElementById('destinoCep');
+            if (!cep) return;
+
+            cep.addEventListener('input', function(e) {
+                let valor = somenteNumeros(e.target.value).slice(0, 8);
+                if (valor.length > 5) {
+                    valor = valor.slice(0, 5) + '-' + valor.slice(5);
+                }
+                e.target.value = valor;
+
+                if (somenteNumeros(valor).length < 8) {
+                    atualizarStatusCep('Aguardando CEP');
+                    limparCoordenadasDestino();
+                }
+
+                if (somenteNumeros(valor).length === 8) {
+                    buscarCep(valor);
+                }
+            });
+
+            cep.addEventListener('blur', function() {
+                if (somenteNumeros(cep.value).length === 8) buscarCep(cep.value);
+            });
+        }
+
+        async function buscarCep(cepInformado) {
+            const cep = somenteNumeros(cepInformado);
+            if (cep.length !== 8) return;
+
+            atualizarStatusCep('Consultando CEP...', 'loading');
+
+            try {
+                const resposta = await fetch(`https://viacep.com.br/ws/${cep}/json/`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (!resposta.ok) throw new Error('Falha na consulta do CEP.');
+
+                const dados = await resposta.json();
+
+                if (dados.erro) {
+                    throw new Error('CEP não encontrado.');
+                }
+
+                const rua = document.getElementById('destinoRua');
+                const bairro = document.getElementById('destinoBairro');
+                const cidade = document.getElementById('destinoCidade');
+                const estado = document.getElementById('destinoEstado');
+
+                rua.value = dados.logradouro || '';
+                bairro.value = dados.bairro || '';
+                cidade.value = dados.localidade || '';
+                estado.value = (dados.uf || '').toUpperCase();
+
+                // Usa a cidade retornada pelo CEP como referência do ponto de destino.
+                const cidadeBusca = document.getElementById('destinoCidadeBusca');
+                if (cidadeBusca && dados.localidade) {
+                    cidadeBusca.value = `${dados.localidade}${dados.uf ? ' / ' + dados.uf : ''}`;
+                }
+
+                limparCoordenadasDestino();
+                atualizarStatusCep('Endereço preenchido automaticamente', 'success');
+
+                // Já tenta obter as coordenadas para deixar a remessa pronta para o mapa.
+                await geocodificarDestino();
+
+                // Foca o número, que é a principal informação ainda não fornecida pelo CEP.
+                document.getElementById('destinoNumero')?.focus();
+
+            } catch (erro) {
+                console.error('Erro ao consultar CEP:', erro);
+                atualizarStatusCep(erro.message || 'Não foi possível consultar o CEP', 'error');
+                limparCoordenadasDestino();
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'CEP não encontrado',
+                    text: 'Confira o CEP digitado e tente novamente.',
+                    confirmButtonColor: '#1C3F6E'
+                });
+            }
+        }
+
+        function montarDestinoCompleto() {
+            const cidadeBusca = document.getElementById('destinoCidadeBusca')?.value.trim();
+            const cep = document.getElementById('destinoCep')?.value.trim();
+            const rua = document.getElementById('destinoRua')?.value.trim();
+            const numero = document.getElementById('destinoNumero')?.value.trim();
+            const complemento = document.getElementById('destinoComplemento')?.value.trim();
+            const bairro = document.getElementById('destinoBairro')?.value.trim();
+            const cidade = document.getElementById('destinoCidade')?.value.trim();
+            const estado = document.getElementById('destinoEstado')?.value.trim().toUpperCase();
+            const campoDestino = document.getElementById('destinoRemessa');
+
+            if (!rua || !numero || !bairro || !cidade || !estado || !cep) {
+                if (campoDestino) campoDestino.value = '';
+                return '';
+            }
+
+            const partes = [
+                `${rua}, ${numero}`,
+                complemento ? `Complemento: ${complemento}` : '',
+                bairro,
+                `${cidade} - ${estado}`,
+                `CEP: ${cep}`
+            ].filter(Boolean);
+
+            const destinoFinal = partes.join(' - ');
+
+            if (campoDestino) campoDestino.value = destinoFinal;
+
+            // Mantém a referência digitada pelo administrador disponível no formulário.
+            if (cidadeBusca && !cidade) {
+                console.warn('Cidade de busca informada, mas cidade do CEP não foi preenchida.');
+            }
+
+            return destinoFinal;
+        }
+
+        function limparCoordenadasDestino() {
+            const lat = document.getElementById('destinoLatitude');
+            const lng = document.getElementById('destinoLongitude');
+            if (lat) lat.value = '';
+            if (lng) lng.value = '';
+            atualizarStatusCoordenadas('Aguardando endereço para gerar as coordenadas da rota.');
+        }
+
+        async function geocodificarDestino() {
+            const rua = document.getElementById('destinoRua')?.value.trim();
+            const numero = document.getElementById('destinoNumero')?.value.trim();
+            const bairro = document.getElementById('destinoBairro')?.value.trim();
+            const cidade = document.getElementById('destinoCidade')?.value.trim();
+            const estado = document.getElementById('destinoEstado')?.value.trim();
+            const cep = somenteNumeros(document.getElementById('destinoCep')?.value);
+
+            if (!rua || !numero || !bairro || !cidade || !estado || cep.length !== 8) {
+                atualizarStatusCoordenadas('Preencha o endereço completo para gerar as coordenadas.', 'error');
+                return false;
+            }
+
+            const endereco = `${rua}, ${numero}, ${bairro}, ${cidade}, ${estado}, Brasil`;
+            atualizarStatusCoordenadas('Localizando o destino no mapa...', 'loading');
+
+            try {
+                const url = new URL('https://nominatim.openstreetmap.org/search');
+                url.searchParams.set('format', 'jsonv2');
+                url.searchParams.set('limit', '1');
+                url.searchParams.set('countrycodes', 'br');
+                url.searchParams.set('q', endereco);
+
+                const resposta = await fetch(url.toString(), {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (!resposta.ok) throw new Error('Falha no serviço de geolocalização.');
+
+                const resultados = await resposta.json();
+                if (!Array.isArray(resultados) || !resultados.length) {
+                    throw new Error('Destino não localizado.');
+                }
+
+                const latitude = parseFloat(resultados[0].lat);
+                const longitude = parseFloat(resultados[0].lon);
+
+                if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+                    throw new Error('Coordenadas inválidas.');
+                }
+
+                document.getElementById('destinoLatitude').value = latitude.toFixed(7);
+                document.getElementById('destinoLongitude').value = longitude.toFixed(7);
+
+                atualizarStatusCoordenadas(
+                    `Destino localizado: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`,
+                    'success'
+                );
+
+                return true;
+            } catch (erro) {
+                console.error('Erro ao geocodificar destino:', erro);
+                atualizarStatusCoordenadas('Endereço preenchido, mas as coordenadas não foram obtidas.', 'error');
+                return false;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            aplicarMascaraCep();
+
+            ['destinoRua', 'destinoNumero', 'destinoBairro', 'destinoCidade', 'destinoEstado', 'destinoComplemento'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('input', () => {
+                    limparCoordenadasDestino();
+                });
+            });
+
+            const estado = document.getElementById('destinoEstado');
+            if (estado) {
+                estado.addEventListener('input', function() {
+                    this.value = this.value.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 2);
+                });
+            }
+        });
 
         function salvarConfiguracoes(e) {
             e.preventDefault();
@@ -1472,7 +2117,7 @@
 
         // GRÁFICOS DO ADMIN
         // Contagem dinâmica das remessas por status
-        const remessasEmTransito = {{ $remessas->where('status', 'Em trânsito')->count() }};
+        const remessasEmTransito = {{ $remessas->filter(function($r){ return in_array(mb_strtolower(trim($r->status ?? '')), ['em rota','em trânsito','em transito']); })->count() }};
         const remessasEntregues = {{ $remessas->where('status', 'Entregue')->count() }};
         const remessasPendentes = {{ $remessas->where('status', 'Pendente')->count() }};
 
@@ -1490,7 +2135,7 @@
                 type: 'bar',
 
                 data: {
-                    labels: ['Em Trânsito', 'Entregues', 'Pendentes'],
+                    labels: ['Em Rota', 'Entregues', 'Atrasadas'],
 
                     datasets: [{
                         label: 'Total de Remessas',
@@ -1498,7 +2143,7 @@
                         data: [
                             remessasEmTransito,
                             remessasEntregues,
-                            remessasPendentes
+                            {{ $remessas->where('status', 'Atrasado')->count() }}
                         ],
 
                         backgroundColor: [
