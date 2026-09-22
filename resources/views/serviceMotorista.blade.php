@@ -1085,6 +1085,11 @@
                                 data-lat-destino="{{ $r->latitude_destino ?? '' }}"
                                 data-lng-destino="{{ $r->longitude_destino ?? '' }}"
                                 data-cep-destino="{{ $r->destino_cep ?? '' }}"
+                                data-rua-destino="{{ $r->destino_rua ?? '' }}"
+                                data-numero-destino="{{ $r->destino_numero ?? '' }}"
+                                data-bairro-destino="{{ $r->destino_bairro ?? '' }}"
+                                data-cidade-destino="{{ $r->destino_cidade ?? '' }}"
+                                data-estado-destino="{{ $r->destino_estado ?? '' }}"
                             >
                                 #{{ $r->codigo_rastreio }}
                                 |
@@ -1537,7 +1542,7 @@
         let marcador = null;
         let marcadorDestino = null;
         let rotaLinha = null;
-        let watchId = null;
+        let intervaloGpsEsp32 = null;
 
         let ultimaLatitude = null;
         let ultimaLongitude = null;
@@ -1632,7 +1637,22 @@
                 return;
             }
 
-            // Se já havia outro rastreamento, encerra antes de começar.
+            // A posição operacional vem exclusivamente do ESP32/GPS pela API.
+            // O navegador não captura nem envia localização; não há fallback por IP.
+            remessaAtivaId = remessaId;
+            prepararRemessaSelecionada(remessaId);
+
+            document.getElementById('btnIniciarGPS').style.display = 'none';
+            document.getElementById('btnPararGPS').style.display = 'inline-flex';
+            statusSpan.style.color = 'var(--alert-info)';
+            statusSpan.innerHTML = '<i class="fas fa-satellite-dish"></i> Aguardando GPS do ESP32...';
+
+            if (intervaloGpsEsp32 !== null) clearInterval(intervaloGpsEsp32);
+            atualizarMapaComGpsEsp32(remessaId);
+            intervaloGpsEsp32 = setInterval(() => atualizarMapaComGpsEsp32(remessaId), 5000);
+            return;
+
+            /* Código legado do GPS do navegador: desativado permanentemente.
             if (watchId !== null) {
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
@@ -1650,7 +1670,7 @@
 
             // Se o navegador não possui geolocalização, usa a posição aproximada por IP.
             if (!navigator.geolocation) {
-                usarLocalizacaoPorIp(remessaId);
+                return;
                 return;
             }
 
@@ -1674,7 +1694,7 @@
 
                     // Só usa IP como fallback quando o GPS não conseguiu obter posição.
                     if ([1, 2, 3].includes(error.code)) {
-                        usarLocalizacaoPorIp(remessaId);
+                        return;
                     }
                 },
                 {
@@ -1713,7 +1733,7 @@
                     const statusSpan = document.getElementById('geoStatus');
 
                     if ([1, 2, 3].includes(error.code)) {
-                        usarLocalizacaoPorIp(remessaId);
+                        return;
                         return;
                     }
 
@@ -1747,72 +1767,16 @@
                     timeout: 30000
                 }
             );
-        }
-
-        // ==========================================
-        // FALLBACK POR IP
-        // ==========================================
-        let fallbackPorIpAtivo = false;
-
-        async function usarLocalizacaoPorIp(remessaId) {
-            if (fallbackPorIpAtivo || remessaAtivaId !== remessaId) return;
-
-            fallbackPorIpAtivo = true;
-
-            const statusSpan = document.getElementById('geoStatus');
-
-            statusSpan.style.color = 'var(--alert-info)';
-            statusSpan.innerHTML =
-                '<i class="fas fa-spinner fa-spin"></i> Obtendo localização aproximada pela rede...';
-
-            try {
-                const resposta = await fetch('https://ipwho.is/');
-                const dados = await resposta.json();
-
-                const latitude = Number(dados.latitude);
-                const longitude = Number(dados.longitude);
-
-                if (
-                    !resposta.ok ||
-                    !dados.success ||
-                    !Number.isFinite(latitude) ||
-                    !Number.isFinite(longitude)
-                ) {
-                    throw new Error('Serviço de localização por IP indisponível.');
-                }
-
-                if (remessaAtivaId !== remessaId) return;
-
-                ultimaLatitude = latitude;
-                ultimaLongitude = longitude;
-
-                configurarMarcadorMapa(latitude, longitude);
-
-                await enviarLocalizacao(latitude, longitude, remessaId);
-
-                calcularRotaReal(latitude, longitude, remessaId);
-
-                statusSpan.style.color = 'var(--alert-warning)';
-                statusSpan.innerHTML =
-                    '<i class="fas fa-triangle-exclamation"></i> Localização aproximada por IP sincronizada.';
-            } catch (erro) {
-                console.error('Erro ao localizar pelo IP:', erro);
-
-                statusSpan.style.color = 'var(--alert-danger)';
-                statusSpan.innerHTML =
-                    '<i class="fas fa-ban"></i> GPS e localização por IP indisponíveis.';
-            } finally {
-                fallbackPorIpAtivo = false;
-            }
+            */
         }
 
         // ==========================================
         // PARAR RASTREAMENTO
         // ==========================================
         function pararRastreamento() {
-            if (watchId !== null) {
-                navigator.geolocation.clearWatch(watchId);
-                watchId = null;
+            if (intervaloGpsEsp32 !== null) {
+                clearInterval(intervaloGpsEsp32);
+                intervaloGpsEsp32 = null;
             }
 
             const statusSpan = document.getElementById('geoStatus');
@@ -1835,6 +1799,38 @@
         // ==========================================
         // MARCADOR DO MOTORISTA
         // ==========================================
+        async function atualizarMapaComGpsEsp32(remessaId) {
+            if (!remessaId || remessaAtivaId !== remessaId) return;
+
+            try {
+                const resposta = await fetch(
+                    '/api/localizacao?remessa_id=' + encodeURIComponent(remessaId) + '&_=' + Date.now(),
+                    { headers: { 'Accept': 'application/json' }, cache: 'no-store' }
+                );
+                const dados = await resposta.json();
+                const localizacoes = Array.isArray(dados.data) ? dados.data : [];
+                const ultima = localizacoes[0];
+
+                if (!resposta.ok || !ultima) throw new Error('Nenhum ponto GPS recebido ainda.');
+
+                const latitude = Number(ultima.latitude);
+                const longitude = Number(ultima.longitude);
+                if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+                    throw new Error('Coordenadas GPS inválidas.');
+                }
+
+                ultimaLatitude = latitude;
+                ultimaLongitude = longitude;
+                configurarMarcadorMapa(latitude, longitude);
+                await calcularRotaReal(latitude, longitude, remessaId);
+            } catch (erro) {
+                const statusSpan = document.getElementById('geoStatus');
+                statusSpan.style.color = 'var(--alert-warning)';
+                statusSpan.innerHTML = '<i class="fas fa-satellite-dish"></i> Aguardando sinal do GPS ESP32.';
+                console.info('GPS ESP32 ainda não disponível:', erro.message);
+            }
+        }
+
         function configurarMarcadorMapa(lat, lon) {
             if (!mapa) return;
 
@@ -1862,7 +1858,7 @@
             }
 
             marcador.bindPopup(
-                '<b>Você está aqui</b><br>Localização do motorista.'
+                '<b>GPS do veículo</b><br>Localização recebida do ESP32.'
             );
 
             document.getElementById('infoGPS').style.display = 'block';
@@ -1892,6 +1888,46 @@
         // Primeiro usa latitude/longitude salvas na remessa.
         // Assim o mapa nunca precisa adivinhar a cidade pelo texto.
         // Para remessas antigas sem coordenadas, tenta geocodificar o endereço.
+        function normalizarNomeDaRua(valor) {
+            return String(valor || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '')
+                .replace(/^(rua|avenida|av|travessa|estrada)/, '');
+        }
+
+        async function buscarDestinoPorRuaPhoton(consulta, ruaEsperada) {
+            const params = new URLSearchParams({ q: consulta, limit: '10', lang: 'pt' });
+            const resposta = await fetch(
+                'https://photon.komoot.io/api/?' + params.toString(),
+                { headers: { 'Accept': 'application/json' } }
+            );
+
+            if (!resposta.ok) throw new Error('Servico alternativo de mapas indisponivel.');
+
+            const dados = await resposta.json();
+            const ruaNormalizada = normalizarNomeDaRua(ruaEsperada);
+            const resultados = Array.isArray(dados.features) ? dados.features : [];
+            const resultado = resultados.find(item => {
+                const propriedades = item.properties || {};
+                const ruaRetornada = normalizarNomeDaRua(propriedades.street || propriedades.name);
+
+                return ruaNormalizada && ruaRetornada && (
+                    ruaRetornada.includes(ruaNormalizada) || ruaNormalizada.includes(ruaRetornada)
+                );
+            });
+            const coordenadas = resultado?.geometry?.coordinates;
+            const lon = Number(coordenadas?.[0]);
+            const lat = Number(coordenadas?.[1]);
+
+            if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+                throw new Error('Rua nao encontrada no servico alternativo de mapas.');
+            }
+
+            return { lat, lon, nome: resultado.properties?.name || ruaEsperada };
+        }
+
         async function obterCoordenadasDestino(destino, remessaId) {
             if (destinosCacheMotorista[remessaId]) {
                 return destinosCacheMotorista[remessaId];
@@ -1933,17 +1969,35 @@
                 throw new Error('Esta remessa não possui destino informado.');
             }
 
-            const cep = String(option.dataset.cepDestino || '')
+            const cep = String(
+                option.dataset.cepDestino ||
+                String(destino).match(/CEP:\s*(\d{5}-?\d{3})/i)?.[1] || ''
+            )
                 .replace(/\D/g, '');
+
+            const enderecoEstruturado = [
+                option.dataset.numeroDestino,
+                option.dataset.ruaDestino,
+                option.dataset.bairroDestino,
+                option.dataset.cidadeDestino,
+                option.dataset.estadoDestino,
+                cep,
+                'Brasil'
+            ].filter(Boolean).join(', ');
 
             const consultas = [];
 
-            // O CEP reduz bastante a chance de escolher outra cidade.
+            if (enderecoEstruturado) {
+                consultas.push(enderecoEstruturado);
+            }
+
+            if (destino && destino !== enderecoEstruturado) {
+                consultas.push(destino + ', Brasil');
+            }
+
             if (cep.length === 8) {
                 consultas.push(cep + ', Brasil');
             }
-
-            consultas.push(destino + ', Brasil');
 
             let ultimoErro = null;
 
@@ -1993,6 +2047,25 @@
                 } catch (erro) {
                     ultimoErro = erro;
                 }
+            }
+
+            try {
+                const resultadoPhoton = await buscarDestinoPorRuaPhoton(
+                    enderecoEstruturado || destino,
+                    option.dataset.ruaDestino || destino
+                );
+
+                const coordenadas = {
+                    lat: resultadoPhoton.lat,
+                    lon: resultadoPhoton.lon,
+                    nome: resultadoPhoton.nome,
+                    origem: 'Localizado pelo nome da rua'
+                };
+
+                destinosCacheMotorista[remessaId] = coordenadas;
+                return coordenadas;
+            } catch (erroPhoton) {
+                ultimoErro = ultimoErro || erroPhoton;
             }
 
             throw ultimoErro || new Error(
@@ -2266,7 +2339,8 @@
                         body: JSON.stringify({
                             latitude: latitude,
                             longitude: longitude,
-                            remessa_id: remessaId
+                            remessa_id: remessaId,
+                            fonte: 'esp32_gps'
                         })
                     }
                 );
@@ -2300,9 +2374,7 @@
 
         // Se a página for fechada, encerra o watch do navegador.
         window.addEventListener('beforeunload', function () {
-            if (watchId !== null && navigator.geolocation) {
-                navigator.geolocation.clearWatch(watchId);
-            }
+            if (intervaloGpsEsp32 !== null) clearInterval(intervaloGpsEsp32);
         });
     </script>
 

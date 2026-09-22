@@ -12,7 +12,8 @@ class Localizacao extends Model
     protected $fillable = [
         'latitude',
         'longitude',
-        'remessa_id'
+        'remessa_id',
+        'fonte',
     ];
 
     public function remessa(): BelongsTo

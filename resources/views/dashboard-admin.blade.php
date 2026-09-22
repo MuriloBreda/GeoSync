@@ -2021,29 +2021,56 @@
                 return false;
             }
 
-            const endereco = `${rua}, ${numero}, ${bairro}, ${cidade}, ${estado}, Brasil`;
             atualizarStatusCoordenadas('Localizando o destino no mapa...', 'loading');
 
             try {
-                const url = new URL('https://nominatim.openstreetmap.org/search');
-                url.searchParams.set('format', 'jsonv2');
-                url.searchParams.set('limit', '1');
-                url.searchParams.set('countrycodes', 'br');
-                url.searchParams.set('q', endereco);
+                // Nem todos os números estão no Nominatim: endereço exato, CEP e
+                // cidade são consultados nessa ordem para sempre obter um ponto.
+                const consultas = [
+                    `${rua}, ${numero}, ${bairro}, ${cidade}, ${estado}, ${cep}, Brasil`
+                ];
+                let resultado = null;
+                const normalizarEndereco = valor => String(valor || '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]/g, '');
+                const ruaNormalizada = normalizarEndereco(rua)
+                    .replace(/^(rua|avenida|av|travessa|estrada)/, '');
+                const numeroNormalizado = normalizarEndereco(numero);
 
-                const resposta = await fetch(url.toString(), {
-                    headers: { 'Accept': 'application/json' }
-                });
+                for (const consulta of consultas) {
+                    const url = new URL('https://nominatim.openstreetmap.org/search');
+                    url.searchParams.set('format', 'jsonv2');
+                    url.searchParams.set('addressdetails', '1');
+                    url.searchParams.set('limit', '10');
+                    url.searchParams.set('countrycodes', 'br');
+                    url.searchParams.set('q', consulta);
 
-                if (!resposta.ok) throw new Error('Falha no serviço de geolocalização.');
+                    const resposta = await fetch(url.toString(), {
+                        headers: { 'Accept': 'application/json' }
+                    });
 
-                const resultados = await resposta.json();
-                if (!Array.isArray(resultados) || !resultados.length) {
-                    throw new Error('Destino não localizado.');
+                    if (!resposta.ok) continue;
+                    const resultados = await resposta.json();
+                    if (Array.isArray(resultados) && resultados.length) {
+                        resultado = resultados.find(item => {
+                            const endereco = item.address || {};
+                            const ruaRetornada = normalizarEndereco(endereco.road || item.display_name)
+                                .replace(/^(rua|avenida|av|travessa|estrada)/, '');
+                            const numeroRetornado = normalizarEndereco(endereco.house_number || item.display_name);
+
+                            return ruaRetornada.includes(ruaNormalizada) &&
+                                numeroRetornado.includes(numeroNormalizado);
+                        });
+                        if (resultado) break;
+                    }
                 }
 
-                const latitude = parseFloat(resultados[0].lat);
-                const longitude = parseFloat(resultados[0].lon);
+                if (!resultado) throw new Error('Destino não localizado.');
+
+                const latitude = parseFloat(resultado.lat);
+                const longitude = parseFloat(resultado.lon);
 
                 if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
                     throw new Error('Coordenadas inválidas.');

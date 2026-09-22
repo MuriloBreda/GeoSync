@@ -10,7 +10,16 @@ class Remessa extends Model
     protected $table = 'remessas';
 
     protected $fillable = [
-        'codigo_rastreio', 'origem', 'destino', 'tipo_carga', 'peso', 'previsao_entrega', 'status', 'cliente_id', 'motorista_id'
+        'codigo_rastreio', 'origem', 'destino', 'destino_cep', 'destino_rua',
+        'destino_numero', 'destino_complemento', 'destino_bairro', 'destino_cidade',
+        'destino_estado', 'latitude_destino', 'longitude_destino', 'tipo_carga',
+        'peso', 'previsao_entrega', 'status', 'cliente_id', 'motorista_id'
+    ];
+
+    protected $casts = [
+        'latitude_destino' => 'float',
+        'longitude_destino' => 'float',
+        'proximidade_notificada_at' => 'datetime',
     ];
 
     // Relacionamento com o Motorista

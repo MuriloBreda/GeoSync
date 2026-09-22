@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Remessa;
 use App\Models\User;
 use App\Models\Alerta;
+use App\Services\GeocodificadorDestino;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
@@ -124,7 +125,16 @@ class RemessaController extends Controller
         $request->validate([
             'codigo_rastreio' => 'required|string|max:100|unique:remessas',
             'origem' => 'required|string|max:100',
-            'destino' => 'required|string|max:100',
+            'destino' => 'required|string|max:255',
+            'destino_cep' => 'nullable|string|max:9',
+            'destino_rua' => 'nullable|string|max:150',
+            'destino_numero' => 'nullable|string|max:20',
+            'destino_complemento' => 'nullable|string|max:150',
+            'destino_bairro' => 'nullable|string|max:100',
+            'destino_cidade' => 'nullable|string|max:100',
+            'destino_estado' => 'nullable|string|size:2',
+            'latitude_destino' => 'nullable|numeric|between:-90,90',
+            'longitude_destino' => 'nullable|numeric|between:-180,180',
             'tipo_carga' => 'nullable|string|max:100',
             'peso' => 'nullable|numeric',
             'previsao_entrega' => 'nullable|date',
@@ -133,12 +143,36 @@ class RemessaController extends Controller
             'motorista_id' => 'nullable|exists:users,id',
         ]);
 
+        $geocodificacaoPendente = false;
+
+        try {
+            $coordenadasDestino = app(GeocodificadorDestino::class)->localizar($request->all());
+        } catch (\RuntimeException $e) {
+            // A indisponibilidade do mapa nunca pode impedir o cadastro. Caso o
+            // navegador tenha gerado coordenadas, elas são preservadas; caso
+            // contrário, a remessa é salva e pode ser ajustada depois no mapa.
+            $coordenadasDestino = [
+                'latitude_destino' => $request->latitude_destino,
+                'longitude_destino' => $request->longitude_destino,
+            ];
+            $geocodificacaoPendente = true;
+        }
+
         $clienteId = Auth::user()->tipo === 'cliente' ? Auth::id() : $request->cliente_id;
 
         Remessa::create([
             'codigo_rastreio' => $request->codigo_rastreio,
             'origem' => $request->origem,
             'destino' => $request->destino,
+            'destino_cep' => $request->destino_cep,
+            'destino_rua' => $request->destino_rua,
+            'destino_numero' => $request->destino_numero,
+            'destino_complemento' => $request->destino_complemento,
+            'destino_bairro' => $request->destino_bairro,
+            'destino_cidade' => $request->destino_cidade,
+            'destino_estado' => $request->destino_estado,
+            'latitude_destino' => $coordenadasDestino['latitude_destino'],
+            'longitude_destino' => $coordenadasDestino['longitude_destino'],
             'tipo_carga' => $request->tipo_carga,
             'peso' => $request->peso,
             'previsao_entrega' => $request->previsao_entrega,
@@ -147,7 +181,13 @@ class RemessaController extends Controller
             'motorista_id' => $request->motorista_id,
         ]);
 
-        return redirect()->back()->with('success', 'Nova ordem de remessa registrada no sistema!');
+        $redirect = redirect()->back()->with('success', 'Nova ordem de remessa registrada no sistema!');
+
+        if ($geocodificacaoPendente) {
+            $redirect->with('warning', 'A remessa foi cadastrada, mas a localização automática ficará disponível quando o serviço de mapas responder.');
+        }
+
+        return $redirect;
     }
 
     public function index() { return redirect()->route('dashboard'); }
@@ -230,7 +270,16 @@ class RemessaController extends Controller
         return $request->validate([
             'codigo_rastreio' => 'required|string|max:100|unique:remessas,codigo_rastreio,' . $id,
             'origem' => 'required|string|max:100',
-            'destino' => 'required|string|max:100',
+            'destino' => 'required|string|max:255',
+            'destino_cep' => 'nullable|string|max:9',
+            'destino_rua' => 'nullable|string|max:150',
+            'destino_numero' => 'nullable|string|max:20',
+            'destino_complemento' => 'nullable|string|max:150',
+            'destino_bairro' => 'nullable|string|max:100',
+            'destino_cidade' => 'nullable|string|max:100',
+            'destino_estado' => 'nullable|string|size:2',
+            'latitude_destino' => 'nullable|numeric|between:-90,90',
+            'longitude_destino' => 'nullable|numeric|between:-180,180',
             'tipo_carga' => 'nullable|string|max:100',
             'peso' => 'nullable|numeric|min:0',
             'previsao_entrega' => 'nullable|date',

@@ -43,20 +43,6 @@ Route::post('/localizacao', [LocalizacaoControllerApi::class, 'store']);
 Route::get('/localizacao', [LocalizacaoControllerApi::class, 'index']);
 
 
-// LISTAR TODAS
-Route::get('/localizacao', [
-    LocalizacaoControllerApi::class,
-    'index'
-]);
-
-
-// CADASTRAR
-Route::post('/localizacao', [
-    LocalizacaoControllerApi::class,
-    'store'
-]);
-
-
 // HISTÓRICO DA REMESSA
 Route::get('/localizacao/remessa/{remessa_id}', [
     LocalizacaoControllerApi::class,
@@ -70,23 +56,3 @@ Route::get('/localizacao/remessa/{remessa_id}/ultima', [
     'ultimaPorRemessa'
 ]);
 
-
-// BUSCAR POR ID
-Route::get('/localizacao/{id}', [
-    LocalizacaoControllerApi::class,
-    'show'
-]);
-
-
-// ATUALIZAR
-Route::put('/localizacao/{id}', [
-    LocalizacaoControllerApi::class,
-    'update'
-]);
-
-
-// EXCLUIR
-Route::delete('/localizacao/{id}', [
-    LocalizacaoControllerApi::class,
-    'destroy'
-]);

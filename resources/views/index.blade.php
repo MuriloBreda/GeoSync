@@ -321,6 +321,8 @@
         .hero {
             padding: 105px 0 95px;
 
+            --hero-parallax-offset: 0px;
+
             background:
                 linear-gradient(
                     135deg,
@@ -349,6 +351,9 @@
             opacity: .09;
 
             mix-blend-mode: screen;
+
+            transform: translate3d(0, var(--hero-parallax-offset), 0) scale(1.12);
+            will-change: transform;
         }
 
         .hero::after {
@@ -1794,6 +1799,40 @@
            RESPONSIVIDADE
         ===================================================== */
 
+
+/* =====================================================
+   SCROLL-TRIGGERED FADE-IN + SLIDE-UP
+   Elementos aparecem suavemente ao entrarem na tela.
+===================================================== */
+.scroll-reveal {
+    opacity: 0;
+    transform: translateY(60px);
+    transition:
+        opacity 0.9s ease-out,
+        transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+}
+
+.scroll-reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Entrada um pouco mais lenta para criar o efeito em sequência */
+.scroll-delay-1 { transition-delay: 0.08s; }
+.scroll-delay-2 { transition-delay: 0.16s; }
+.scroll-delay-3 { transition-delay: 0.24s; }
+.scroll-delay-4 { transition-delay: 0.32s; }
+
+@media (prefers-reduced-motion: reduce) {
+    .scroll-reveal {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+}
+
+
         @media (max-width: 1100px) {
 
             .diferenciais-topo {
@@ -2322,7 +2361,7 @@
 
     <section class="hero">
 
-        <div class="container hero-grid">
+        <div class="container hero-grid scroll-reveal">
 
             <div>
 
@@ -2408,7 +2447,7 @@
 
     <section class="container section">
 
-        <div class="block-about">
+        <div class="block-about scroll-reveal">
 
             <div>
 
@@ -2469,9 +2508,9 @@
         </div>
 
 
-        <div class="services-grid">
+        <div class="services-grid scroll-reveal">
 
-            <div class="service-card">
+            <div class="service-card" scroll-reveal scroll-delay-2 scroll-reveal scroll-delay-1>
 
                 <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=600&q=80"
                      alt="Transporte terrestre">
@@ -2525,7 +2564,7 @@
 
         <div class="container">
 
-            <div class="diferenciais-topo">
+            <div class="diferenciais-topo scroll-reveal">
 
                 <div class="diferenciais-conteudo">
 
@@ -2572,9 +2611,9 @@
             </div>
 
 
-            <div class="cards-grid">
+            <div class="cards-grid scroll-reveal">
 
-                <div class="card-feature azul">
+                <div class="card-feature azul" scroll-reveal scroll-delay-2 scroll-reveal scroll-delay-1>
 
                     <div class="icon-box white-bg">
 
@@ -2597,7 +2636,7 @@
                 </div>
 
 
-                <div class="card-feature branco">
+                <div class="card-feature branco" scroll-reveal scroll-delay-1>
 
                     <div class="icon-box azul-bg">
 
@@ -2678,9 +2717,9 @@
         </div>
 
 
-        <div class="iot-grid">
+        <div class="iot-grid scroll-reveal">
 
-            <div class="info-card">
+            <div class="info-card" scroll-reveal scroll-delay-1 scroll-reveal scroll-delay-4 scroll-reveal scroll-delay-3 scroll-reveal scroll-delay-2 scroll-reveal scroll-delay-1 scroll-reveal scroll-delay-4 scroll-reveal scroll-delay-3 scroll-reveal scroll-delay-2 scroll-reveal scroll-delay-1 scroll-reveal scroll-delay-4 scroll-reveal scroll-delay-3 scroll-reveal scroll-delay-2 scroll-reveal scroll-delay-1>
 
                 <div class="icon-box">
 
@@ -2838,7 +2877,7 @@
         </div>
 
 
-        <div class="benefits-grid">
+        <div class="benefits-grid scroll-reveal">
 
             <div class="info-card">
 
@@ -2922,7 +2961,7 @@
         </div>
 
 
-        <div class="process-grid">
+        <div class="process-grid scroll-reveal">
 
             <div class="info-card">
 
@@ -3017,9 +3056,9 @@
             </div>
 
 
-            <div class="stats-grid">
+            <div class="stats-grid scroll-reveal">
 
-                <div class="stat-card">
+                <div class="stat-card" scroll-reveal scroll-delay-4 scroll-reveal scroll-delay-3 scroll-reveal scroll-delay-2 scroll-reveal scroll-delay-1>
 
                     <span class="stat-number">
                         24/7
@@ -3102,9 +3141,9 @@
         </div>
 
 
-        <div class="alert-grid">
+        <div class="alert-grid scroll-reveal">
 
-            <div class="alert-card">
+            <div class="alert-card" scroll-reveal scroll-delay-2 scroll-reveal scroll-delay-1 scroll-reveal scroll-delay-4 scroll-reveal scroll-delay-3 scroll-reveal scroll-delay-2 scroll-reveal scroll-delay-1>
 
                 <i class="fas fa-exclamation-triangle"></i>
 
@@ -3343,9 +3382,9 @@
         </div>
 
 
-        <div class="faq-container">
+        <div class="faq-container scroll-reveal">
 
-            <div class="faq-item">
+            <div class="faq-item" scroll-reveal scroll-delay-1 scroll-reveal scroll-delay-4 scroll-reveal scroll-delay-3 scroll-reveal scroll-delay-2 scroll-reveal scroll-delay-1>
 
                 <button class="faq-question">
 
@@ -4120,6 +4159,74 @@
             }, 800);
         });
     </script>
+
+
+<script>
+/* =====================================================
+   SCROLL-TRIGGERED FADE-IN + SLIDE-UP
+===================================================== */
+document.addEventListener('DOMContentLoaded', function () {
+    const elementos = document.querySelectorAll('.scroll-reveal');
+
+    if (!('IntersectionObserver' in window)) {
+        elementos.forEach(function (elemento) {
+            elemento.classList.add('visible');
+        });
+        return;
+    }
+
+    const observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.12,
+        rootMargin: '0px 0px -50px 0px'
+    });
+
+    elementos.forEach(function (elemento) {
+        observer.observe(elemento);
+    });
+});
+</script>
+
+<script>
+/* =====================================================
+   PARALLAX DO FUNDO DO HERO
+===================================================== */
+document.addEventListener('DOMContentLoaded', function () {
+    const hero = document.querySelector('.hero');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    if (!hero || reducedMotion.matches || window.innerWidth <= 768) {
+        return;
+    }
+
+    let animationFrame;
+
+    function atualizarParallax() {
+        animationFrame = undefined;
+
+        const posicaoHero = hero.getBoundingClientRect();
+        const deslocamento = Math.max(-120, Math.min(0, -posicaoHero.top * 0.18));
+
+        hero.style.setProperty('--hero-parallax-offset', deslocamento + 'px');
+    }
+
+    function aoRolar() {
+        if (!animationFrame) {
+            animationFrame = window.requestAnimationFrame(atualizarParallax);
+        }
+    }
+
+    atualizarParallax();
+    window.addEventListener('scroll', aoRolar, { passive: true });
+    window.addEventListener('resize', aoRolar);
+});
+</script>
 
 </body>
 

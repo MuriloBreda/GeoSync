@@ -760,6 +760,321 @@
             .menu { gap: 15px; flex-wrap: wrap; justify-content: center; }
             .footer-grid { grid-template-columns: 1fr; }
         }
+    
+/* =========================================================
+   NOVO LAYOUT — FEEDBACK GEOSYNC
+   Mantém a lógica existente e altera somente a apresentação.
+========================================================= */
+
+body {
+    background:
+        radial-gradient(circle at 10% 10%, rgba(37,99,235,.07), transparent 28%),
+        radial-gradient(circle at 90% 80%, rgba(59,130,246,.06), transparent 30%),
+        #f8fafc;
+}
+
+.topbar {
+    background: #020617;
+}
+
+.navbar {
+    padding: 15px 0;
+    background: rgba(255,255,255,.88);
+}
+
+.navbar .container {
+    min-height: 54px;
+}
+
+.logo {
+    font-size: 24px;
+}
+
+.logo img {
+    width: 44px;
+    filter: drop-shadow(0 5px 12px rgba(37,99,235,.18));
+}
+
+.menu a {
+    padding: 9px 2px;
+}
+
+.menu a.active {
+    color: var(--azul-tech);
+}
+
+.menu a.active::after {
+    width: 100%;
+}
+
+.btn {
+    border-radius: 12px;
+    padding: 11px 22px;
+}
+
+/* Hero mais moderno e menos "bloco" */
+.hero {
+    margin-bottom: 0;
+    padding: 105px 0 135px;
+    background:
+        radial-gradient(circle at 80% 25%, rgba(37,99,235,.32), transparent 25%),
+        linear-gradient(135deg, #020617 0%, #0f172a 55%, #172554 100%);
+}
+
+.hero::after {
+    content: "";
+    position: absolute;
+    width: 420px;
+    height: 420px;
+    border: 1px solid rgba(96,165,250,.14);
+    border-radius: 50%;
+    right: -100px;
+    bottom: -250px;
+    box-shadow:
+        0 0 0 55px rgba(96,165,250,.035),
+        0 0 0 110px rgba(96,165,250,.025);
+}
+
+.hero-content {
+    max-width: 850px;
+}
+
+.hero-tag {
+    padding: 8px 17px;
+    background: rgba(59,130,246,.13);
+    border-color: rgba(96,165,250,.3);
+    box-shadow: 0 8px 25px rgba(0,0,0,.12);
+}
+
+.hero h1 {
+    font-size: clamp(40px, 5vw, 62px);
+    letter-spacing: -2.5px;
+    margin-bottom: 22px;
+}
+
+.hero p {
+    max-width: 680px;
+    margin: auto;
+    font-size: 16px;
+}
+
+/* Estatísticas em cards flutuantes */
+.stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-top: -55px;
+    margin-bottom: 34px;
+}
+
+.stat-card {
+    position: relative;
+    padding: 27px 24px;
+    border-radius: 18px;
+    text-align: left;
+    overflow: hidden;
+    box-shadow: 0 18px 45px rgba(15,23,42,.08);
+}
+
+.stat-card::before {
+    content: "";
+    position: absolute;
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    background: rgba(37,99,235,.07);
+    right: -25px;
+    top: -30px;
+}
+
+.stat-card h3,
+.stat-card p {
+    position: relative;
+    z-index: 1;
+}
+
+.stat-card h3 {
+    font-size: 34px;
+}
+
+/* Formulário como painel premium */
+.feedback-card {
+    border: 0;
+    border-radius: 24px;
+    box-shadow: 0 25px 70px rgba(15,23,42,.09);
+    margin-bottom: 100px;
+}
+
+.content {
+    grid-template-columns: 390px 1fr;
+}
+
+.left-panel {
+    padding: 48px 40px;
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 80% 15%, rgba(37,99,235,.35), transparent 30%),
+        linear-gradient(155deg, #020617, #0f172a 65%, #172554);
+}
+
+.left-panel::after {
+    content: "";
+    position: absolute;
+    width: 260px;
+    height: 260px;
+    border: 1px solid rgba(96,165,250,.14);
+    border-radius: 50%;
+    right: -130px;
+    bottom: -120px;
+}
+
+.left-panel > div {
+    position: relative;
+    z-index: 1;
+}
+
+.left-panel h2 {
+    font-size: 30px;
+    letter-spacing: -.8px;
+}
+
+.rating-box {
+    padding: 27px 22px;
+    background: rgba(255,255,255,.055);
+    backdrop-filter: blur(12px);
+    border-radius: 18px;
+}
+
+.rating-value {
+    font-size: 64px;
+}
+
+.right-panel {
+    padding: 48px;
+    background: #fff;
+}
+
+.form-title {
+    font-size: 26px;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group input,
+.form-group textarea {
+    border-radius: 12px;
+    background: #f8fafc;
+    padding: 15px 17px;
+}
+
+.form-group input:hover,
+.form-group textarea:hover {
+    border-color: #bfdbfe;
+}
+
+.stars {
+    gap: 9px;
+    padding: 10px 0;
+}
+
+.stars span {
+    font-size: 42px;
+    text-shadow: 0 4px 12px rgba(245,158,11,0);
+}
+
+.stars span:hover,
+.stars span.active {
+    text-shadow: 0 4px 15px rgba(245,158,11,.25);
+}
+
+.btn-submit {
+    border-radius: 12px;
+    padding: 17px;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+/* Footer mais organizado */
+.footer {
+    padding: 75px 0 28px;
+}
+
+.footer-grid {
+    grid-template-columns: 1.6fr 1fr 1fr 1.3fr;
+}
+
+.footer h3 {
+    color: #e2e8f0;
+}
+
+.newsletter input {
+    border-radius: 10px;
+}
+
+.newsletter button {
+    border-radius: 10px;
+}
+
+/* Animações de entrada ao rolar */
+.scroll-reveal {
+    opacity: 0;
+    transform: translateY(45px);
+    transition: opacity .8s ease, transform .8s cubic-bezier(.22,1,.36,1);
+}
+
+.scroll-reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.scroll-delay-1 { transition-delay: .08s; }
+.scroll-delay-2 { transition-delay: .16s; }
+.scroll-delay-3 { transition-delay: .24s; }
+
+@media (max-width: 992px) {
+    .content {
+        grid-template-columns: 1fr;
+    }
+
+    .left-panel {
+        min-height: 390px;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+        margin-top: 25px;
+    }
+
+    .hero {
+        padding: 80px 0 70px;
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar .flex {
+        flex-direction: column;
+    }
+
+    .right-panel,
+    .left-panel {
+        padding: 32px 24px;
+    }
+
+    .hero h1 {
+        font-size: 38px;
+    }
+
+    .menu {
+        gap: 12px;
+    }
+
+    .feedback-card {
+        border-radius: 18px;
+    }
+}
+
     </style>
 </head>
 
@@ -839,7 +1154,7 @@
     </div>
 
     <!-- HERO SECTION -->
-    <section class="hero">
+    <section class="hero scroll-reveal">
         <div class="container">
             <div class="hero-content">
                 <span class="hero-tag"><i class="fa-solid fa-comments"></i> Central de Feedback</span>
@@ -852,25 +1167,25 @@
     <!-- CONTENT CONTAINER -->
     <div class="container">
         <!-- STATS -->
-        <div class="stats">
-            <div class="stat-card">
+        <div class="stats scroll-reveal">
+            <div class="stat-card scroll-reveal scroll-delay-1">
                 <h3>{{ $percentualSatisfacao ?? 98 }}%</h3>
                 <p>Usuários Satisfeitos</p>
             </div>
-            <div class="stat-card">
+            <div class="stat-card scroll-reveal scroll-delay-2">
                 <h3>{{ $total ?? 1250 }}</h3>
                 <p>Avaliações Recebidas</p>
             </div>
-            <div class="stat-card">
+            <div class="stat-card scroll-reveal scroll-delay-3">
                 <h3>{{ number_format($media ?? 4.9, 1) }}</h3>
                 <p>Avaliação Média</p>
             </div>
         </div>
 
         <!-- FORM CARD -->
-        <div class="feedback-card">
+        <div class="feedback-card scroll-reveal">
             <div class="content">
-                <div class="left-panel">
+                <div class="left-panel scroll-reveal">
                     <div>
                         <h2>Sua Avaliação</h2>
                         <p>Compartilhe sua experiência e dê sugestões para melhorar nossos serviços.</p>
@@ -882,7 +1197,7 @@
                     </div>
                 </div>
 
-                <div class="right-panel">
+                <div class="right-panel scroll-reveal">
                     <div class="form-title">Envie seu comentário</div>
                     <form action="{{ route('avaliacao.store') }}" method="POST" id="formAvaliacao">
                         @csrf
@@ -929,7 +1244,7 @@
     </script>
 
     <!-- FOOTER -->
-    <footer class="footer">
+    <footer class="footer scroll-reveal">
         <div class="container">
             <div class="footer-grid">
                 <div>
@@ -1145,6 +1460,32 @@
         });
     </script>
     @endif
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const elementos = document.querySelectorAll('.scroll-reveal');
+
+    if (!('IntersectionObserver' in window)) {
+        elementos.forEach(el => el.classList.add('visible'));
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.12,
+        rootMargin: '0px 0px -45px 0px'
+    });
+
+    elementos.forEach(el => observer.observe(el));
+});
+</script>
+
 </body>
 
 </html>

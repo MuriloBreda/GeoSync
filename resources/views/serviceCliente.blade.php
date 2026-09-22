@@ -1481,6 +1481,14 @@
                         data-origem="{{ $r->origem }}"
                         data-destino="{{ $r->destino }}"
                         data-status="{{ $r->status }}"
+                        data-lat-destino="{{ $r->latitude_destino ?? '' }}"
+                        data-lng-destino="{{ $r->longitude_destino ?? '' }}"
+                        data-cep-destino="{{ $r->destino_cep ?? '' }}"
+                        data-rua-destino="{{ $r->destino_rua ?? '' }}"
+                        data-numero-destino="{{ $r->destino_numero ?? '' }}"
+                        data-bairro-destino="{{ $r->destino_bairro ?? '' }}"
+                        data-cidade-destino="{{ $r->destino_cidade ?? '' }}"
+                        data-estado-destino="{{ $r->destino_estado ?? '' }}"
                     >
                         #{{ $r->codigo_rastreio }}
                         (De: {{ $r->origem }} Para: {{ $r->destino }})
@@ -2189,58 +2197,52 @@ async function obterCoordenadasCidade(destino, remessaId) {
         return destinosCache[String(remessaId)];
     }
 
-    const consulta =
-        destino.trim().replace(/\s+/g, " ");
+    const opcao = document.querySelector(
+        '#selectRastreioCliente option[value="' + CSS.escape(String(remessaId)) + '"]'
+    );
+    const latitudeTexto = String(opcao?.dataset.latDestino || '').trim();
+    const longitudeTexto = String(opcao?.dataset.lngDestino || '').trim();
+    const latitudeSalva = Number(latitudeTexto);
+    const longitudeSalva = Number(longitudeTexto);
 
-    const url =
-        "https://nominatim.openstreetmap.org/search" +
-        "?format=json" +
-        "&limit=5" +
-        "&countrycodes=br" +
-        "&q=" +
-        encodeURIComponent(consulta);
+    // Prioriza o ponto exato gravado no cadastro da remessa.
+    if (latitudeTexto && longitudeTexto &&
+        Number.isFinite(latitudeSalva) && Number.isFinite(longitudeSalva)) {
+        const coordenadasSalvas = { latitude: latitudeSalva, longitude: longitudeSalva, nome: destino };
+        if (remessaId) destinosCache[String(remessaId)] = coordenadasSalvas;
+        return coordenadasSalvas;
+    }
 
-    const resposta = await fetch(url, {
-        headers: {
-            "Accept": "application/json"
+    const cepDoDestino = String(opcao?.dataset.cepDestino || destino.match(/CEP:\s*(\d{5}-?\d{3})/i)?.[1] || '')
+        .replace(/\D/g, '');
+    const enderecoEstruturado = [
+        opcao?.dataset.ruaDestino,
+        opcao?.dataset.numeroDestino,
+        opcao?.dataset.bairroDestino,
+        opcao?.dataset.cidadeDestino,
+        opcao?.dataset.estadoDestino,
+        'Brasil'
+    ].filter(Boolean).join(', ');
+    const consultas = [
+        enderecoEstruturado,
+        cepDoDestino.length === 8 ? cepDoDestino + ', Brasil' : '',
+        destino.replace(/\s*-\s*CEP:\s*\d{5}-?\d{3}\s*$/i, '') + ', Brasil'
+    ].filter(Boolean);
+
+    let resultado = null;
+    for (const consulta of consultas) {
+        const url = new URL('https://nominatim.openstreetmap.org/search');
+        url.search = new URLSearchParams({ format: 'jsonv2', limit: '1', countrycodes: 'br', q: consulta });
+        const resposta = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
+        if (!resposta.ok) continue;
+        const resultados = await resposta.json();
+        if (Array.isArray(resultados) && resultados.length) {
+            resultado = resultados[0];
+            break;
         }
-    });
-
-    if (!resposta.ok) {
-        throw new Error(
-            "Não foi possível localizar o destino."
-        );
     }
 
-    const resultados = await resposta.json();
-
-    if (!Array.isArray(resultados) || resultados.length === 0) {
-        throw new Error(
-            "Cidade de destino não encontrada."
-        );
-    }
-
-    const termo = consulta.toLowerCase();
-
-    let resultado = resultados.find(function(item) {
-
-        const nome =
-            String(item.display_name || "").toLowerCase();
-
-        return (
-            nome.includes(termo) &&
-            (
-                item.type === "city" ||
-                item.type === "town" ||
-                item.type === "municipality" ||
-                item.type === "administrative"
-            )
-        );
-    });
-
-    if (!resultado) {
-        resultado = resultados[0];
-    }
+    if (!resultado) throw new Error("Destino não localizado.");
 
     const coordenadas = {
         latitude: parseFloat(resultado.lat),
