@@ -1018,20 +1018,6 @@ body {
 }
 
 /* Animações de entrada ao rolar */
-.scroll-reveal {
-    opacity: 0;
-    transform: translateY(45px);
-    transition: opacity .8s ease, transform .8s cubic-bezier(.22,1,.36,1);
-}
-
-.scroll-reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.scroll-delay-1 { transition-delay: .08s; }
-.scroll-delay-2 { transition-delay: .16s; }
-.scroll-delay-3 { transition-delay: .24s; }
 
 @media (max-width: 992px) {
     .content {
@@ -1154,7 +1140,7 @@ body {
     </div>
 
     <!-- HERO SECTION -->
-    <section class="hero scroll-reveal">
+    <section class="hero">
         <div class="container">
             <div class="hero-content">
                 <span class="hero-tag"><i class="fa-solid fa-comments"></i> Central de Feedback</span>
@@ -1167,25 +1153,25 @@ body {
     <!-- CONTENT CONTAINER -->
     <div class="container">
         <!-- STATS -->
-        <div class="stats scroll-reveal">
-            <div class="stat-card scroll-reveal scroll-delay-1">
+        <div class="stats">
+            <div class="stat-card">
                 <h3>{{ $percentualSatisfacao ?? 98 }}%</h3>
                 <p>Usuários Satisfeitos</p>
             </div>
-            <div class="stat-card scroll-reveal scroll-delay-2">
+            <div class="stat-card">
                 <h3>{{ $total ?? 1250 }}</h3>
                 <p>Avaliações Recebidas</p>
             </div>
-            <div class="stat-card scroll-reveal scroll-delay-3">
+            <div class="stat-card">
                 <h3>{{ number_format($media ?? 4.9, 1) }}</h3>
                 <p>Avaliação Média</p>
             </div>
         </div>
 
         <!-- FORM CARD -->
-        <div class="feedback-card scroll-reveal">
+        <div class="feedback-card">
             <div class="content">
-                <div class="left-panel scroll-reveal">
+                <div class="left-panel">
                     <div>
                         <h2>Sua Avaliação</h2>
                         <p>Compartilhe sua experiência e dê sugestões para melhorar nossos serviços.</p>
@@ -1197,7 +1183,7 @@ body {
                     </div>
                 </div>
 
-                <div class="right-panel scroll-reveal">
+                <div class="right-panel">
                     <div class="form-title">Envie seu comentário</div>
                     <form action="{{ route('avaliacao.store') }}" method="POST" id="formAvaliacao">
                         @csrf
@@ -1244,7 +1230,7 @@ body {
     </script>
 
     <!-- FOOTER -->
-    <footer class="footer scroll-reveal">
+    <footer class="footer">
         <div class="container">
             <div class="footer-grid">
                 <div>
