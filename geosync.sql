@@ -123,7 +123,7 @@
 
 	select * from personal_access_tokens;
 
-	select * from remessas;
+	select * from remessas;	
 
 	select * from alertas;
 
