@@ -1,0 +1,317 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class AppSession {
+  AppSession._();
+
+  static String _email = '';
+  static String _nome = '';
+  static String _token = '';
+  static String _tipoUsuario = 'Cliente';
+  static bool _restaurada = false;
+  static final modoEscuro = ValueNotifier<bool>(false);
+  static final notificacoesAtivas = ValueNotifier<bool>(true);
+  static final sessaoAtualizada = ValueNotifier<int>(0);
+  static final veiculoMotorista = ValueNotifier<VeiculoMotorista>(
+    const VeiculoMotorista(
+      modelo: '',
+      placa: '',
+      renavam: '',
+      ano: '',
+      capacidade: '',
+    ),
+  );
+  static final configuracoesMotorista = ValueNotifier<ConfiguracoesMotorista>(
+    const ConfiguracoesMotorista(),
+  );
+  static final documentosMotorista = ValueNotifier<DocumentosMotorista>(
+    const DocumentosMotorista(),
+  );
+
+  static Future<void> definirModoEscuro(bool ativado) async {
+    modoEscuro.value = ativado;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('dark_mode', ativado);
+  }
+
+  static Future<void> definirNotificacoesAtivas(bool ativado) async {
+    notificacoesAtivas.value = ativado;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notificacoes_ativas', ativado);
+  }
+
+  static String get token => _token;
+  static String get nome => _nome;
+  static String get email => _email;
+  static String get inicialNome {
+    final fonte = _nome.trim().isNotEmpty ? _nome.trim() : _email.trim();
+    return fonte.isEmpty ? 'U' : fonte.substring(0, 1).toUpperCase();
+  }
+
+  static String get tipoUsuario => _tipoUsuario;
+  static bool get autenticada => _token.isNotEmpty;
+  static bool get restaurada => _restaurada;
+
+  // ============================================================
+  // TOKEN (armazenamento seguro)
+  // ============================================================
+
+  /// Chave do token no armazenamento seguro e, em versões antigas do app,
+  /// no SharedPreferences (texto puro, migrado na primeira abertura).
+  static const _tokenKey = 'auth_token';
+  static const _dadosPrefixo = 'session_';
+
+  /// Keystore (Android), Keychain (iOS/macOS), Credential Locker (Windows),
+  /// libsecret (Linux) e WebCrypto (web, só em HTTPS ou localhost).
+  static const _cofre = FlutterSecureStorage();
+
+  static Future<String> _lerToken(SharedPreferences prefs) async {
+    try {
+      final salvo = await _cofre.read(key: _tokenKey);
+      if (salvo != null && salvo.isNotEmpty) {
+        await prefs.remove(_tokenKey); // Limpa sobra de versões antigas.
+        return salvo;
+      }
+      final legado = prefs.getString(_tokenKey);
+      if (legado == null || legado.isEmpty) return '';
+      await _cofre.write(key: _tokenKey, value: legado);
+      await prefs.remove(_tokenKey);
+      return legado;
+    } catch (e) {
+      // Cofre corrompido (ex.: backup restaurado em outro aparelho): o
+      // token não pode ser recuperado, então o usuário entra novamente.
+      debugPrint('[Sessão] armazenamento seguro indisponível: $e');
+      await _apagarToken(prefs);
+      return '';
+    }
+  }
+
+  static Future<void> _gravarToken(String token) async {
+    try {
+      await _cofre.write(key: _tokenKey, value: token);
+    } catch (e) {
+      // Sem cofre (ex.: web fora de HTTPS), a sessão vale só até fechar o
+      // app. O token nunca é gravado em texto puro.
+      debugPrint('[Sessão] token mantido apenas em memória: $e');
+    }
+  }
+
+  static Future<void> _apagarToken(SharedPreferences prefs) async {
+    await prefs.remove(_tokenKey);
+    try {
+      await _cofre.delete(key: _tokenKey);
+    } catch (e) {
+      debugPrint('[Sessão] não foi possível limpar o cofre: $e');
+    }
+  }
+
+  static Future<String?> _lerDadoSeguro(
+    SharedPreferences prefs,
+    String chave,
+  ) async {
+    final secureKey = '$_dadosPrefixo$chave';
+    try {
+      final atual = await _cofre.read(key: secureKey);
+      if (atual != null) {
+        await prefs.remove(chave);
+        return atual;
+      }
+      final legado = prefs.getString(chave);
+      if (legado == null) return null;
+      await _cofre.write(key: secureKey, value: legado);
+      await prefs.remove(chave);
+      return legado;
+    } catch (error) {
+      debugPrint(
+        '[Sessão] não foi possível migrar $chave para o cofre: $error',
+      );
+      return prefs.getString(chave);
+    }
+  }
+
+  static Future<void> _gravarDadoSeguro(String chave, String valor) async {
+    try {
+      await _cofre.write(key: '$_dadosPrefixo$chave', value: valor);
+    } catch (error) {
+      // Mantém o valor em memória quando o cofre não está disponível.
+      debugPrint('[Sessão] dado $chave mantido apenas em memória: $error');
+    }
+  }
+
+  static Future<void> _apagarDadosSeguros() async {
+    for (final chave in [
+      'user_type',
+      'user_email',
+      'user_name',
+      'motorista_veiculo',
+    ]) {
+      try {
+        await _cofre.delete(key: '$_dadosPrefixo$chave');
+      } catch (error) {
+        debugPrint('[Sessão] não foi possível limpar $chave do cofre: $error');
+      }
+    }
+  }
+
+  static Future<void> restaurar() async {
+    final prefs = await SharedPreferences.getInstance();
+    _token = await _lerToken(prefs);
+    _tipoUsuario = await _lerDadoSeguro(prefs, 'user_type') ?? 'Cliente';
+    _email = await _lerDadoSeguro(prefs, 'user_email') ?? '';
+    _nome = await _lerDadoSeguro(prefs, 'user_name') ?? '';
+    modoEscuro.value = prefs.getBool('dark_mode') ?? false;
+    notificacoesAtivas.value = prefs.getBool('notificacoes_ativas') ?? true;
+    configuracoesMotorista.value = ConfiguracoesMotorista(
+      notificacoes: notificacoesAtivas.value,
+      novasEntregas: prefs.getBool('motorista_novas_entregas') ?? true,
+      localizacao: prefs.getBool('motorista_localizacao') ?? true,
+      modoEconomia: prefs.getBool('motorista_modo_economia') ?? false,
+    );
+    final veiculo = VeiculoMotorista.fromJson(
+      await _lerDadoSeguro(prefs, 'motorista_veiculo'),
+    );
+    if (veiculo != null) veiculoMotorista.value = veiculo;
+    _restaurada = true;
+  }
+
+  static Future<void> iniciarSessao({
+    required String token,
+    required String tipoUsuario,
+    String? email,
+    String? nome,
+  }) async {
+    _token = token;
+    _tipoUsuario = tipoUsuario;
+    _email = email ?? _email;
+    _nome = nome ?? _nome;
+    await _gravarToken(token);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_tokenKey);
+    await _gravarDadoSeguro('user_type', tipoUsuario);
+    if (_email.isNotEmpty) await _gravarDadoSeguro('user_email', _email);
+    if (_nome.isNotEmpty) await _gravarDadoSeguro('user_name', _nome);
+    sessaoAtualizada.value++;
+  }
+
+  static Future<void> encerrarSessao() async {
+    _token = '';
+    _email = '';
+    _nome = '';
+    final prefs = await SharedPreferences.getInstance();
+    await _apagarToken(prefs);
+    await prefs.remove('user_type');
+    await prefs.remove('user_email');
+    await prefs.remove('user_name');
+    await _apagarDadosSeguros();
+    sessaoAtualizada.value++;
+  }
+
+  /// Atualiza nome e e-mail salvos localmente após editar o perfil.
+  static Future<void> atualizarDadosUsuario({
+    required String nome,
+    required String email,
+  }) async {
+    _nome = nome;
+    _email = email;
+    await _gravarDadoSeguro('user_name', nome);
+    await _gravarDadoSeguro('user_email', email);
+  }
+
+  static Future<void> salvarVeiculo(VeiculoMotorista veiculo) async {
+    veiculoMotorista.value = veiculo;
+    await _gravarDadoSeguro('motorista_veiculo', jsonEncode(veiculo.toJson()));
+  }
+
+  static Future<void> salvarConfiguracoes(
+    ConfiguracoesMotorista configuracoes,
+  ) async {
+    configuracoesMotorista.value = configuracoes;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(
+      'motorista_novas_entregas',
+      configuracoes.novasEntregas,
+    );
+    await prefs.setBool('motorista_localizacao', configuracoes.localizacao);
+    await prefs.setBool('motorista_modo_economia', configuracoes.modoEconomia);
+  }
+
+  static void salvarDocumentos(DocumentosMotorista documentos) =>
+      documentosMotorista.value = documentos;
+}
+
+class VeiculoMotorista {
+  const VeiculoMotorista({
+    required this.modelo,
+    required this.placa,
+    required this.renavam,
+    required this.ano,
+    required this.capacidade,
+  });
+
+  final String modelo;
+  final String placa;
+  final String renavam;
+  final String ano;
+  final String capacidade;
+
+  Map<String, String> toJson() => {
+    'modelo': modelo,
+    'placa': placa,
+    'renavam': renavam,
+    'ano': ano,
+    'capacidade': capacidade,
+  };
+
+  static VeiculoMotorista? fromJson(String? json) {
+    if (json == null) return null;
+    try {
+      final dados = jsonDecode(json);
+      if (dados is! Map) return null;
+      String campo(String chave) => '${dados[chave] ?? ''}';
+      return VeiculoMotorista(
+        modelo: campo('modelo'),
+        placa: campo('placa'),
+        renavam: campo('renavam'),
+        ano: campo('ano'),
+        capacidade: campo('capacidade'),
+      );
+    } on FormatException {
+      return null;
+    }
+  }
+}
+
+class ConfiguracoesMotorista {
+  const ConfiguracoesMotorista({
+    this.notificacoes = true,
+    this.novasEntregas = true,
+    this.localizacao = true,
+    this.modoEconomia = false,
+  });
+
+  final bool notificacoes;
+  final bool novasEntregas;
+  final bool localizacao;
+  final bool modoEconomia;
+}
+
+class DocumentosMotorista {
+  const DocumentosMotorista({
+    this.cnhEnviada = false,
+    this.crlvEnviado = false,
+  });
+
+  final bool cnhEnviada;
+  final bool crlvEnviado;
+
+  bool get possuiPendencia => cnhEnviada || crlvEnviado;
+
+  DocumentosMotorista copyWith({bool? cnhEnviada, bool? crlvEnviado}) =>
+      DocumentosMotorista(
+        cnhEnviada: cnhEnviada ?? this.cnhEnviada,
+        crlvEnviado: crlvEnviado ?? this.crlvEnviado,
+      );
+}

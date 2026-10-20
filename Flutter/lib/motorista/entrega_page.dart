@@ -1,0 +1,2524 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mobile/services/api_exception.dart';
+import 'package:mobile/services/api_service.dart';
+import 'package:mobile/services/eta_service.dart';
+import 'package:mobile/app_session.dart';
+import 'package:mobile/sync/background_location_service.dart';
+import 'package:mobile/sync/location_point.dart';
+import 'package:mobile/widgets/signature_pad.dart';
+import 'package:mobile/suporte_page.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'package:mobile/motorista/avisos_motorista_page.dart';
+import 'package:mobile/motorista/mapa_motorista_page.dart';
+import 'package:mobile/motorista/motorista_dashboard.dart';
+import 'package:mobile/motorista/qr_page.dart';
+
+class RemessasPage extends StatefulWidget {
+  const RemessasPage({super.key, this.mostrarDisponiveis = false});
+
+  final bool mostrarDisponiveis;
+
+  @override
+  State<RemessasPage> createState() => _RemessasPageState();
+}
+
+class _RemessasPageState extends State<RemessasPage> {
+  final TextEditingController _searchController = TextEditingController();
+
+  String filtroSelecionado = "Todas";
+  final int _currentIndex = 1;
+
+  // ============================================================
+  // CORES
+  // ============================================================
+
+  static const Color azul = Color(0xFF0C46FF);
+  static const Color azulEscuro = Color(0xFF0B2A4A);
+  static const Color textoSecundario = Color(0xFF718096);
+
+  // Cores que acompanham o tema claro/escuro.
+  Color get corTexto => Theme.of(context).colorScheme.onSurface;
+  Color get corBorda => Theme.of(context).colorScheme.outlineVariant;
+  Color get corCard => Theme.of(context).colorScheme.surface;
+
+  // ============================================================
+  // DADOS
+  // ============================================================
+
+  final List<Remessa> remessas = [];
+  final List<Remessa> disponiveis = [];
+  bool _modoDisponiveis = false;
+  bool _carregando = true;
+  String? _erro;
+
+  // ============================================================
+  // FILTRO
+  // ============================================================
+
+  List<Remessa> get remessasFiltradas {
+    final pesquisa = _searchController.text.toLowerCase().trim();
+
+    final fonte = _modoDisponiveis ? disponiveis : remessas;
+    return fonte.where((remessa) {
+      bool correspondeFiltro = true;
+
+      switch (filtroSelecionado) {
+        case "Trânsito":
+          correspondeFiltro = remessa.status == "Em rota";
+          break;
+
+        case "Entregue":
+          correspondeFiltro = remessa.status == "Entregue";
+          break;
+
+        case "Alerta":
+          correspondeFiltro = remessa.status == "Alerta";
+          break;
+
+        default:
+          correspondeFiltro = true;
+      }
+
+      final correspondeBusca =
+          pesquisa.isEmpty ||
+          remessa.codigo.toLowerCase().contains(pesquisa) ||
+          remessa.origem.toLowerCase().contains(pesquisa) ||
+          remessa.destino.toLowerCase().contains(pesquisa) ||
+          remessa.tipo.toLowerCase().contains(pesquisa);
+
+      return correspondeFiltro && correspondeBusca;
+    }).toList();
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+
+  @override
+  void initState() {
+    super.initState();
+    _modoDisponiveis = widget.mostrarDisponiveis;
+    if (widget.mostrarDisponiveis) filtroSelecionado = 'Disponíveis';
+
+    _searchController.addListener(() {
+      setState(() {});
+    });
+    _carregarRemessas();
+  }
+
+  Future<void> _carregarRemessas({bool forceRefresh = false}) async {
+    if (mounted) {
+      setState(() {
+        _carregando = true;
+        _erro = null;
+      });
+    }
+    try {
+      final respostas = await Future.wait([
+        ApiService.instance.minhasRemessas(forceRefresh: forceRefresh),
+        ApiService.instance.remessasDisponiveis(),
+      ]);
+      final dados = respostas[0].whereType<Map>().map(_remessaFromApi).toList();
+      final vagas = respostas[1]
+          .whereType<Map>()
+          .map((item) => _remessaFromApi(item, disponivel: true))
+          .toList();
+      if (!mounted) return;
+      setState(() {
+        remessas
+          ..clear()
+          ..addAll(dados);
+        disponiveis
+          ..clear()
+          ..addAll(vagas);
+        _carregando = false;
+      });
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _erro = error.message;
+        _carregando = false;
+      });
+    }
+  }
+
+  Remessa _remessaFromApi(Map value, {bool disponivel = false}) {
+    final progresso = value['progresso'] ?? value['progress'] ?? 0;
+    return Remessa(
+      codigo: '${value['codigo'] ?? value['code'] ?? value['id'] ?? '-'}',
+      status: '${value['status'] ?? value['situacao'] ?? 'Aguardando coleta'}',
+      origem: '${value['origem'] ?? value['origin'] ?? '-'}',
+      destino: '${value['destino'] ?? value['destination'] ?? '-'}',
+      tipo: '${value['tipo'] ?? value['tipo_carga'] ?? value['cargo'] ?? '-'}',
+      peso: '${value['peso'] ?? value['weight'] ?? '-'}',
+      eta: '${value['eta'] ?? value['previsao_entrega'] ?? '-'}',
+      progresso: progresso is num ? progresso.toDouble().clamp(0.0, 1.0) : 0,
+      id: value['id'] ?? value['remessa_id'],
+      disponivel: disponivel,
+    );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // ============================================================
+  // QUANTIDADE
+  // ============================================================
+
+  int quantidadePorStatus(String status) {
+    final fonte = _modoDisponiveis ? disponiveis : remessas;
+    if (status == "Todas") {
+      return fonte.length;
+    }
+
+    if (status == "Trânsito") {
+      return fonte.where((r) => r.status == "Em rota").length;
+    }
+
+    return fonte.where((r) => r.status == status).length;
+  }
+
+  // ============================================================
+  // BUSCA
+  // ============================================================
+
+  void limparBusca() {
+    _searchController.clear();
+    FocusScope.of(context).unfocus();
+  }
+
+  // ============================================================
+  // DETALHES
+  // ============================================================
+
+  Future<void> abrirDetalhes(Remessa remessa) async {
+    final novoStatus = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return DetalhesRemessa(remessa: remessa);
+      },
+    );
+    if (!mounted || novoStatus == null) return;
+    if (novoStatus == 'accepted') {
+      await _carregarRemessas(forceRefresh: true);
+      return;
+    }
+    setState(() {
+      remessa.status = novoStatus;
+      remessa.progresso = novoStatus == 'Entregue' ? 1 : remessa.progresso;
+    });
+  }
+
+  // ============================================================
+  // BUILD
+  // ============================================================
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      // Cabeçalho e lista rolam juntos: em telas baixas (ou com fonte
+      // ampliada) o cabeçalho não "empurra" a lista para fora da tela.
+      body: SafeArea(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          slivers: [
+            SliverToBoxAdapter(child: _buildHeader()),
+            if (_carregando)
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_erro != null)
+              SliverFillRemaining(hasScrollBody: false, child: _buildErro())
+            else
+              ..._buildConteudo(),
+          ],
+        ),
+      ),
+      bottomNavigationBar: _buildBottomNavigation(),
+    );
+  }
+
+  Widget _buildErro() => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(LucideIcons.cloudOff, size: 48, color: Colors.grey),
+          const SizedBox(height: 12),
+          Text(_erro!, textAlign: TextAlign.center),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () => _carregarRemessas(forceRefresh: true),
+            icon: const Icon(LucideIcons.refreshCw),
+            label: const Text('Tentar novamente'),
+          ),
+        ],
+      ),
+    ),
+  );
+
+  // ============================================================
+  // HEADER
+  // ============================================================
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _buildLogo(),
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "GeoSync",
+                      style: TextStyle(
+                        color: corTexto,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      "Gestão de entregas",
+                      style: TextStyle(
+                        color: textoSecundario,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              IconButton(
+                tooltip: 'Atualizar entregas',
+                onPressed: _carregando
+                    ? null
+                    : () => _carregarRemessas(forceRefresh: true),
+                icon: const Icon(LucideIcons.refreshCw),
+              ),
+
+              const SizedBox(width: 4),
+
+              _buildNotificationButton(),
+
+              const SizedBox(width: 9),
+
+              _buildProfileButton(),
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Minhas entregas",
+                      style: TextStyle(
+                        color: corTexto,
+                        fontSize: 27,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.9,
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      "Acompanhe suas cargas em tempo real.",
+                      style: TextStyle(color: textoSecundario, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEAFBF1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.circle, size: 7, color: Color(0xFF16A34A)),
+                    SizedBox(width: 6),
+                    Text(
+                      "Online",
+                      style: TextStyle(
+                        color: Color(0xFF15803D),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 18),
+
+          _buildSearch(),
+
+          const SizedBox(height: 16),
+
+          _buildResumoRapido(),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // LOGO
+  // ============================================================
+
+  Widget _buildLogo() {
+    return Container(
+      width: 46,
+      height: 46,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [azulEscuro, azul],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: azul.withValues(alpha: 0.20),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: const Icon(LucideIcons.truck, color: Colors.white, size: 23),
+    );
+  }
+
+  // ============================================================
+  // NOTIFICAÇÃO
+  // ============================================================
+
+  Widget _buildNotificationButton() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const AvisosMotoristaPage()));
+      },
+      child: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: corBorda),
+        ),
+        child: Stack(
+          children: [
+            const Center(
+              child: Icon(LucideIcons.bell, color: Color(0xFF475569), size: 23),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: Colors.redAccent,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1.5),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // PERFIL
+  // ============================================================
+
+  Widget _buildProfileButton() {
+    return GestureDetector(
+      onTap: () => _abrirDashboard(2),
+      child: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: const Color(0xFFE8EEFF),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Center(
+          child: Text(
+            AppSession.inicialNome,
+            style: const TextStyle(
+              color: azul,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // BUSCA
+  // ============================================================
+
+  Widget _buildSearch() {
+    return Container(
+      height: 52,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: corBorda),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.025),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: _searchController,
+        textInputAction: TextInputAction.search,
+        style: TextStyle(
+          color: corTexto,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          hintText: "Buscar por código, origem ou destino",
+          hintStyle: const TextStyle(color: textoSecundario, fontSize: 12),
+          prefixIcon: Container(
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: azul.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: const Icon(LucideIcons.search, color: azul, size: 20),
+          ),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  onPressed: limparBusca,
+                  icon: const Icon(
+                    LucideIcons.x,
+                    size: 19,
+                    color: textoSecundario,
+                  ),
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 15),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // RESUMO RÁPIDO
+  // ============================================================
+
+  Widget _buildResumoRapido() {
+    final emRota = remessas.where((r) => r.status == "Em rota").length;
+
+    final aguardando = remessas
+        .where((r) => r.status == "Aguardando coleta")
+        .length;
+
+    final entregues = remessas.where((r) => r.status == "Entregue").length;
+
+    return Row(
+      children: [
+        Expanded(
+          child: _miniIndicador(
+            valor: "$emRota",
+            titulo: "Em rota",
+            icon: LucideIcons.navigation,
+            cor: azul,
+          ),
+        ),
+        const SizedBox(width: 9),
+        Expanded(
+          child: _miniIndicador(
+            valor: "$aguardando",
+            titulo: "Aguardando",
+            icon: LucideIcons.clock,
+            cor: const Color(0xFFF59E0B),
+          ),
+        ),
+        const SizedBox(width: 9),
+        Expanded(
+          child: _miniIndicador(
+            valor: "$entregues",
+            titulo: "Entregues",
+            icon: LucideIcons.circleCheckBig,
+            cor: const Color(0xFF16A34A),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _miniIndicador({
+    required String valor,
+    required String titulo,
+    required IconData icon,
+    required Color cor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 11),
+      decoration: BoxDecoration(
+        color: corCard,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: corBorda),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: cor.withValues(alpha: 0.09),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: cor, size: 17),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  valor,
+                  style: TextStyle(
+                    color: corTexto,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                Text(
+                  titulo,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: textoSecundario,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // CONTEÚDO
+  // ============================================================
+
+  List<Widget> _buildConteudo() {
+    return [
+      SliverToBoxAdapter(
+        child: Column(
+          children: [
+            const SizedBox(height: 18),
+
+            _buildFiltros(),
+
+            const SizedBox(height: 15),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Text(
+                    "${remessasFiltradas.length} entregas",
+                    style: TextStyle(
+                      color: corTexto,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (filtroSelecionado != "Todas")
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          filtroSelecionado = "Todas";
+                        });
+                      },
+                      child: const Text(
+                        "Limpar filtro",
+                        style: TextStyle(
+                          color: azul,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+      if (remessasFiltradas.isEmpty)
+        const SliverFillRemaining(hasScrollBody: false, child: _EstadoVazio())
+      else
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          sliver: SliverList.builder(
+            itemCount: remessasFiltradas.length,
+            itemBuilder: (context, index) {
+              final remessa = remessasFiltradas[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 13),
+                child: _RemessaCard(
+                  remessa: remessa,
+                  onTap: () => abrirDetalhes(remessa),
+                ),
+              );
+            },
+          ),
+        ),
+    ];
+  }
+
+  // ============================================================
+  // FILTROS
+  // ============================================================
+
+  Widget _buildFiltros() {
+    return SizedBox(
+      height: 48,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        children: [
+          _filtro(
+            texto: "Disponíveis",
+            filtro: "Disponíveis",
+            quantidade: disponiveis.length,
+          ),
+          _filtro(
+            texto: "Todas",
+            filtro: "Todas",
+            quantidade: quantidadePorStatus("Todas"),
+          ),
+          _filtro(
+            texto: "Em rota",
+            filtro: "Trânsito",
+            quantidade: quantidadePorStatus("Trânsito"),
+          ),
+          _filtro(
+            texto: "Entregues",
+            filtro: "Entregue",
+            quantidade: quantidadePorStatus("Entregue"),
+          ),
+          _filtro(
+            texto: "Alertas",
+            filtro: "Alerta",
+            quantidade: quantidadePorStatus("Alerta"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _filtro({
+    required String texto,
+    required String filtro,
+    required int quantidade,
+  }) {
+    final selecionado = filtroSelecionado == filtro;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          filtroSelecionado = filtro;
+          _modoDisponiveis = filtro == 'Disponíveis';
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: selecionado ? azul : corCard,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: selecionado ? azul : corBorda),
+          boxShadow: selecionado
+              ? [
+                  BoxShadow(
+                    color: azul.withValues(alpha: 0.16),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          children: [
+            Text(
+              texto,
+              style: TextStyle(
+                color: selecionado ? Colors.white : textoSecundario,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(width: 7),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              decoration: BoxDecoration(
+                color: selecionado
+                    ? Colors.white.withValues(alpha: 0.18)
+                    : const Color(0xFFF0F3F8),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                "$quantidade",
+                style: TextStyle(
+                  color: selecionado ? Colors.white : textoSecundario,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // BOTTOM NAVIGATION
+  // ============================================================
+
+  Widget _buildBottomNavigation() {
+    return Container(
+      decoration: BoxDecoration(
+        color: corCard,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 8, 10, 7),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _navItem(icon: LucideIcons.house, texto: "Início", index: 0),
+              _navItem(icon: LucideIcons.truck, texto: "Entregas", index: 1),
+              _navItem(
+                icon: LucideIcons.circleUserRound,
+                texto: "Perfil",
+                index: 2,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem({
+    required IconData icon,
+    required String texto,
+    required int index,
+  }) {
+    final selecionado = _currentIndex == index;
+
+    return GestureDetector(
+      onTap: () {
+        if (index == 0) {
+          Navigator.of(context).pop();
+        } else if (index == 2) {
+          _abrirDashboard(2);
+        }
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+        width: 78,
+        padding: const EdgeInsets.symmetric(vertical: 7),
+        decoration: BoxDecoration(
+          color: selecionado
+              ? azul.withValues(alpha: 0.09)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedScale(
+              scale: selecionado ? 1.08 : 1,
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                icon,
+                size: 22,
+                color: selecionado ? azul : const Color(0xFF94A3B8),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              texto,
+              style: TextStyle(
+                color: selecionado ? azul : const Color(0xFF94A3B8),
+                fontSize: 10,
+                fontWeight: selecionado ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // DASHBOARD
+  // ============================================================
+
+  void _abrirDashboard(int initialIndex) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => MotoristaDashboard(initialIndex: initialIndex),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// MODELO DA REMESSA
+// ============================================================================
+
+class Remessa {
+  final String codigo;
+  String status;
+  final String origem;
+  final String destino;
+  final String tipo;
+  final String peso;
+  final String eta;
+  final String distancia;
+  double progresso;
+  final Object? id;
+
+  bool favorita;
+  final bool disponivel;
+
+  Remessa({
+    required this.codigo,
+    required this.status,
+    required this.origem,
+    required this.destino,
+    required this.tipo,
+    required this.peso,
+    required this.eta,
+    required this.progresso,
+    this.distancia = 'Não informado',
+    this.id,
+    this.disponivel = false,
+    this.favorita = false,
+  });
+}
+
+class _EntregaProofData {
+  const _EntregaProofData({
+    required this.destinatario,
+    required this.observacao,
+    required this.fotoBase64,
+    required this.assinaturaBase64,
+  });
+
+  final String destinatario;
+  final String observacao;
+  final String? fotoBase64;
+  final String assinaturaBase64;
+}
+
+class _ComprovanteEntregaDialog extends StatefulWidget {
+  const _ComprovanteEntregaDialog({required this.remessa});
+
+  final Remessa remessa;
+
+  @override
+  State<_ComprovanteEntregaDialog> createState() =>
+      _ComprovanteEntregaDialogState();
+}
+
+class _ComprovanteEntregaDialogState extends State<_ComprovanteEntregaDialog> {
+  final TextEditingController _destinatarioController = TextEditingController();
+  final TextEditingController _observacaoController = TextEditingController();
+  final SignaturePadController _signatureController = SignaturePadController();
+  final ImagePicker _picker = ImagePicker();
+  String? _fotoBase64;
+  bool _carregandoFoto = false;
+
+  Future<void> _tirarFoto() async {
+    setState(() => _carregandoFoto = true);
+    try {
+      final file = await _picker.pickImage(
+        source: ImageSource.camera,
+        preferredCameraDevice: CameraDevice.rear,
+        maxWidth: 1600,
+        imageQuality: 80,
+      );
+      if (file == null) return;
+      final bytes = await File(file.path).readAsBytes();
+      if (!mounted) return;
+      setState(() => _fotoBase64 = base64Encode(bytes));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível capturar a foto do comprovante.'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _carregandoFoto = false);
+    }
+  }
+
+  void _confirmar() async {
+    final destinatario = _destinatarioController.text.trim();
+    final assinaturaBytes = await _signatureController.toPng();
+    if (destinatario.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Informe o nome do destinatário.')),
+      );
+      return;
+    }
+    if (assinaturaBytes == null || assinaturaBytes.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Assine para concluir o comprovante.')),
+      );
+      return;
+    }
+
+    final assinaturaBase64 = base64Encode(assinaturaBytes);
+    if (!mounted) return;
+    Navigator.pop(
+      context,
+      _EntregaProofData(
+        destinatario: destinatario,
+        observacao: _observacaoController.text.trim(),
+        fotoBase64: _fotoBase64,
+        assinaturaBase64: assinaturaBase64,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Comprovante de entrega'),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _destinatarioController,
+                decoration: const InputDecoration(
+                  labelText: 'Nome do destinatário',
+                  hintText: 'Ex.: Maria da Silva',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _observacaoController,
+                minLines: 2,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Observação (opcional)',
+                  hintText: 'Ex.: Entregue com cuidado ao porteiro.',
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: _tirarFoto,
+                      icon: _carregandoFoto
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(LucideIcons.camera),
+                      label: Text(_carregandoFoto ? 'Capturando...' : 'Foto'),
+                    ),
+                  ),
+                ],
+              ),
+              if (_fotoBase64 != null) ...[
+                const SizedBox(height: 10),
+                Container(
+                  height: 110,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.memory(
+                      base64Decode(_fotoBase64!),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 12),
+              const Text(
+                'Assinatura do destinatário',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              SignaturePad(controller: _signatureController),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () => _signatureController.clear(),
+                  icon: const Icon(LucideIcons.trash2),
+                  label: const Text('Limpar'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: _confirmar,
+          child: const Text('Salvar comprovante'),
+        ),
+      ],
+    );
+  }
+}
+
+// ============================================================================
+// CARD DA REMESSA
+// ============================================================================
+
+class _RemessaCard extends StatefulWidget {
+  final Remessa remessa;
+  final VoidCallback onTap;
+
+  const _RemessaCard({required this.remessa, required this.onTap});
+
+  @override
+  State<_RemessaCard> createState() => _RemessaCardState();
+}
+
+class _RemessaCardState extends State<_RemessaCard> {
+  Color get corStatus {
+    switch (widget.remessa.status) {
+      case "Entregue":
+        return const Color(0xFF16A34A);
+
+      case "Aguardando coleta":
+        return const Color(0xFFF59E0B);
+
+      case "Alerta":
+        return const Color(0xFFDC2626);
+
+      default:
+        return const Color(0xFF0C46FF);
+    }
+  }
+
+  IconData get iconeStatus {
+    switch (widget.remessa.status) {
+      case "Entregue":
+        return LucideIcons.circleCheckBig;
+
+      case "Aguardando coleta":
+        return LucideIcons.clock;
+
+      case "Alerta":
+        return LucideIcons.triangleAlert;
+
+      default:
+        return LucideIcons.navigation;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final remessa = widget.remessa;
+    final scheme = Theme.of(context).colorScheme;
+
+    return Semantics(
+      button: true,
+      label: 'Entrega ${remessa.codigo}, ${remessa.status}',
+      onTap: widget.onTap,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: scheme.surface,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0xFFE1E7F0)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.025),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ÍCONE
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: corStatus.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Icon(iconeStatus, color: corStatus, size: 24),
+                  ),
+
+                  const SizedBox(width: 13),
+
+                  // INFORMAÇÕES
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                remessa.codigo,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: scheme.onSurface,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 7),
+                            Flexible(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: corStatus.withValues(alpha: 0.09),
+                                  borderRadius: BorderRadius.circular(7),
+                                ),
+                                child: Text(
+                                  remessa.status,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: corStatus,
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 6),
+
+                        Text(
+                          remessa.tipo,
+                          style: TextStyle(
+                            color: scheme.onSurfaceVariant,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const Icon(
+                    LucideIcons.chevronRight,
+                    color: Color(0xFFB1BBCB),
+                    size: 14,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // ROTA
+              Row(
+                children: [
+                  _pontoRota(
+                    cor: const Color(0xFF2563EB),
+                    icon: LucideIcons.circleDot,
+                  ),
+
+                  const SizedBox(width: 8),
+
+                  Expanded(
+                    child: Text(
+                      remessa.origem,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: scheme.onSurfaceVariant,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 5),
+                    child: Icon(
+                      LucideIcons.arrowRight,
+                      size: 15,
+                      color: Color(0xFFB0BAC9),
+                    ),
+                  ),
+
+                  Expanded(
+                    child: Text(
+                      remessa.destino,
+                      textAlign: TextAlign.right,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: scheme.onSurfaceVariant,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 8),
+
+                  _pontoRota(
+                    cor: const Color(0xFFDC2626),
+                    icon: LucideIcons.mapPin,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 15),
+
+              // PROGRESSO
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      const Text(
+                        "Progresso da entrega",
+                        style: TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        "${(remessa.progresso * 100).round()}%",
+                        style: TextStyle(
+                          color: corStatus,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 7),
+
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: LinearProgressIndicator(
+                      value: remessa.progresso,
+                      minHeight: 5,
+                      backgroundColor: scheme.surfaceContainerHighest,
+                      valueColor: AlwaysStoppedAnimation<Color>(corStatus),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 15),
+
+              // INFORMAÇÕES INFERIORES
+              Row(
+                children: [
+                  _infoItem(icon: LucideIcons.weight, texto: remessa.peso),
+                  const SizedBox(width: 15),
+                  _infoItem(icon: LucideIcons.clock, texto: remessa.eta),
+                  const Spacer(),
+                  if (remessa.status == "Em rota")
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const MapaMotoristaPage(),
+                          ),
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                      ),
+                      icon: const Icon(LucideIcons.map, size: 15),
+                      label: const Text(
+                        "Mapa",
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _pontoRota({required Color cor, required IconData icon}) {
+    return Icon(icon, size: 13, color: cor);
+  }
+
+  Widget _infoItem({required IconData icon, required String texto}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: const Color(0xFF94A3B8)),
+        const SizedBox(width: 5),
+        Text(
+          texto,
+          style: const TextStyle(
+            color: Color(0xFF64748B),
+            fontSize: 9,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ============================================================================
+// ESTADO VAZIO
+// ============================================================================
+
+class _EstadoVazio extends StatelessWidget {
+  const _EstadoVazio();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(30),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 82,
+              height: 82,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE9EEFF),
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: const Icon(
+                LucideIcons.truck,
+                color: Color(0xFF0C46FF),
+                size: 38,
+              ),
+            ),
+
+            const SizedBox(height: 18),
+
+            const Text(
+              "Nenhuma entrega encontrada",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xFF172033),
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+
+            const SizedBox(height: 6),
+
+            const Text(
+              "Tente alterar sua busca ou selecionar outro filtro.",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xFF718096),
+                fontSize: 11,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// DETALHES DA REMESSA
+// ============================================================================
+
+class DetalhesRemessa extends StatefulWidget {
+  final Remessa remessa;
+
+  const DetalhesRemessa({super.key, required this.remessa});
+
+  @override
+  State<DetalhesRemessa> createState() => _DetalhesRemessaState();
+}
+
+class _DetalhesRemessaState extends State<DetalhesRemessa> {
+  Remessa get remessa => widget.remessa;
+  bool _atualizandoStatus = false;
+
+  Future<void> _ligarSuporte() async {
+    showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Precisa de ajuda?',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 6),
+            const Text('Escolha como prefere falar com a equipe GeoSync.'),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  final uri = Uri(scheme: 'tel', path: '08001234567');
+                  if (!await launchUrl(uri) && mounted) {
+                    ScaffoldMessenger.of(this.context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Não foi possível abrir o telefone neste dispositivo.',
+                        ),
+                      ),
+                    );
+                  }
+                },
+                icon: const Icon(LucideIcons.phone),
+                label: const Text('Ligar para 0800 123 4567'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.of(this.context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const SuportePage(motorista: true),
+                    ),
+                  );
+                },
+                icon: const Icon(LucideIcons.messageCircle),
+                label: const Text('Enviar uma mensagem'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<Position?> _obterLocalizacaoAtual() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (!mounted) return null;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Ative a localização para registrar a entrega e a ocorrência.',
+            ),
+          ),
+        );
+        return null;
+      }
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.deniedForever ||
+          permission == LocationPermission.denied) {
+        if (!mounted) return null;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Permissão de localização negada. Ela é necessária para o comprovante e a ocorrência.',
+            ),
+          ),
+        );
+        return null;
+      }
+
+      return Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 12),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return null;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível obter a localização atual.'),
+        ),
+      );
+      return null;
+    }
+  }
+
+  Future<void> _registrarOcorrencia() async {
+    final controller = TextEditingController();
+    final fotoPicker = ImagePicker();
+    String? fotoBase64;
+    String categoriaSelecionada = 'Cliente ausente';
+
+    final resultado = await showDialog<Map<String, dynamic>?>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Registrar ocorrência'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DropdownButtonFormField<String>(
+                    initialValue: categoriaSelecionada,
+                    decoration: const InputDecoration(labelText: 'Categoria'),
+                    items:
+                        const [
+                              'Cliente ausente',
+                              'Endereço incorreto',
+                              'Pacote danificado',
+                              'Local inacessível',
+                              'Problema com veículo',
+                              'Problema na rota',
+                              'Outro',
+                            ]
+                            .map(
+                              (categoria) => DropdownMenuItem(
+                                value: categoria,
+                                child: Text(categoria),
+                              ),
+                            )
+                            .toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => categoriaSelecionada = value);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    minLines: 3,
+                    maxLines: 5,
+                    decoration: const InputDecoration(
+                      hintText: 'Descreva o problema, impedimento ou atraso.',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: FilledButton.icon(
+                      onPressed: () async {
+                        try {
+                          final file = await fotoPicker.pickImage(
+                            source: ImageSource.camera,
+                            preferredCameraDevice: CameraDevice.rear,
+                            maxWidth: 1600,
+                            imageQuality: 80,
+                          );
+                          if (file == null) return;
+                          final bytes = await File(file.path).readAsBytes();
+                          setState(() => fotoBase64 = base64Encode(bytes));
+                        } catch (_) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Não foi possível incluir a foto da ocorrência.',
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(LucideIcons.camera),
+                      label: const Text('Anexar foto'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, {
+                'descricao': controller.text.trim(),
+                'categoria': categoriaSelecionada,
+                'foto_base64': fotoBase64,
+              }),
+              child: const Text('Enviar'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (resultado == null) return;
+    final descricao = '${resultado['descricao']}';
+    if (descricao.trim().isEmpty) return;
+    final localizacao = await _obterLocalizacaoAtual();
+    if (localizacao == null) return;
+
+    try {
+      final resposta = await ApiService.instance.registrarOcorrenciaRemessa(
+        remessa.id ?? remessa.codigo,
+        descricao: descricao,
+        categoria: '${resultado['categoria']}',
+        fotoBase64: resultado['foto_base64'] as String?,
+        latitude: localizacao.latitude,
+        longitude: localizacao.longitude,
+        nomeResponsavel: AppSession.inicialNome,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              resposta['pendente_sincronizacao'] == true
+                  ? 'Ocorrência salva neste aparelho e aguardando sincronização.'
+                  : 'Ocorrência enviada para a equipe.',
+            ),
+          ),
+        );
+      }
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    }
+  }
+
+  Future<void> _registrarComprovanteEntrega() async {
+    final navigator = Navigator.of(context);
+    final prova = await showDialog<_EntregaProofData>(
+      context: context,
+      builder: (_) => _ComprovanteEntregaDialog(remessa: remessa),
+    );
+    if (prova == null) return;
+
+    final localizacao = await _obterLocalizacaoAtual();
+    if (localizacao == null) return;
+
+    setState(() => _atualizandoStatus = true);
+    try {
+      final respostaComprovante = await ApiService.instance
+          .registrarComprovanteEntrega(
+            remessa.id ?? remessa.codigo,
+            destinatario: prova.destinatario,
+            assinaturaBase64: prova.assinaturaBase64,
+            fotoBase64: prova.fotoBase64,
+            observacao: prova.observacao,
+            latitude: localizacao.latitude,
+            longitude: localizacao.longitude,
+          );
+      final respostaStatus = await ApiService.instance.atualizarStatusRemessa(
+        remessa.id ?? remessa.codigo,
+        'Entregue',
+      );
+      if (!mounted) return;
+      final pendente =
+          respostaComprovante['pendente_sincronizacao'] == true ||
+          respostaStatus['pendente_sincronizacao'] == true;
+      final confirmou = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Entrega concluída'),
+          content: Text(
+            pendente
+                ? 'O comprovante foi salvo neste aparelho e será sincronizado quando a conexão estiver disponível.'
+                : 'O comprovante foi enviado e a entrega foi atualizada no servidor.',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      if (confirmou ?? false) {
+        if (!mounted) return;
+        navigator.pop('Entregue');
+      }
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    } finally {
+      if (mounted) setState(() => _atualizandoStatus = false);
+    }
+  }
+
+  Future<void> _aceitarEntrega() async {
+    if (_atualizandoStatus) return;
+    setState(() => _atualizandoStatus = true);
+    try {
+      final resposta = await ApiService.instance.aceitarRemessa(
+        remessa.id ?? remessa.codigo,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            resposta['pendente_sincronizacao'] == true
+                ? 'Entrega aceita e salva. O envio ficará pendente até haver conexão.'
+                : 'Entrega aceita com sucesso.',
+          ),
+        ),
+      );
+      Navigator.pop(context, 'accepted');
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    } finally {
+      if (mounted) setState(() => _atualizandoStatus = false);
+    }
+  }
+
+  Color get corStatus {
+    switch (remessa.status) {
+      case "Entregue":
+        return const Color(0xFF16A34A);
+
+      case "Aguardando coleta":
+        return const Color(0xFFF59E0B);
+
+      case "Alerta":
+        return const Color(0xFFDC2626);
+
+      default:
+        return const Color(0xFF0C46FF);
+    }
+  }
+
+  Future<void> _avancarStatus() async {
+    final proximo = remessa.status == 'Aguardando coleta'
+        ? 'Em rota'
+        : remessa.status == 'Em rota'
+        ? 'Entregue'
+        : null;
+    if (proximo == null || _atualizandoStatus) return;
+    if (proximo == 'Entregue') {
+      final confirmou = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Confirmar entrega'),
+          content: const Text(
+            'Confirma que a entrega foi concluída? O comprovante digital incluirá foto, localização, assinatura e observação.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Continuar'),
+            ),
+          ],
+        ),
+      );
+      if (confirmou != true || !mounted) return;
+      await _registrarComprovanteEntrega();
+      return;
+    }
+    setState(() => _atualizandoStatus = true);
+    try {
+      final resposta = await ApiService.instance.atualizarStatusRemessa(
+        remessa.id ?? remessa.codigo,
+        proximo,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            resposta['pendente_sincronizacao'] == true
+                ? 'Status salvo neste aparelho e aguardando sincronização.'
+                : 'Status atualizado no servidor.',
+          ),
+        ),
+      );
+      Navigator.pop(context, proximo);
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    } finally {
+      if (mounted) setState(() => _atualizandoStatus = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 25),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // INDICADOR
+              Center(
+                child: Container(
+                  width: 42,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD8DEE8),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 22),
+
+              // CABEÇALHO
+              Row(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: corStatus.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(17),
+                    ),
+                    child: Icon(LucideIcons.truck, color: corStatus, size: 27),
+                  ),
+
+                  const SizedBox(width: 13),
+
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          remessa.codigo,
+                          style: const TextStyle(
+                            color: Color(0xFF172033),
+                            fontSize: 21,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        const Text(
+                          "Detalhes da entrega",
+                          style: TextStyle(
+                            color: Color(0xFF718096),
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: corStatus.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      remessa.status,
+                      style: TextStyle(
+                        color: corStatus,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 25),
+
+              // ROTA
+              _buildRota(),
+
+              const SizedBox(height: 22),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _ligarSuporte,
+                      icon: const Icon(LucideIcons.headset),
+                      label: const Text('Suporte'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _registrarOcorrencia,
+                      icon: const Icon(LucideIcons.octagonAlert),
+                      label: const Text('Ocorrência'),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 22),
+
+              _historicoEntrega(),
+
+              const SizedBox(height: 22),
+
+              // INFORMAÇÕES
+              const Text(
+                "Informações da carga",
+                style: TextStyle(
+                  color: Color(0xFF172033),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              _informacao(
+                icon: LucideIcons.package,
+                titulo: "Tipo de carga",
+                valor: remessa.tipo,
+              ),
+
+              _informacao(
+                icon: LucideIcons.weight,
+                titulo: "Peso",
+                valor: remessa.peso,
+              ),
+
+              _informacao(
+                icon: LucideIcons.clock,
+                titulo: "Previsão",
+                valor: remessa.eta,
+              ),
+
+              _buildEtaCard(),
+
+              const SizedBox(height: 10),
+
+              // PROGRESSO
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF7F9FC),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE7ECF3)),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          "Progresso",
+                          style: TextStyle(
+                            color: Color(0xFF64748B),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          "${(remessa.progresso * 100).round()}%",
+                          style: TextStyle(
+                            color: corStatus,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 9),
+
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: remessa.progresso,
+                        minHeight: 7,
+                        backgroundColor: const Color(0xFFE6EAF0),
+                        valueColor: AlwaysStoppedAnimation<Color>(corStatus),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              if (remessa.disponivel) ...[
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: FilledButton.icon(
+                    onPressed: _atualizandoStatus ? null : _aceitarEntrega,
+                    icon: _atualizandoStatus
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(LucideIcons.circleCheckBig),
+                    label: const Text('Aceitar entrega'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ] else if (remessa.status == 'Aguardando coleta' ||
+                  remessa.status == 'Em rota') ...[
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: FilledButton.icon(
+                    onPressed: _atualizandoStatus ? null : _avancarStatus,
+                    icon: _atualizandoStatus
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            remessa.status == 'Em rota'
+                                ? LucideIcons.circleCheckBig
+                                : LucideIcons.play,
+                          ),
+                    label: Text(
+                      remessa.status == 'Em rota'
+                          ? 'Marcar como entregue'
+                          : 'Iniciar entrega',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => QrCodePreviewPage(remessa: remessa),
+                      ),
+                    );
+                  },
+                  icon: const Icon(LucideIcons.qrCode, size: 20),
+                  label: const Text(
+                    'Ver QR da entrega',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // BOTÃO MAPA
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MapaMotoristaPage(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(LucideIcons.map, size: 20),
+                  label: const Text(
+                    "Acompanhar no mapa",
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0B2A4A),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEtaCard() {
+    final pontoAtual = BackgroundLocationService.instance.ultimaPosicao.value;
+    final pontos = pontoAtual == null
+        ? const <LocationPoint>[]
+        : <LocationPoint>[pontoAtual];
+    final resultado = EtaService.calcular(
+      progresso: remessa.progresso,
+      etaReferencia: remessa.eta,
+      pontos: pontos,
+      distanciaKm: remessa.progresso > 0
+          ? 14.0 * (1 - remessa.progresso) + 4.0
+          : 14.0,
+    );
+
+    final corAlerta = resultado.possivelAtraso
+        ? const Color(0xFFF59E0B)
+        : const Color(0xFF16A34A);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: resultado.possivelAtraso
+            ? const Color(0xFFFFF7ED)
+            : const Color(0xFFEAFBF1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: resultado.possivelAtraso
+              ? const Color(0xFFFCD34D)
+              : const Color(0xFFBBF7D0),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: corAlerta.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              resultado.possivelAtraso
+                  ? LucideIcons.alertTriangle
+                  : LucideIcons.route,
+              color: corAlerta,
+              size: 17,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  resultado.possivelAtraso
+                      ? 'Possível atraso'
+                      : 'ETA atualizada',
+                  style: TextStyle(
+                    color: corAlerta,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  resultado.texto,
+                  style: const TextStyle(
+                    color: Color(0xFF172033),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRota() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFD),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE6EBF2)),
+      ),
+      child: Column(
+        children: [
+          _rotaItem(
+            icon: LucideIcons.circleDot,
+            cor: const Color(0xFF2563EB),
+            titulo: "Origem",
+            local: remessa.origem,
+          ),
+
+          Container(
+            margin: const EdgeInsets.only(left: 6),
+            height: 25,
+            width: 1.5,
+            color: const Color(0xFFD5DCE6),
+          ),
+
+          _rotaItem(
+            icon: LucideIcons.mapPin,
+            cor: const Color(0xFFDC2626),
+            titulo: "Destino",
+            local: remessa.destino,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _historicoEntrega() => FutureBuilder<List<dynamic>>(
+    future: ApiService.instance.historicoRemessa(remessa.id ?? remessa.codigo),
+    builder: (context, snapshot) {
+      final eventos = snapshot.data?.whereType<Map>().toList() ?? const <Map>[];
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Histórico da entrega',
+            style: TextStyle(
+              color: Color(0xFF172033),
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (snapshot.connectionState == ConnectionState.waiting)
+            const LinearProgressIndicator()
+          else if (eventos.isEmpty)
+            const Text(
+              'Nenhuma atualização registrada ainda.',
+              style: TextStyle(color: Color(0xFF718096), fontSize: 11),
+            )
+          else
+            ...eventos.map(
+              (evento) => ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(
+                  LucideIcons.history,
+                  color: Color(0xFF0C46FF),
+                ),
+                title: Text(
+                  '${evento['status'] ?? evento['descricao'] ?? 'Atualização'}',
+                ),
+                subtitle: Text(
+                  '${evento['created_at'] ?? evento['data'] ?? ''}',
+                ),
+              ),
+            ),
+        ],
+      );
+    },
+  );
+
+  Widget _rotaItem({
+    required IconData icon,
+    required Color cor,
+    required String titulo,
+    required String local,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, color: cor, size: 15),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                titulo,
+                style: const TextStyle(
+                  color: Color(0xFF94A3B8),
+                  fontSize: 9,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                local,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFF172033),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _informacao({
+    required IconData icon,
+    required String titulo,
+    required String valor,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF3FA),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: const Color(0xFF64748B), size: 17),
+          ),
+
+          const SizedBox(width: 10),
+
+          Text(
+            titulo,
+            style: const TextStyle(color: Color(0xFF718096), fontSize: 11),
+          ),
+
+          const Spacer(),
+
+          Flexible(
+            child: Text(
+              valor,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                color: Color(0xFF172033),
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
