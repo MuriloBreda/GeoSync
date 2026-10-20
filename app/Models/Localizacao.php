@@ -16,6 +16,11 @@ class Localizacao extends Model
         'fonte',
     ];
 
+    protected $casts = [
+        'latitude' => 'float',
+        'longitude' => 'float',
+    ];
+
     public function remessa(): BelongsTo
     {
         return $this->belongsTo(Remessa::class, 'remessa_id');

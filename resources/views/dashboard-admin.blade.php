@@ -539,6 +539,22 @@
             color: var(--text-muted);
             font-size: .72rem;
         }
+        #destinoMapaCadastro {
+            width: 100%;
+            height: 360px;
+            margin-top: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            z-index: 1;
+        }
+        #destinoStreetViewFrame {
+            display: none;
+            width: 100%;
+            height: 420px;
+            margin-top: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
 
         @media (max-width: 768px) {
             .destino-grid { grid-template-columns: 1fr; }
@@ -1452,6 +1468,7 @@
                                         <!-- Coordenadas ficam disponíveis para o backend/mapa sem alterar o campo destino existente. -->
                                         <input type="hidden" id="destinoLatitude" name="latitude_destino">
                                         <input type="hidden" id="destinoLongitude" name="longitude_destino">
+                                        <input type="hidden" id="destinoPontoConfirmado" value="0">
 
                                         <div class="full">
                                             <div id="destinoCoordStatus" class="destino-coord-status">
@@ -1460,8 +1477,18 @@
                                             </div>
                                             <div class="map-route-hint">
                                                 <i class="fas fa-map-location-dot"></i>
-                                                O endereço será convertido em latitude/longitude para facilitar a rota do motorista até o destino.
+                                                Pesquise o endereço e clique no ponto exato da casa no mapa. Você também pode arrastar o marcador para ajustar.
                                             </div>
+                                            <button type="button" class="btn-acao" style="margin-top:12px;padding:10px 14px;" onclick="buscarDestinoNoMapa()">
+                                                <i class="fas fa-magnifying-glass-location"></i> Localizar endereço no mapa
+                                            </button>
+                                            <div id="destinoMapaCadastro" role="application" aria-label="Mapa para selecionar o ponto exato de entrega"></div>
+                                            <div id="destinoStreetViewStatus" class="map-route-hint" style="margin-top:12px;">Selecione o ponto no mapa para visualizar a rua em n&iacute;vel de rua.</div>
+                                            <iframe id="destinoStreetViewFrame" title="Street View do destino selecionado" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                                            <a id="destinoStreetViewLink" class="btn-acao" href="#" target="_blank" rel="noopener noreferrer" hidden style="display:none;margin-top:12px;padding:10px 14px;">
+                                                <i class="fas fa-street-view"></i> Ver a rua e a fachada no Street View
+                                            </a>
+                                            <small style="display:block;color:var(--text-muted);font-size:.72rem;margin-top:8px;">O mapa de ruas abre por padr&atilde;o. O Street View integrado precisa de uma chave Google Maps configurada no servidor.</small>
                                         </div>
                                     </div>
 
@@ -1715,6 +1742,10 @@
             }
 
             // Redimensiona o mapa ao alternar para a aba correspondente
+            if (id === 'nova-remessa') {
+                setTimeout(inicializarMapaDestinoCadastro, 120);
+            }
+
             if (id === 'localizacao-page' && mapaAdmin) {
                 setTimeout(() => {
                     mapaAdmin.invalidateSize();
@@ -1808,30 +1839,34 @@
                 return;
             }
 
-            // Garante coordenadas exatas para a futura rota do mapa.
+            // Se ainda nao existe uma posicao inicial, tenta localizar o endereco para abrir o mapa nela.
             const coordenadasProntas = document.getElementById('destinoLatitude').value &&
                                        document.getElementById('destinoLongitude').value;
-
             if (!coordenadasProntas) {
-                atualizarStatusCoordenadas('Gerando coordenadas do destino...', 'loading');
-                const conseguiuGeocodificar = await geocodificarDestino();
-
-                if (!conseguiuGeocodificar) {
-                    const continuar = await Swal.fire({
-                        icon: 'warning',
-                        title: 'Não foi possível localizar o destino no mapa',
-                        text: 'O endereço está preenchido, mas o serviço de mapas não retornou coordenadas. Você pode cadastrar mesmo assim; a rota poderá ser localizada depois.',
-                        showCancelButton: true,
-                        confirmButtonText: 'Cadastrar mesmo assim',
-                        cancelButtonText: 'Revisar endereço',
-                        confirmButtonColor: '#1C3F6E',
-                        cancelButtonColor: '#64748b'
-                    });
-
-                    if (!continuar.isConfirmed) return;
+                atualizarStatusCoordenadas('Localizando o endereco para abrir o mapa...', 'loading');
+                const localizado = await geocodificarDestino();
+                if (localizado) {
+                    inicializarMapaDestinoCadastro();
+                    definirPontoDestinoNoMapa(
+                        document.getElementById('destinoLatitude').value,
+                        document.getElementById('destinoLongitude').value,
+                        'Endereco localizado; clique na casa exata para confirmar',
+                        false
+                    );
                 }
             }
 
+            if (document.getElementById('destinoPontoConfirmado').value !== '1') {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Confirme o ponto de entrega',
+                    text: 'No mapa, clique exatamente sobre a casa ou arraste o marcador para o local correto antes de cadastrar.',
+                    confirmButtonText: 'Entendi',
+                    confirmButtonColor: '#1C3F6E'
+                });
+                inicializarMapaDestinoCadastro();
+                return;
+            }
             // Recalcula o destino final depois do preenchimento do endereço.
             montarDestinoCompleto();
 
@@ -1845,6 +1880,148 @@
             form.submit();
         }
 
+        let mapaDestinoCadastro = null;
+        let marcadorDestinoCadastro = null;
+
+        function inicializarMapaDestinoCadastro() {
+            const elemento = document.getElementById('destinoMapaCadastro');
+            if (!elemento || typeof L === 'undefined') return;
+
+            if (!mapaDestinoCadastro) {
+                mapaDestinoCadastro = L.map(elemento).setView([-21.705, -47.274], 15);
+                const camadaRuasDestino = L.tileLayer(
+                    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    {
+                        maxZoom: 19,
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'
+                    }
+                );
+                const imagemSateliteDestino = L.tileLayer(
+                    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                    {
+                        maxZoom: 19,
+                        attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics, and the GIS User Community'
+                    }
+                );
+                const nomesNoSateliteDestino = L.tileLayer(
+                    'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+                    {
+                        maxZoom: 19,
+                        attribution: 'Labels &copy; Esri'
+                    }
+                );
+                const camadaSateliteComNomesDestino = L.layerGroup([imagemSateliteDestino, nomesNoSateliteDestino]);
+                camadaRuasDestino.addTo(mapaDestinoCadastro);
+                L.control.layers({
+                    'Mapa de ruas': camadaRuasDestino,
+                    'Sat&eacute;lite com nomes das ruas': camadaSateliteComNomesDestino
+                }).addTo(mapaDestinoCadastro);
+                mapaDestinoCadastro.on('click', evento => {
+                    definirPontoDestinoNoMapa(evento.latlng.lat, evento.latlng.lng, 'Ponto selecionado manualmente no mapa');
+                });
+            }
+
+            setTimeout(() => mapaDestinoCadastro.invalidateSize(), 120);
+        }
+
+        function atualizarLinkStreetViewDestino(latitude, longitude) {
+            const link = document.getElementById('destinoStreetViewLink');
+            const frame = document.getElementById('destinoStreetViewFrame');
+            const status = document.getElementById('destinoStreetViewStatus');
+            const chaveGoogleMaps = @json(config('services.google.maps_browser_key'));
+            const lat = Number(latitude);
+            const lng = Number(longitude);
+            if (!link || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+            const parametros = new URLSearchParams({
+                api: '1',
+                map_action: 'pano',
+                viewpoint: `${lat},${lng}`
+            });
+            link.href = `https://www.google.com/maps/@?${parametros.toString()}`;
+            link.hidden = false;
+            link.style.display = 'inline-flex';
+            if (frame && chaveGoogleMaps) {
+                const urlStreetView = new URL('https://www.google.com/maps/embed/v1/streetview');
+                urlStreetView.searchParams.set('key', chaveGoogleMaps);
+                urlStreetView.searchParams.set('location', `${lat},${lng}`);
+                urlStreetView.searchParams.set('heading', '0');
+                urlStreetView.searchParams.set('pitch', '0');
+                urlStreetView.searchParams.set('fov', '80');
+                urlStreetView.searchParams.set('radius', '100');
+                frame.src = urlStreetView.toString();
+                frame.style.display = 'block';
+                if (status) status.textContent = 'Street View mais pr\u00f3ximo do ponto selecionado. Use os controles da imagem para percorrer a rua.';
+            } else if (status) {
+                status.textContent = 'Para mostrar a rua e a fachada aqui, configure GOOGLE_MAPS_API_KEY e habilite a Maps Embed API. O bot\u00e3o abaixo abre o ponto no Google Maps.';
+            }
+        }
+        function definirPontoDestinoNoMapa(latitude, longitude, mensagem = 'Destino marcado no mapa', confirmado = true) {
+            const lat = Number(latitude);
+            const lng = Number(longitude);
+            if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -35 || lat > 6 || lng < -75 || lng > -30) {
+                atualizarStatusCoordenadas('Selecione um ponto dentro do Brasil.', 'error');
+                return;
+            }
+
+            document.getElementById('destinoLatitude').value = lat.toFixed(7);
+            document.getElementById('destinoLongitude').value = lng.toFixed(7);
+            document.getElementById('destinoPontoConfirmado').value = confirmado ? '1' : '0';
+            atualizarLinkStreetViewDestino(lat, lng);
+            if (!mapaDestinoCadastro) inicializarMapaDestinoCadastro();
+
+            if (marcadorDestinoCadastro) {
+                marcadorDestinoCadastro.setLatLng([lat, lng]);
+            } else {
+                marcadorDestinoCadastro = L.marker([lat, lng], { draggable: true }).addTo(mapaDestinoCadastro);
+                marcadorDestinoCadastro.on('dragend', evento => {
+                    const ponto = evento.target.getLatLng();
+                    definirPontoDestinoNoMapa(ponto.lat, ponto.lng, 'Ponto ajustado manualmente no mapa');
+                });
+            }
+
+            mapaDestinoCadastro.setView([lat, lng], Math.max(mapaDestinoCadastro.getZoom(), 18));
+            atualizarStatusCoordenadas(`${mensagem}: ${lat.toFixed(6)}, ${lng.toFixed(6)}`, 'success');
+        }
+
+        async function buscarDestinoNoMapa() {
+            const destino = montarDestinoCompleto();
+            if (!destino) {
+                atualizarStatusCoordenadas('Preencha CEP, rua, número, bairro, cidade e estado antes de buscar.', 'error');
+                return;
+            }
+
+            inicializarMapaDestinoCadastro();
+            atualizarStatusCoordenadas('Buscando o endereço para posicionar o mapa...', 'loading');
+            const localizado = await geocodificarDestino();
+            if (!localizado) {
+                try {
+                    const cidade = document.getElementById('destinoCidade').value.trim();
+                    const estado = document.getElementById('destinoEstado').value.trim();
+                    const consultaCidade = new URL('https://nominatim.openstreetmap.org/search');
+                    consultaCidade.searchParams.set('format', 'jsonv2');
+                    consultaCidade.searchParams.set('limit', '1');
+                    consultaCidade.searchParams.set('countrycodes', 'br');
+                    consultaCidade.searchParams.set('q', `${cidade}, ${estado}, Brasil`);
+                    const respostaCidade = await fetch(consultaCidade, { headers: { 'Accept': 'application/json' } });
+                    const resultadosCidade = respostaCidade.ok ? await respostaCidade.json() : [];
+                    const centroCidade = Array.isArray(resultadosCidade) ? resultadosCidade[0] : null;
+                    if (centroCidade && Number.isFinite(Number(centroCidade.lat)) && Number.isFinite(Number(centroCidade.lon))) {
+                        mapaDestinoCadastro.setView([Number(centroCidade.lat), Number(centroCidade.lon)], 15);
+                        atualizarStatusCoordenadas('Cidade localizada. Aproxime o zoom e clique exatamente sobre a casa no mapa.', 'error');
+                    } else {
+                        atualizarStatusCoordenadas('Navegue pelo mapa, aproxime o zoom e clique no ponto exato da casa.', 'error');
+                    }
+                } catch (erro) {
+                    atualizarStatusCoordenadas('Navegue pelo mapa, aproxime o zoom e clique no ponto exato da casa.', 'error');
+                }
+                return;
+            }
+
+            const lat = Number(document.getElementById('destinoLatitude').value);
+            const lng = Number(document.getElementById('destinoLongitude').value);
+            definirPontoDestinoNoMapa(lat, lng, 'Endereço localizado; clique ou arraste para confirmar a casa exata', false);
+        }
         // ============================================================
         // DESTINO POR CEP + GEOCODIFICAÇÃO PARA A ROTA DO MAPA
         // ============================================================
@@ -2005,6 +2182,18 @@
             const lng = document.getElementById('destinoLongitude');
             if (lat) lat.value = '';
             if (lng) lng.value = '';
+            const confirmado = document.getElementById('destinoPontoConfirmado');
+            if (confirmado) confirmado.value = '0';
+            const linkStreetView = document.getElementById('destinoStreetViewLink');
+            if (linkStreetView) { linkStreetView.hidden = true; linkStreetView.style.display = 'none'; linkStreetView.href = '#'; }
+            const frameStreetView = document.getElementById('destinoStreetViewFrame');
+            if (frameStreetView) { frameStreetView.src = ''; frameStreetView.style.display = 'none'; }
+            const statusStreetView = document.getElementById('destinoStreetViewStatus');
+            if (statusStreetView) statusStreetView.textContent = 'Selecione o ponto no mapa para visualizar a rua em n\u00edvel de rua.';
+            if (mapaDestinoCadastro && marcadorDestinoCadastro) {
+                mapaDestinoCadastro.removeLayer(marcadorDestinoCadastro);
+                marcadorDestinoCadastro = null;
+            }
             atualizarStatusCoordenadas('Aguardando endereço para gerar as coordenadas da rota.');
         }
 
@@ -2024,10 +2213,10 @@
             atualizarStatusCoordenadas('Localizando o destino no mapa...', 'loading');
 
             try {
-                // Nem todos os números estão no Nominatim: endereço exato, CEP e
-                // cidade são consultados nessa ordem para sempre obter um ponto.
                 const consultas = [
-                    `${rua}, ${numero}, ${bairro}, ${cidade}, ${estado}, ${cep}, Brasil`
+                    { street: `${numero} ${rua}`, city: cidade, state: estado, postalcode: cep },
+                    { street: rua, city: cidade, state: estado, postalcode: cep },
+                    { q: `${rua}, ${bairro}, ${cidade}, ${estado}, Brasil` }
                 ];
                 let resultado = null;
                 const normalizarEndereco = valor => String(valor || '')
@@ -2045,7 +2234,9 @@
                     url.searchParams.set('addressdetails', '1');
                     url.searchParams.set('limit', '10');
                     url.searchParams.set('countrycodes', 'br');
-                    url.searchParams.set('q', consulta);
+                    Object.entries(consulta).forEach(([chave, valor]) => {
+                        if (valor) url.searchParams.set(chave, valor);
+                    });
 
                     const resposta = await fetch(url.toString(), {
                         headers: { 'Accept': 'application/json' }
@@ -2054,15 +2245,24 @@
                     if (!resposta.ok) continue;
                     const resultados = await resposta.json();
                     if (Array.isArray(resultados) && resultados.length) {
-                        resultado = resultados.find(item => {
+                        const candidatos = resultados.filter(item => {
                             const endereco = item.address || {};
-                            const ruaRetornada = normalizarEndereco(endereco.road || item.display_name)
+                            const ruaRetornada = normalizarEndereco(endereco.road || endereco.pedestrian || '')
                                 .replace(/^(rua|avenida|av|travessa|estrada)/, '');
-                            const numeroRetornado = normalizarEndereco(endereco.house_number || item.display_name);
-
-                            return ruaRetornada.includes(ruaNormalizada) &&
-                                numeroRetornado.includes(numeroNormalizado);
+                            const cidadeRetornada = normalizarEndereco(
+                                endereco.city || endereco.town || endereco.village || endereco.municipality || ''
+                            );
+                            const cepRetornado = somenteNumeros(endereco.postcode || '');
+                            const ruaValida = ruaRetornada && (
+                                ruaRetornada.includes(ruaNormalizada) || ruaNormalizada.includes(ruaRetornada)
+                            );
+                            return ruaValida &&
+                                (!cidadeRetornada || cidadeRetornada === normalizarEndereco(cidade)) &&
+                                (!cepRetornado || cepRetornado === cep);
                         });
+                        resultado = candidatos.find(item =>
+                            normalizarEndereco(item.address?.house_number || '') === numeroNormalizado
+                        ) || candidatos[0];
                         if (resultado) break;
                     }
                 }
@@ -2079,8 +2279,9 @@
                 document.getElementById('destinoLatitude').value = latitude.toFixed(7);
                 document.getElementById('destinoLongitude').value = longitude.toFixed(7);
 
+                const numeroEncontrado = normalizarEndereco(resultado.address?.house_number || '') === numeroNormalizado;
                 atualizarStatusCoordenadas(
-                    `Destino localizado: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`,
+                    `Destino ${numeroEncontrado ? 'localizado' : 'localizado na rua (número aproximado)'}: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`,
                     'success'
                 );
 

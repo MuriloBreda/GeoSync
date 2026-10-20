@@ -192,17 +192,27 @@ class LocalizacaoControllerApi extends Controller
                 'remessas.status'
             );
 
-        if ($request->has('remessa_id')) {
+        $filtradaPorRemessa = $request->filled('remessa_id');
+
+        if ($filtradaPorRemessa) {
             $query->where(
                 'localizacoes.remessa_id',
                 $request->remessa_id
             );
         }
 
+        $query->orderByDesc('localizacoes.created_at')
+            ->orderByDesc('localizacoes.id');
+
+        // Os mapas consultam este endpoint a cada poucos segundos. Para uma
+        // remessa basta enviar o ponto mais recente, sem todo o histórico GPS.
+        if ($filtradaPorRemessa) {
+            $query->limit(1);
+        }
+
         return response()->json([
             'success' => true,
             'data' => $query
-                ->orderBy('localizacoes.created_at', 'desc')
                 ->get()
         ]);
     }
@@ -226,7 +236,8 @@ class LocalizacaoControllerApi extends Controller
     {
         $localizacao = DB::table('localizacoes')
             ->where('remessa_id', $remessa_id)
-            ->latest('created_at')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->first();
 
         return response()->json([

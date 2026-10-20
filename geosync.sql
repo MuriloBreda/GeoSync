@@ -55,6 +55,18 @@
 		CONSTRAINT fk_cliente FOREIGN KEY (cliente_id) REFERENCES users(id) ON DELETE SET NULL,
 		CONSTRAINT fk_motorista FOREIGN KEY (motorista_id) REFERENCES users(id) ON DELETE SET NULL
 	);
+    
+    ALTER TABLE remessas
+		MODIFY destino VARCHAR(500) NOT NULL,
+		ADD destino_cep VARCHAR(9) NULL,
+		ADD destino_rua VARCHAR(255) NULL,
+		ADD destino_numero VARCHAR(20) NULL,
+		ADD destino_complemento VARCHAR(100) NULL,
+		ADD destino_bairro VARCHAR(100) NULL,
+		ADD destino_cidade VARCHAR(100) NULL,
+		ADD destino_estado VARCHAR(2) NULL,
+		ADD latitude_destino DECIMAL(10,7) NULL,
+		ADD longitude_destino DECIMAL(10,7) NULL;
 
 	-- 3. TABELA DE ALERTAS (Ajustada com 'tipo' e 'mensagem' para bater com o Controller)
 	CREATE TABLE alertas (

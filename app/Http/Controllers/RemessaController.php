@@ -145,8 +145,19 @@ class RemessaController extends Controller
 
         $geocodificacaoPendente = false;
 
+        $latitudeInformada = filter_var($request->latitude_destino, FILTER_VALIDATE_FLOAT);
+        $longitudeInformada = filter_var($request->longitude_destino, FILTER_VALIDATE_FLOAT);
+        $coordenadasDoFormulario = $latitudeInformada !== false && $longitudeInformada !== false
+            && $latitudeInformada >= -35 && $latitudeInformada <= 6
+            && $longitudeInformada >= -75 && $longitudeInformada <= -30;
+
+        // O formulário consulta o endereço completo no navegador. Preserve esse
+        // ponto quando válido para evitar que outro provedor o substitua por um
+        // resultado aproximado ou incorreto.
         try {
-            $coordenadasDestino = app(GeocodificadorDestino::class)->localizar($request->all());
+            $coordenadasDestino = $coordenadasDoFormulario
+                ? ['latitude_destino' => (float) $latitudeInformada, 'longitude_destino' => (float) $longitudeInformada]
+                : app(GeocodificadorDestino::class)->localizar($request->all());
         } catch (\RuntimeException $e) {
             // A indisponibilidade do mapa nunca pode impedir o cadastro. Caso o
             // navegador tenha gerado coordenadas, elas são preservadas; caso
@@ -211,8 +222,48 @@ class RemessaController extends Controller
         $remessa = Remessa::findOrFail($id);
         $this->authorizeManagement($remessa);
         $data = $this->validatedRemessa($request, $remessa->id);
+
+        $destinoMudou = trim((string) $data['destino']) !== trim((string) $remessa->destino);
+        $latitudeNova = filter_var($data['latitude_destino'] ?? null, FILTER_VALIDATE_FLOAT);
+        $longitudeNova = filter_var($data['longitude_destino'] ?? null, FILTER_VALIDATE_FLOAT);
+        $coordenadaManualNova = $latitudeNova !== false && $longitudeNova !== false &&
+            $latitudeNova >= -35 && $latitudeNova <= 6 &&
+            $longitudeNova >= -75 && $longitudeNova <= -30 &&
+            ($latitudeNova != (float) $remessa->latitude_destino || $longitudeNova != (float) $remessa->longitude_destino);
+
+        if ($destinoMudou) {
+            // A tela antiga de edição só envia o texto completo e o ponto do
+            // mapa. Evite manter os campos estruturados/endereço antigos.
+            $data = array_merge($data, [
+                'destino_cep' => null,
+                'destino_rua' => null,
+                'destino_numero' => null,
+                'destino_complemento' => null,
+                'destino_bairro' => null,
+                'destino_cidade' => null,
+                'destino_estado' => null,
+            ]);
+
+            if (!$coordenadaManualNova) {
+                try {
+                    $data = array_merge($data, app(GeocodificadorDestino::class)->localizar([
+                        'destino' => $data['destino'],
+                    ]));
+                } catch (\RuntimeException $e) {
+                    // Não deixe coordenadas antigas apontarem para outro
+                    // endereço. O painel do motorista tentará localizar de novo.
+                    $data['latitude_destino'] = null;
+                    $data['longitude_destino'] = null;
+                }
+            }
+        }
+
         $remessa->update($data);
-        return redirect()->route('remessas.show', $remessa)->with('success', 'Remessa atualizada com sucesso.');
+        $redirect = redirect()->route('remessas.show', $remessa)->with('success', 'Remessa atualizada com sucesso.');
+        if ($destinoMudou && !$coordenadaManualNova && empty($data['latitude_destino'])) {
+            $redirect->with('warning', 'O novo destino foi salvo sem coordenadas; o painel do motorista tentará localizá-lo ao iniciar a rota.');
+        }
+        return $redirect;
     }
 
     public function destroy($id)

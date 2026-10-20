@@ -2,6 +2,7 @@
 
 1. Execute `php artisan migrate` antes de ligar o dispositivo. A remessa precisa ter latitude e longitude de destino, geradas no cadastro administrativo.
 2. No arquivo `geosync_gps.ino`, informe o Wi-Fi e o ID real da remessa transportada.
+   O ID entre parênteses exibido no seletor do motorista deve ser igual ao valor de `remessaId` no ESP32; o dispositivo envia a posição vinculada a esse ID.
 3. Inicie o Laravel em uma interface acessível ao ESP32: `php artisan serve --host=0.0.0.0 --port=8000`.
 4. Ajuste `serverName` para o IP LAN do computador, sem Markdown. Exemplo: `http://192.168.1.20:8000/api/localizacao`.
 

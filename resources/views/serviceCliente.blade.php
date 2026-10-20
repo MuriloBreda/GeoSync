@@ -548,6 +548,36 @@
             animation: pulse 1.5s infinite;
         }
 
+        .motorista-marker {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 3px 12px rgba(0,0,0,.28);
+            font-size: 16px;
+        }
+
+        .destino-marker {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #fff;
+            border-radius: 50% 50% 50% 0;
+            background: var(--alert-danger);
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(0,0,0,.25);
+            transform: rotate(-45deg);
+        }
+
+        .destino-marker i { transform: rotate(45deg); }
+
         @keyframes pulse {
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
             70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
@@ -1897,6 +1927,7 @@ let primeiraLocalizacaoRecebida = false;
  * Coordenadas do destino ficam separadas por remessa.
  */
 const destinosCache = {};
+const destinosEmBuscaCliente = {};
 
 /* Inicializa o mapa */
 document.addEventListener("DOMContentLoaded", function () {
@@ -1954,6 +1985,9 @@ async function buscarLocalizacaoRemessa(remessaId) {
 
         const dados = await resposta.json();
 
+        // Descarta respostas atrasadas quando o cliente troca de remessa.
+        if (String(remessaRastreadaId) !== String(remessaId)) return;
+
         if (!resposta.ok) {
             throw new Error(
                 dados.message ||
@@ -1962,15 +1996,11 @@ async function buscarLocalizacaoRemessa(remessaId) {
             );
         }
 
-        let localizacoes = Array.isArray(dados)
-            ? dados
-            : (Array.isArray(dados.data) ? dados.data : []);
+        // Mesma resposta usada pelo painel do motorista: lista mais recente primeiro.
+        const localizacoes = Array.isArray(dados.data) ? dados.data : (Array.isArray(dados) ? dados : []);
+        const ultima = localizacoes[0];
 
-        localizacoes = localizacoes.filter(function (item) {
-            return String(item.remessa_id) === String(remessaId);
-        });
-
-        if (localizacoes.length === 0) {
+        if (!ultima || String(ultima.remessa_id) !== String(remessaId)) {
 
             atualizarStatusCliente(
                 "Aguardando localização do motorista",
@@ -1979,25 +2009,6 @@ async function buscarLocalizacaoRemessa(remessaId) {
 
             return;
         }
-
-        localizacoes.sort(function (a, b) {
-
-            const dataA = a.created_at
-                ? new Date(a.created_at).getTime()
-                : 0;
-
-            const dataB = b.created_at
-                ? new Date(b.created_at).getTime()
-                : 0;
-
-            if (dataA !== dataB) {
-                return dataB - dataA;
-            }
-
-            return Number(b.id || 0) - Number(a.id || 0);
-        });
-
-        const ultima = localizacoes[0];
 
         const latitude = parseFloat(
             ultima.latitude ?? ultima.lat
@@ -2017,13 +2028,18 @@ async function buscarLocalizacaoRemessa(remessaId) {
             return;
         }
 
+        if (String(remessaRastreadaId) !== String(remessaId)) return;
+
         await atualizarPosicaoMotorista(
             latitude,
             longitude,
-            ultima
+            ultima,
+            remessaId
         );
 
     } catch (erro) {
+
+        if (String(remessaRastreadaId) !== String(remessaId)) return;
 
         console.error(
             "Erro ao consultar localização:",
@@ -2100,28 +2116,30 @@ async function alterarRemessaRastreio(remessaId) {
 async function atualizarPosicaoMotorista(
     latitude,
     longitude,
-    dadosLocalizacao
+    dadosLocalizacao,
+    remessaId
 ) {
 
-    if (!mapaCliente) return;
+    if (!mapaCliente || String(remessaRastreadaId) !== String(remessaId)) return;
 
     const coordenadas = [
         latitude,
         longitude
     ];
 
+    const iconeMotorista = L.divIcon({
+        className: '',
+        html: '<div class="motorista-marker"><i class="fas fa-truck"></i></div>',
+        iconSize: [38, 38],
+        iconAnchor: [19, 19],
+        popupAnchor: [0, -20]
+    });
+
     if (marcadorMotoristaCliente) {
-
-        marcadorMotoristaCliente.setLatLng(
-            coordenadas
-        );
-
+        marcadorMotoristaCliente.setLatLng(coordenadas);
+        marcadorMotoristaCliente.setIcon(iconeMotorista);
     } else {
-
-        marcadorMotoristaCliente =
-            L.marker(
-                coordenadas
-            ).addTo(mapaCliente);
+        marcadorMotoristaCliente = L.marker(coordenadas, { icon: iconeMotorista }).addTo(mapaCliente);
     }
 
     const horario =
@@ -2153,10 +2171,9 @@ async function atualizarPosicaoMotorista(
     /*
      * Calcula a rota atual -> destino.
      */
-    await calcularRotaReal(
-        latitude,
-        longitude
-    );
+    await calcularRotaReal(latitude, longitude, remessaId);
+
+    if (String(remessaRastreadaId) !== String(remessaId)) return;
 
     atualizarStatusCliente(
         "Motorista localizado",
@@ -2186,85 +2203,301 @@ async function atualizarPosicaoMotorista(
  * Exemplo:
  * "São Paulo, SP" -> coordenadas.
  */
-async function obterCoordenadasCidade(destino, remessaId) {
-
-    if (!destino) {
-        throw new Error("Destino não informado.");
-    }
-
-    // Cada remessa possui seu próprio destino.
-    if (remessaId && destinosCache[String(remessaId)]) {
-        return destinosCache[String(remessaId)];
-    }
-
-    const opcao = document.querySelector(
-        '#selectRastreioCliente option[value="' + CSS.escape(String(remessaId)) + '"]'
-    );
-    const latitudeTexto = String(opcao?.dataset.latDestino || '').trim();
-    const longitudeTexto = String(opcao?.dataset.lngDestino || '').trim();
-    const latitudeSalva = Number(latitudeTexto);
-    const longitudeSalva = Number(longitudeTexto);
-
-    // Prioriza o ponto exato gravado no cadastro da remessa.
-    if (latitudeTexto && longitudeTexto &&
-        Number.isFinite(latitudeSalva) && Number.isFinite(longitudeSalva)) {
-        const coordenadasSalvas = { latitude: latitudeSalva, longitude: longitudeSalva, nome: destino };
-        if (remessaId) destinosCache[String(remessaId)] = coordenadasSalvas;
-        return coordenadasSalvas;
-    }
-
-    const cepDoDestino = String(opcao?.dataset.cepDestino || destino.match(/CEP:\s*(\d{5}-?\d{3})/i)?.[1] || '')
-        .replace(/\D/g, '');
-    const enderecoEstruturado = [
-        opcao?.dataset.ruaDestino,
-        opcao?.dataset.numeroDestino,
-        opcao?.dataset.bairroDestino,
-        opcao?.dataset.cidadeDestino,
-        opcao?.dataset.estadoDestino,
-        'Brasil'
-    ].filter(Boolean).join(', ');
-    const consultas = [
-        enderecoEstruturado,
-        cepDoDestino.length === 8 ? cepDoDestino + ', Brasil' : '',
-        destino.replace(/\s*-\s*CEP:\s*\d{5}-?\d{3}\s*$/i, '') + ', Brasil'
-    ].filter(Boolean);
-
-    let resultado = null;
-    for (const consulta of consultas) {
-        const url = new URL('https://nominatim.openstreetmap.org/search');
-        url.search = new URLSearchParams({ format: 'jsonv2', limit: '1', countrycodes: 'br', q: consulta });
-        const resposta = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
-        if (!resposta.ok) continue;
-        const resultados = await resposta.json();
-        if (Array.isArray(resultados) && resultados.length) {
-            resultado = resultados[0];
-            break;
+        function normalizarNomeDaRua(valor) {
+            return String(valor || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '')
+                .replace(/^(rua|avenida|av|travessa|estrada)/, '');
         }
-    }
 
-    if (!resultado) throw new Error("Destino não localizado.");
+        async function buscarDestinoPorRuaPhoton(consulta, ruaEsperada, numero, bairro, cidade, estado, cep) {
+            const ruaNormalizada = normalizarNomeDaRua(ruaEsperada);
+            const consultasPhoton = [];
+            if (ruaEsperada) {
+                const estruturada = new URLSearchParams({
+                    street: ruaEsperada,
+                    city: cidade || '',
+                    state: estado || '',
+                    postcode: cep || '',
+                    countrycode: 'BR',
+                    limit: '10'
+                });
+                if (numero) estruturada.set('housenumber', numero);
+                if (bairro) estruturada.set('district', bairro);
+                consultasPhoton.push('https://photon.komoot.io/structured?' + estruturada.toString());
+                if (numero) {
+                    estruturada.delete('housenumber');
+                    consultasPhoton.push('https://photon.komoot.io/structured?' + estruturada.toString());
+                }
+            }
 
-    const coordenadas = {
-        latitude: parseFloat(resultado.lat),
-        longitude: parseFloat(resultado.lon),
-        nome: resultado.display_name
-    };
+            for (const busca of [
+                [ruaEsperada, cidade, estado, 'Brasil'].filter(Boolean).join(', '),
+                consulta
+            ]) {
+                if (busca) {
+                    consultasPhoton.push(
+                        'https://photon.komoot.io/api/?' + new URLSearchParams({ q: busca, limit: '10' }).toString()
+                    );
+                }
+            }
 
-    if (
-        !Number.isFinite(coordenadas.latitude) ||
-        !Number.isFinite(coordenadas.longitude)
-    ) {
-        throw new Error(
-            "Coordenadas do destino inválidas."
-        );
-    }
+            let resultado = null;
+            for (const url of consultasPhoton) {
+                const resposta = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                if (!resposta.ok) continue;
+                const dados = await resposta.json();
+                const resultados = Array.isArray(dados.features) ? dados.features : [];
+                resultado = resultados.find(item => {
+                    const propriedades = item.properties || {};
+                    const ruaRetornada = normalizarNomeDaRua(propriedades.street || propriedades.name);
+                    const cidadeRetornada = normalizarNomeDaRua(propriedades.city || propriedades.locality || '');
+                    const ruaConfere = ruaNormalizada && ruaRetornada && (
+                        ruaRetornada.includes(ruaNormalizada) || ruaNormalizada.includes(ruaRetornada)
+                    );
+                    const cidadeConfere = !cidade || !cidadeRetornada || cidadeRetornada === normalizarNomeDaRua(cidade);
+                    return ruaConfere && cidadeConfere;
+                });
+                if (resultado) break;
+            }
 
-    if (remessaId) {
-        destinosCache[String(remessaId)] = coordenadas;
-    }
+            const coordenadas = resultado?.geometry?.coordinates;
+            const lon = Number(coordenadas?.[0]);
+            const lat = Number(coordenadas?.[1]);
+            if (!Number.isFinite(lat) || !Number.isFinite(lon)) throw new Error('A API de mapas não retornou um destino no Brasil.');
 
-    return coordenadas;
-}
+            const numeroRetornado = resultado.properties?.housenumber;
+            return {
+                lat,
+                lon,
+                nome: resultado.properties?.name || ruaEsperada,
+                origem: numeroRetornado && String(numeroRetornado) === String(numero || '')
+                    ? 'Destino exato localizado pela rua'
+                    : 'Trecho da rua localizado (número aproximado)'
+            };
+        }
+
+        async function obterCoordenadasDestino(destino, remessaId) {
+            if (destinosCache[remessaId]) {
+                return destinosCache[remessaId];
+            }
+
+            // GPS polls every 5 seconds; share one in-flight geocoding request
+            // per shipment to avoid rate limits and racing route calculations.
+            if (destinosEmBuscaCliente[remessaId]) {
+                return destinosEmBuscaCliente[remessaId];
+            }
+
+            destinosEmBuscaCliente[remessaId] = localizarCoordenadasDestino(destino, remessaId);
+            try {
+                return await destinosEmBuscaCliente[remessaId];
+            } finally {
+                delete destinosEmBuscaCliente[remessaId];
+            }
+        }
+
+        async function localizarCoordenadasDestino(destino, remessaId) {
+
+            const option = document.querySelector(
+                '#selectRastreioCliente option[value="' + CSS.escape(String(remessaId)) + '"]'
+            );
+
+            if (!option) {
+                throw new Error('Remessa não encontrada.');
+            }
+
+            const latSalva = option.dataset.latDestino === '' ? NaN : Number(option.dataset.latDestino);
+            const lngSalva = option.dataset.lngDestino === '' ? NaN : Number(option.dataset.lngDestino);
+
+            // CAMINHO PRINCIPAL: coordenadas exatas cadastradas pelo administrador.
+            if (
+                Number.isFinite(latSalva) &&
+                Number.isFinite(lngSalva) &&
+                latSalva >= -35 &&
+                latSalva <= 6 &&
+                lngSalva >= -75 &&
+                lngSalva <= -30
+            ) {
+                const coordenadasSalvas = {
+                    lat: latSalva,
+                    lon: lngSalva,
+                    nome: destino || 'Destino da remessa',
+                    origem: 'Coordenadas cadastradas na remessa'
+                };
+
+                destinosCache[remessaId] = coordenadasSalvas;
+                return coordenadasSalvas;
+            }
+
+            // FALLBACK: remessa antiga sem latitude/longitude.
+            if (!destino) {
+                throw new Error('Esta remessa não possui destino informado.');
+            }
+
+            const cep = String(
+                option.dataset.cepDestino ||
+                String(destino).match(/CEP:\s*(\d{5}-?\d{3})/i)?.[1] || ''
+            )
+                .replace(/\D/g, '');
+
+            let enderecoEstruturado = [
+                option.dataset.numeroDestino,
+                option.dataset.ruaDestino,
+                option.dataset.bairroDestino,
+                option.dataset.cidadeDestino,
+                option.dataset.estadoDestino,
+                cep,
+                'Brasil'
+            ].filter(Boolean).join(', ');
+
+            let rua = option.dataset.ruaDestino || '';
+            let numero = option.dataset.numeroDestino || '';
+            let cidade = option.dataset.cidadeDestino || '';
+            let estado = option.dataset.estadoDestino || '';
+
+            // Remessas antigas podem ter apenas o campo `destino`, salvo como:
+            // "Rua, número - complemento - bairro - cidade - UF - CEP: ...".
+            // Recupera esses dados para consultar as APIs mesmo sem colunas novas.
+            const partesDestino = String(destino).split(/\s+-\s+/).map(parte => parte.trim());
+            if (!rua && partesDestino[0]) {
+                const ruaNumero = partesDestino[0].match(/^(.+?),\s*(\d+[\w/-]*)$/);
+                if (ruaNumero) {
+                    rua = ruaNumero[1].trim();
+                    numero = numero || ruaNumero[2].trim();
+                }
+            }
+            if (!cidade || !estado) {
+                const indiceEstado = partesDestino.findIndex(parte => /^[A-Z]{2}$/.test(parte));
+                if (indiceEstado > 0) {
+                    cidade = cidade || partesDestino[indiceEstado - 1];
+                    estado = estado || partesDestino[indiceEstado];
+                }
+            }
+            enderecoEstruturado = [numero, rua, option.dataset.bairroDestino, cidade, estado, cep, 'Brasil']
+                .filter(Boolean).join(', ');
+            const consultas = [];
+
+            // Nominatim funciona melhor com os campos estruturados que com o
+            // texto completo do destino (que tambem pode conter complemento).
+            if (rua && cidade && estado) {
+                consultas.push({
+                    street: [numero, rua].filter(Boolean).join(' '),
+                    city: cidade,
+                    state: estado,
+                    postalcode: cep
+                });
+
+                // Muitos mapas nao cadastram o numero do imovel; nesse caso,
+                // localiza a rua na mesma cidade e CEP para permitir a rota.
+                if (numero) {
+                    consultas.push({
+                        street: rua,
+                        city: cidade,
+                        state: estado,
+                        postalcode: cep
+                    });
+                }
+
+                // Alguns provedores deixam de retornar resultados ao combinar CEP
+                // e numero. A rua/cidade/UF ainda identifica o logradouro correto.
+                consultas.push({ q: [rua, cidade, estado, 'Brasil'].join(', ') });
+            }
+
+            if (enderecoEstruturado) consultas.push({ q: enderecoEstruturado });
+            if (destino && destino !== enderecoEstruturado) consultas.push({ q: destino + ', Brasil' });
+            if (cep.length === 8) consultas.push({ postalcode: cep, country: 'Brazil' });
+
+            let ultimoErro = new Error('Endereço não encontrado. Confira rua, cidade, estado e CEP da remessa.');
+
+            for (const consulta of consultas) {
+                try {
+                    const params = new URLSearchParams({
+                        format: 'jsonv2',
+                        addressdetails: '1',
+                        limit: '5',
+                        countrycodes: 'br'
+                    });
+                    Object.entries(consulta).forEach(([chave, valor]) => {
+                        if (valor) params.set(chave, valor);
+                    });
+
+                    const resposta = await fetch(
+                        'https://nominatim.openstreetmap.org/search?' + params.toString(),
+                        { headers: { 'Accept': 'application/json' } }
+                    );
+
+                    if (!resposta.ok) {
+                        throw new Error('Serviço de geocodificação indisponível.');
+                    }
+
+                    const resultados = await resposta.json();
+
+                    const resultado = Array.isArray(resultados) && resultados.find(item => {
+                        const endereco = item.address || {};
+                        const ruaRetornada = normalizarNomeDaRua(endereco.road || endereco.pedestrian || '');
+                        const ruaEsperada = normalizarNomeDaRua(rua);
+                        const localidadeRetornada = normalizarNomeDaRua(
+                            endereco.city || endereco.town || endereco.village || endereco.municipality || ''
+                        );
+                        const cidadeEsperada = normalizarNomeDaRua(cidade);
+
+                        return (!ruaEsperada || ruaRetornada.includes(ruaEsperada) || ruaEsperada.includes(ruaRetornada)) &&
+                            (!cidadeEsperada || !localidadeRetornada || localidadeRetornada === cidadeEsperada);
+                    });
+                    if (!resultado) continue;
+                    const lat = Number(resultado.lat);
+                    const lon = Number(resultado.lon);
+
+                    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+                        throw new Error('Coordenadas do destino inválidas.');
+                    }
+
+                    const coordenadas = {
+                        lat: lat,
+                        lon: lon,
+                        nome: resultado.display_name || destino,
+                        origem: 'Geocodificação do endereço'
+                    };
+
+                    destinosCache[remessaId] = coordenadas;
+                    return coordenadas;
+
+                } catch (erro) {
+                    ultimoErro = erro;
+                }
+            }
+
+            try {
+                const resultadoPhoton = await buscarDestinoPorRuaPhoton(
+                    enderecoEstruturado || destino,
+                    rua,
+                    numero,
+                    option.dataset.bairroDestino || partesDestino[2] || '',
+                    cidade,
+                    estado,
+                    cep
+                );
+
+                const coordenadas = {
+                    lat: resultadoPhoton.lat,
+                    lon: resultadoPhoton.lon,
+                    nome: resultadoPhoton.nome,
+                    origem: resultadoPhoton.origem
+                };
+
+                destinosCache[remessaId] = coordenadas;
+                return coordenadas;
+            } catch (erroPhoton) {
+                ultimoErro = erroPhoton;
+            }
+
+            throw ultimoErro || new Error(
+                'Não foi possível localizar o endereço do destino.'
+            );
+        }
+
 
 
 /*
@@ -2274,10 +2507,12 @@ async function obterCoordenadasCidade(destino, remessaId) {
  */
 async function calcularRotaReal(
     latitudeMotorista,
-    longitudeMotorista
+    longitudeMotorista,
+    remessaId
 ) {
 
-    const remessaDaRota = remessaRastreadaId;
+    const remessaDaRota = String(remessaId || remessaRastreadaId || '');
+    if (!remessaDaRota || String(remessaRastreadaId) !== remessaDaRota) return;
 
     const select =
         document.getElementById(
@@ -2304,28 +2539,32 @@ async function calcularRotaReal(
     try {
 
         const destino =
-            await obterCoordenadasCidade(
+            await obterCoordenadasDestino(
                 destinoTexto,
-                remessaRastreadaId
+                remessaDaRota
             );
+
+        if (String(remessaRastreadaId) !== remessaDaRota) return;
 
         /*
          * Marcador do destino.
          */
+        const iconeDestino = L.divIcon({
+            className: '',
+            html: '<div class="destino-marker"><i class="fas fa-flag"></i></div>',
+            iconSize: [34, 34],
+            iconAnchor: [17, 34],
+            popupAnchor: [0, -34]
+        });
+
         if (marcadorDestinoCliente) {
-
-            marcadorDestinoCliente.setLatLng([
-                destino.latitude,
-                destino.longitude
-            ]);
-
+            marcadorDestinoCliente.setLatLng([destino.lat, destino.lon]);
+            marcadorDestinoCliente.setIcon(iconeDestino);
         } else {
-
-            marcadorDestinoCliente =
-                L.marker([
-                    destino.latitude,
-                    destino.longitude
-                ]).addTo(mapaCliente);
+            marcadorDestinoCliente = L.marker(
+                [destino.lat, destino.lon],
+                { icon: iconeDestino }
+            ).addTo(mapaCliente);
         }
 
         marcadorDestinoCliente.bindPopup(
@@ -2337,28 +2576,61 @@ async function calcularRotaReal(
         /*
          * OSRM usa longitude,latitude.
          */
-        const url =
-            "https://router.project-osrm.org/route/v1/driving/" +
-            longitudeMotorista +
-            "," +
-            latitudeMotorista +
-            ";" +
-            destino.longitude +
-            "," +
-            destino.latitude +
-            "?overview=full&geometries=geojson";
+        const coordenadasRota = longitudeMotorista + ',' + latitudeMotorista + ';' +
+            destino.lon + ',' + destino.lat;
+        const parametrosRota = '?overview=full&geometries=geojson';
+        const provedoresRota = [
+            'https://router.project-osrm.org/route/v1/driving/',
+            'https://routing.openstreetmap.de/routed-car/route/v1/driving/'
+        ];
+        let dados = null;
+        let erroRota = null;
 
-        const resposta =
-            await fetch(url);
-
-        if (!resposta.ok) {
-            throw new Error(
-                "Falha no serviço de rotas."
-            );
+        for (const provedor of provedoresRota) {
+            try {
+                const resposta = await fetch(provedor + coordenadasRota + parametrosRota, { signal: AbortSignal.timeout(10000) });
+                if (!resposta.ok) throw new Error('Serviço de rotas indisponível.');
+                const retorno = await resposta.json();
+                if (retorno.code !== 'Ok' || !Array.isArray(retorno.routes) || !retorno.routes.length) {
+                    throw new Error('Não foi encontrada uma rota entre o motorista e o destino.');
+                }
+                dados = retorno;
+                break;
+            } catch (erro) {
+                erroRota = erro;
+            }
         }
 
-        const dados =
-            await resposta.json();
+        if (!dados) {
+            // Linha indicativa permanece visivel quando o provedor de rotas falha.
+            // A proxima atualizacao tenta novamente a rota pelas ruas.
+            if (linhaRotaCliente) mapaCliente.removeLayer(linhaRotaCliente);
+            linhaRotaCliente = L.polyline(
+                [[latitudeMotorista, longitudeMotorista], [destino.lat, destino.lon]],
+                { color: '#e67e22', weight: 5, opacity: 0.9, dashArray: '10 10' }
+            ).addTo(mapaCliente);
+
+            ["rotaDistancia", "rotaTempo", "rotaETA"].forEach(id => {
+                const elemento = document.getElementById(id);
+                if (elemento) elemento.textContent = "--";
+            });
+            atualizarStatusCliente(
+                'Serviço de rotas indisponível. Exibindo direção até ' + destinoTexto,
+                "transito"
+            );
+
+            const grupoIndicativo = L.featureGroup([
+                marcadorMotoristaCliente,
+                marcadorDestinoCliente,
+                linhaRotaCliente
+            ].filter(Boolean));
+            if (grupoIndicativo.getLayers().length) {
+                mapaCliente.invalidateSize();
+                mapaCliente.fitBounds(grupoIndicativo.getBounds(), { padding: [30, 30], maxZoom: 15 });
+            }
+            return;
+        }
+        if (String(remessaRastreadaId) !== remessaDaRota) return;
 
         if (
             dados.code !== "Ok" ||
@@ -2501,13 +2773,15 @@ async function calcularRotaReal(
 
     } catch (erro) {
 
+        if (String(remessaRastreadaId) !== remessaDaRota) return;
+
         console.error(
             "Erro ao calcular rota:",
             erro
         );
 
         atualizarStatusCliente(
-            "GPS conectado • rota indisponível",
+            erro.message || "GPS conectado: rota indisponível",
             "transito"
         );
     }
