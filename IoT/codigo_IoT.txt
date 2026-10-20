@@ -1,0 +1,197 @@
+#include <TinyGPS++.h>
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+// =========================
+// GPS
+// =========================
+TinyGPSPlus gps;
+HardwareSerial GPS(2);
+
+// =========================
+// WIFI
+// =========================
+const char* ssid = "WIFI-EDUC";
+const char* password = "ac3ce7ss0-EDUC";
+
+// =========================
+// API
+// =========================
+const char* serverName = "http://10.141.131.137:8000/api/localizacao";
+
+int remessa_id = 2;
+
+// Envia a cada 5 segundos
+unsigned long ultimoEnvio = 0;
+const unsigned long intervaloEnvio = 200;
+
+
+// =========================
+// ENVIA DADOS PARA API
+// =========================
+void enviarDados(double latitude, double longitude) {
+
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi desconectado.");
+    return;
+  }
+
+  HTTPClient http;
+
+  http.begin(serverName);
+  http.addHeader("Content-Type", "application/json");
+
+  // JSON
+  JsonDocument doc;
+
+  doc["latitude"] = latitude;
+  doc["longitude"] = longitude;
+  doc["remessa_id"] = remessa_id;
+
+  String json;
+
+  serializeJson(doc, json);
+
+  Serial.println();
+  Serial.println("===== ENVIO PARA API =====");
+  Serial.println(json);
+
+  // Envia POST
+  int httpCode = http.POST(json);
+
+  Serial.print("Codigo HTTP: ");
+  Serial.println(httpCode);
+
+  if (httpCode > 0) {
+
+    Serial.println("Resposta da API:");
+
+    String resposta = http.getString();
+
+    Serial.println(resposta);
+
+  } else {
+
+    Serial.println("Erro ao enviar para a API.");
+
+  }
+
+  http.end();
+}
+
+
+// =========================
+// SETUP
+// =========================
+void setup() {
+
+  Serial.begin(115200);
+
+  // GPS
+  // RX do ESP32 = GPIO 16
+  // TX do ESP32 = GPIO 17
+  GPS.begin(9600, SERIAL_8N1, 16, 17);
+
+  Serial.println();
+  Serial.println("==============================");
+  Serial.println("     GPS + WIFI + API");
+  Serial.println("==============================");
+
+  // =========================
+  // WIFI
+  // =========================
+
+  WiFi.begin(ssid, password);
+
+  Serial.print("Conectando ao WiFi");
+
+  unsigned long inicioWiFi = millis();
+
+  while (WiFi.status() != WL_CONNECTED &&
+         millis() - inicioWiFi < 15000) {
+
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println();
+
+  if (WiFi.status() == WL_CONNECTED) {
+
+    Serial.println("WiFi conectado!");
+
+    Serial.print("IP do ESP32: ");
+    Serial.println(WiFi.localIP());
+
+  } else {
+
+    Serial.println("Nao foi possivel conectar ao WiFi.");
+
+  }
+
+  Serial.println();
+  Serial.println("Aguardando GPS...");
+}
+
+
+// =========================
+// LOOP
+// =========================
+void loop() {
+
+  // Recebe dados do GPS
+  while (GPS.available()) {
+
+    char c = GPS.read();
+
+    gps.encode(c);
+  }
+
+
+  // Verifica se conseguiu uma nova localizacao
+  if (gps.location.isUpdated()) {
+
+    double latitude = gps.location.lat();
+    double longitude = gps.location.lng();
+
+    Serial.println();
+    Serial.println("==============================");
+
+    Serial.print("Latitude: ");
+    Serial.println(latitude, 6);
+
+    Serial.print("Longitude: ");
+    Serial.println(longitude, 6);
+
+    Serial.print("Satelites: ");
+    Serial.println(gps.satellites.value());
+
+    Serial.print("Remessa ID: ");
+    Serial.println(remessa_id);
+
+    // =========================
+    // ENVIO A CADA 5 SEGUNDOS
+    // =========================
+
+    if (millis() - ultimoEnvio >= intervaloEnvio) {
+
+      enviarDados(latitude, longitude);
+
+      ultimoEnvio = millis();
+    }
+
+    Serial.println("==============================");
+  }
+
+
+  // Verifica se o GPS está enviando dados
+  if (millis() > 2000 && gps.charsProcessed() < 10) {
+
+    Serial.println();
+    Serial.println("Nenhum dado recebido do GPS.");
+    Serial.println("Verifique a conexao.");
+  }
+
+  delay(10);
+}
