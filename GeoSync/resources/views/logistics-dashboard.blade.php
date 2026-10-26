@@ -1,5 +1,5 @@
 <style>
-/* GeoSync Operations — dashboard corporativo para logística */
+/* GeoSync Operations � dashboard corporativo para log�stica */
 :root { --primary:#2463a5; --primary-hover:#174a80; --bg:#eef3f8; --card:#fff; --sidebar:#0a1f38; --text-main:#132c47; --text-muted:#6b7d90; --border:#dbe4ed; --input-bg:#f8fafc; --radius-lg:12px; --radius-md:8px; --shadow-sm:0 1px 3px rgba(12,32,56,.08); --shadow-md:0 10px 28px rgba(12,32,56,.08); }
 body { background:var(--bg); }
 .sidebar { width:272px; padding:22px 14px; background:linear-gradient(180deg,#0d2b4d 0%,#071a30 100%); box-shadow:8px 0 28px rgba(4,18,34,.14); }

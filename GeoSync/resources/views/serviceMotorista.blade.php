@@ -2,6 +2,7 @@
 <html lang="pt-br">
 
 <head>
+        <link rel="icon" type="image/png" href="{{ asset('img/favicon.png') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GeoSync | Painel do Motorista</title>
@@ -70,6 +71,7 @@
             background: var(--bg);
             color: var(--text-main);
             transition: background 0.3s, color 0.3s;
+            overflow-x: clip;
         }
 
         .layout {
@@ -264,6 +266,7 @@
         /* MAIN CONTENT */
         .main-content {
             flex: 1;
+            min-width: 0;
             margin-left: 280px;
             padding: 2.5rem;
             transition: margin-left 0.3s;
@@ -310,7 +313,7 @@
         .driver-stat { position:relative; overflow:hidden; }
         .driver-stat::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--primary-hover); }
         .driver-stat .stat-caption { font-size:.78rem; color:var(--text-muted); margin-top:4px; }
-        .dashboard-driver-grid { display:grid; grid-template-columns:1.35fr .85fr; gap:1.5rem; margin-bottom:1.5rem; }
+        .dashboard-driver-grid { display:grid; grid-template-columns:minmax(0, 1.35fr) minmax(0, .85fr); gap:1.5rem; margin-bottom:1.5rem; }
         .current-trip { background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.75rem; box-shadow:var(--shadow-md); }
         .section-kicker { color:var(--primary-hover); font-size:.75rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin-bottom:.45rem; }
         .trip-route { display:flex; align-items:center; gap:14px; margin:1.25rem 0; }
@@ -335,6 +338,9 @@
         .empty-trip i { font-size:2.3rem; color:var(--primary-hover); margin-bottom:12px; }
         @media (max-width: 900px) { .dashboard-driver-grid { grid-template-columns:1fr; } }
         @media (max-width: 600px) { .driver-hero { padding:1.4rem; align-items:flex-start; flex-direction:column; } .trip-route { gap:8px; } .route-line { flex-basis:32px; } .trip-meta { grid-template-columns:1fr; } .quick-actions { grid-template-columns:1fr 1fr; } }
+
+        .stats-grid, .charts-grid { min-width: 0; }
+        .stats-grid > *, .charts-grid > *, .dashboard-driver-grid > * { min-width: 0; }
 
         .stats-grid {
             display: grid;
@@ -834,6 +840,8 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="{{ asset('css/dark-mode.css') }}">
+    <script src="{{ asset('js/theme.js') }}" defer></script>
 </head>
 
 <body class="{{ Auth::user()->dark_mode ? 'dark-mode' : '' }}">

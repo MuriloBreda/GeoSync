@@ -6,11 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Pagamento;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class AuthControllerApi extends Controller
 {
     public function register(Request $request)
     {
+        $request->merge(['email' => strtolower(trim((string) $request->input('email')))]);
         $data = $request->validate([
             'name' => 'required|string|min:3|max:100',
             'email' => 'required|email|max:100|unique:users,email',
@@ -20,7 +24,27 @@ class AuthControllerApi extends Controller
             'password' => 'required|string|min:6|confirmed',
         ]);
 
-        $user = User::create([...$data, 'password' => Hash::make($data['password'])]);
+        $user = DB::transaction(function () use ($data) {
+            $payment = null;
+            if ($data['tipo'] === 'cliente') {
+                $payment = Pagamento::whereRaw('LOWER(email) = ?', [$data['email']])
+                    ->where('status', 'Aprovado')->whereNull('user_id')->lockForUpdate()->first();
+
+                if (!$payment) {
+                    throw ValidationException::withMessages([
+                        'email' => 'É necessário ter um pagamento aprovado com este e-mail antes de criar a conta de cliente.',
+                    ]);
+                }
+            }
+
+            $user = User::create([...$data, 'password' => Hash::make($data['password'])]);
+            if ($payment) {
+                $payment->user_id = $user->id;
+                $payment->save();
+            }
+
+            return $user;
+        });
 
         return $this->authenticated($user, 201);
     }

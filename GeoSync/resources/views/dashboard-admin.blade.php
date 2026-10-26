@@ -2,6 +2,7 @@
 <html lang="pt-br">
 
 <head>
+        <link rel="icon" type="image/png" href="{{ asset('img/favicon.png') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GeoSync | Central de Controle Admin</title>
@@ -865,16 +866,6 @@
             }
         }
 
-        #chartLinhaAdmin {
-            height: 380px !important;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 380px;
-        }
-
-
         /* ===== NOVO DASHBOARD ADMINISTRATIVO ===== */
         .admin-dashboard-header {
             display:flex;
@@ -928,13 +919,15 @@
         .admin-kpi-value { font-size:1.85rem; font-weight:800; margin-top:15px; letter-spacing:-.5px; }
         .admin-kpi-note { color:var(--text-muted); font-size:.73rem; margin-top:3px; }
 
-        .admin-dashboard-grid { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(310px,.85fr); gap:18px; margin-bottom:18px; }
-        .admin-panel { background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-sm); overflow:hidden; }
-        .admin-panel-head { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:18px 20px 10px; }
-        .admin-panel-head h3 { margin:0; font-size:1rem; }
-        .admin-panel-head p { margin:4px 0 0; color:var(--text-muted); font-size:.75rem; }
-        .admin-panel-body { padding:10px 20px 20px; }
-        .admin-chart-box { height:300px; position:relative; }
+        .admin-dashboard-grid { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(290px,.85fr); gap:18px; margin-bottom:18px; }
+        .admin-panel { --panel-accent:var(--primary-hover); position:relative; min-width:0; background:var(--card); border:1px solid var(--border); border-radius:18px; box-shadow:0 8px 24px rgba(15,35,60,.055); overflow:hidden; transition:box-shadow .2s ease,transform .2s ease; }
+        .admin-panel::before { content:""; position:absolute; inset:0 0 auto; height:3px; background:linear-gradient(90deg,var(--panel-accent),color-mix(in srgb,var(--panel-accent) 18%,transparent)); }
+        .admin-panel:hover { box-shadow:0 14px 32px rgba(15,35,60,.09); transform:translateY(-2px); }
+        .admin-panel-head { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:21px 22px 12px; }
+        .admin-panel-head h3 { margin:0; font-size:.98rem; font-weight:800; letter-spacing:-.15px; }
+        .admin-panel-head p { margin:5px 0 0; color:var(--text-muted); font-size:.76rem; }
+        .admin-panel-body { padding:8px 22px 22px; }
+        .admin-chart-box { height:290px; position:relative; }
         .admin-chart-box canvas { width:100% !important; height:100% !important; }
         .admin-status-list { display:flex; flex-direction:column; gap:12px; padding-top:6px; }
         .admin-status-row { display:grid; grid-template-columns:125px 1fr 36px; align-items:center; gap:10px; }
@@ -947,21 +940,22 @@
         .admin-health strong { font-size:.8rem; }
         .admin-health span { display:block; color:var(--text-muted); font-size:.7rem; margin-top:2px; }
 
-        .admin-bottom-grid { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(300px,.8fr); gap:18px; }
+        .admin-bottom-grid { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(280px,.8fr); gap:18px; }
         .admin-table { width:100%; min-width:0; }
-        .admin-table th { background:transparent; padding:10px 12px; font-size:.68rem; }
-        .admin-table td { padding:12px; font-size:.78rem; }
+        .admin-table th { background:transparent; padding:11px 12px; font-size:.68rem; }
+        .admin-table td { padding:13px 12px; font-size:.78rem; }
         .admin-table tbody tr:last-child td { border-bottom:0; }
-        .admin-route { color:var(--text-muted); font-size:.72rem; white-space:nowrap; }
+        .admin-route { color:var(--text-muted); font-size:.72rem; white-space:normal; min-width:130px; }
         .admin-code { font-weight:800; color:var(--primary); white-space:nowrap; }
-        .admin-mini-alert { display:flex; gap:11px; padding:12px 0; border-bottom:1px solid var(--border); }
+        .admin-mini-alert { display:flex; gap:11px; padding:13px 0; border-bottom:1px solid var(--border); }
         .admin-mini-alert:last-child { border-bottom:0; }
         .admin-mini-alert-icon { width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; background:#fee2e2; color:#dc2626; }
         .admin-mini-alert strong { display:block; font-size:.78rem; }
         .admin-mini-alert p { color:var(--text-muted); font-size:.7rem; margin:3px 0 0; line-height:1.45; }
         .admin-mini-alert small { display:block; color:var(--text-muted); font-size:.65rem; margin-top:4px; }
         .admin-empty { text-align:center; color:var(--text-muted); padding:35px 10px; font-size:.8rem; }
-        .admin-see-all { color:var(--primary-hover); text-decoration:none; font-size:.72rem; font-weight:800; }
+        .admin-see-all { color:var(--primary-hover); text-decoration:none; font-size:.72rem; font-weight:800; white-space:nowrap; padding:7px 9px; border-radius:8px; }
+        .admin-see-all:hover { background:color-mix(in srgb,var(--primary-hover) 9%,transparent); }
         .admin-see-all:hover { text-decoration:underline; }
 
         @media (max-width:1200px) {
@@ -975,14 +969,22 @@
             .admin-kpi { min-height:112px; padding:15px; }
             .admin-kpi-value { font-size:1.55rem; }
             .admin-panel-head, .admin-panel-body { padding-left:14px; padding-right:14px; }
+            .admin-chart-box { height:250px; }
             .admin-status-row { grid-template-columns:95px 1fr 30px; }
             .admin-table { min-width:620px; }
             .admin-header-actions { width:100%; }
             .admin-quick-btn { flex:1; justify-content:center; }
         }
-        @media (max-width:480px) { .admin-kpi-grid { grid-template-columns:1fr; } }
+        @media (max-width:480px) {
+            .admin-kpi-grid { grid-template-columns:1fr; }
+            .admin-panel-head { align-items:flex-start; }
+            .admin-chart-box { height:220px; }
+            .admin-panel { border-radius:14px; }
+        }
 
     </style>
+    <link rel="stylesheet" href="{{ asset('css/dark-mode.css') }}">
+    <script src="{{ asset('js/theme.js') }}" defer></script>
 </head>
 
 <body class="{{ Auth::user()->dark_mode ? 'dark-mode' : '' }}">
@@ -1156,7 +1158,7 @@
                 </div>
 
                 <div class="admin-dashboard-grid">
-                    <div class="admin-panel">
+                    <div class="admin-panel" style="--panel-accent:#2563eb;">
                         <div class="admin-panel-head">
                             <div><h3>Distribuição das remessas</h3><p>Visão operacional por status</p></div>
                             <a href="javascript:void(0)" class="admin-see-all" onclick="abrirAdminPagina('remessas')">Ver todas</a>
@@ -1164,7 +1166,7 @@
                         <div class="admin-panel-body"><div class="admin-chart-box"><canvas id="chartLinhaAdmin"></canvas></div></div>
                     </div>
 
-                    <div class="admin-panel">
+                    <div class="admin-panel" style="--panel-accent:#8b5cf6;">
                         <div class="admin-panel-head"><div><h3>Composição da base</h3><p>Distribuição dos usuários</p></div></div>
                         <div class="admin-panel-body">
                             <div class="admin-chart-box" style="height:225px;"><canvas id="chartPizzaAdmin"></canvas></div>
@@ -1177,7 +1179,7 @@
                 </div>
 
                 <div class="admin-bottom-grid">
-                    <div class="admin-panel">
+                    <div class="admin-panel" style="--panel-accent:#0ea5e9;">
                         <div class="admin-panel-head">
                             <div><h3>Últimas remessas</h3><p>Atividade operacional mais recente</p></div>
                             <a href="javascript:void(0)" class="admin-see-all" onclick="abrirAdminPagina('remessas')">Gerenciar</a>
@@ -1201,7 +1203,7 @@
                         </div>
                     </div>
 
-                    <div class="admin-panel">
+                    <div class="admin-panel" style="--panel-accent:#f97316;">
                         <div class="admin-panel-head">
                             <div><h3>Alertas recentes</h3><p>Ocorrências que merecem atenção</p></div>
                             <a href="javascript:void(0)" class="admin-see-all" onclick="abrirAdminPagina('alertas-page')">Ver alertas</a>
@@ -2496,7 +2498,20 @@
                     }]
                 },
                 options: {
-                    responsive: true
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '68%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { usePointStyle: true, pointStyle: 'circle', padding: 18, boxWidth: 8 }
+                        },
+                        tooltip: {
+                            backgroundColor: '#0B1F36',
+                            padding: 11,
+                            callbacks: { label: function(context) { return ' ' + context.label + ': ' + context.raw; } }
+                        }
+                    }
                 }
             });
         }

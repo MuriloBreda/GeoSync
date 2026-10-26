@@ -45,10 +45,13 @@ class AvaliacaoController extends Controller
             ? round(($satisfacao / $total) * 100)
             : 0;
 
+        $avaliacoes = Avaliacao::latest()->take(8)->get();
+
         return view('avaliacao', compact(
             'media',
             'total',
-            'percentualSatisfacao'
+            'percentualSatisfacao',
+            'avaliacoes'
         ));
     }
 }

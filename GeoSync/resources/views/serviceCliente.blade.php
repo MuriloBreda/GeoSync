@@ -2,6 +2,7 @@
 <html lang="pt-br">
 
 <head>
+        <link rel="icon" type="image/png" href="{{ asset('img/favicon.png') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GeoSync | Área do Cliente</title>
@@ -1163,6 +1164,8 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="{{ asset('css/dark-mode.css') }}">
+    <script src="{{ asset('js/theme.js') }}" defer></script>
 </head>
 
 <body class="{{ Auth::user()->dark_mode ? 'dark-mode' : '' }}">

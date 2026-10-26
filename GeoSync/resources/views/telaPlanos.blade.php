@@ -1505,10 +1505,12 @@
         }
 
     </style>
+    <link rel="stylesheet" href="{{ asset('css/experience.css') }}">
+    <script defer src="{{ asset('js/experience.js') }}"></script>
 </head>
 
 
-<body>
+<body class="gs-experience">
 
     <!-- =========================================================
          BACKGROUND

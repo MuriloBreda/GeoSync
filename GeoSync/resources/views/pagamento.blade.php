@@ -2,6 +2,7 @@
 <html lang="pt-br">
 
 <head>
+        <link rel="icon" type="image/png" href="{{ asset('img/favicon.png') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pagamento Premium | GeoSync</title>
@@ -393,6 +394,22 @@
             box-shadow: 0 4px 15px rgba(37, 99, 235, 0.12);
         }
 
+        .plan.active::after {
+            content: "✓";
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: var(--azul-tech);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
         .plan strong {
             display: block;
             font-size: 16px;
@@ -469,6 +486,45 @@
             font-size: 13px;
             font-weight: 700;
             color: var(--texto-principal);
+        }
+
+        .email-field { margin-bottom: 28px; }
+
+        .email-input-wrap { position: relative; }
+
+        .email-input-wrap i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--azul-tech);
+            pointer-events: none;
+        }
+
+        .email-input-wrap input {
+            width: 100%;
+            height: 52px;
+            padding: 0 16px 0 46px;
+            border: 1px solid var(--borda-suave);
+            border-radius: 12px;
+            background: #f8fafc;
+            color: var(--texto-principal);
+            font: inherit;
+            font-size: 14px;
+            transition: border-color .2s, box-shadow .2s, background .2s;
+        }
+
+        .email-input-wrap input:focus {
+            outline: none;
+            border-color: var(--azul-tech);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, .12);
+        }
+
+        .email-hint {
+            color: var(--texto-secundario);
+            font-size: 12px;
+            line-height: 1.5;
         }
 
         .input-group input,
@@ -824,6 +880,11 @@
         .dark-mode .plan, .dark-mode .payment {
             background: #1e293b !important; border-color: #334155 !important;
         }
+        .dark-mode .plan.active {
+            background: rgba(37, 99, 235, .16) !important;
+            border-color: var(--azul-tech) !important;
+        }
+        .dark-mode .email-hint { color: #94a3b8; }
         .dark-mode .btn-voltar {
             background: #1e293b !important; color: white !important; border-color: #334155 !important;
         }
@@ -858,6 +919,8 @@
             .footer-grid { grid-template-columns: 1fr; }
         }
     </style>
+    <link rel="stylesheet" href="{{ asset('css/dark-mode.css') }}">
+    <script src="{{ asset('js/theme.js') }}" defer></script>
 </head>
 
 <body>
@@ -969,6 +1032,20 @@
                     <input type="hidden" name="valor" id="db_valor" value="149.99">
                     <input type="hidden" name="plano" id="db_plano" value="GeoSync Start">
                     <input type="hidden" name="metodo" id="db_metodo" value="credito">
+
+                    <div class="section-title">
+                        <i class="fa-solid fa-envelope"></i> E-mail da conta
+                    </div>
+                    <div class="field-box email-field">
+                        <label for="emailPagamento">Informe um e-mail válido. Você usará este mesmo e-mail para criar sua conta.</label>
+                        <div class="email-input-wrap">
+                            <i class="fa-regular fa-envelope"></i>
+                            <input type="email" id="emailPagamento" name="email" value="{{ old('email') }}"
+                                placeholder="voce@exemplo.com" autocomplete="email" required>
+                        </div>
+                        <small class="email-hint">O cadastro será liberado para este endereço após a confirmação.</small>
+                        @error('email')<small style="color:#dc2626;">{{ $message }}</small>@enderror
+                    </div>
 
                     <div id="conteudo">
                         <div class="section-title">
@@ -1203,23 +1280,20 @@
             // URL PARAMS PARA SELEÇÃO AUTOMÁTICA
             const urlParams = new URLSearchParams(window.location.search);
             const planoParam = urlParams.get('plano');
-            const valorParam = parseFloat(urlParams.get('valor'));
-
+            const planosDisponiveis = {
+                start: { nome: 'GeoSync Start', valor: 149.99 },
+                pro: { nome: 'GeoSync Pro', valor: 599.99 },
+                'geosync start': { nome: 'GeoSync Start', valor: 149.99 },
+                'geosync pro': { nome: 'GeoSync Pro', valor: 599.99 }
+            };
+            const planoEscolhido = planosDisponiveis[(planoParam || '').trim().toLowerCase()]
+                || planosDisponiveis.start;
             const planosCards = document.querySelectorAll('.plan');
-            
-            if (planoParam && !isNaN(valorParam)) {
-                let planoEncontrado = false;
-                planosCards.forEach(card => {
-                    const titulo = card.querySelector('strong').innerText.toLowerCase();
-                    if (titulo.includes(planoParam.toLowerCase())) {
-                        selectPlan(card, card.querySelector('strong').innerText, valorParam);
-                        planoEncontrado = true;
-                    }
-                });
-                if (!planoEncontrado) selectPlan(planosCards[0], 'GeoSync Start', 149.99);
-            } else {
-                selectPlan(planosCards[0], 'GeoSync Start', 149.99);
-            }
+            const cardInicial = Array.from(planosCards).find(card =>
+                card.querySelector('strong').innerText.trim() === planoEscolhido.nome
+            ) || planosCards[0];
+
+            selectPlan(cardInicial, planoEscolhido.nome, planoEscolhido.valor);
         });
 
         function selectPlan(el, plano, preco) {
@@ -1317,15 +1391,23 @@
         }
 
         function finalizarNoBanco() {
+            const emailInput = document.getElementById('emailPagamento');
+            if (!emailInput.checkValidity()) {
+                emailInput.reportValidity();
+                return;
+            }
+
             Swal.fire({
                 icon: 'success',
                 title: 'Pagamento Concluído!',
-                text: 'Seu plano GeoSync foi ativado com sucesso.',
+                text: 'Ao confirmar, você poderá criar uma conta usando ' + emailInput.value + '.',
                 confirmButtonColor: '#2563eb',
-                confirmButtonText: 'Ir para a Área do Cliente'
+                confirmButtonText: 'Confirmar e continuar',
+                showCancelButton: true,
+                cancelButtonText: 'Voltar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = '/login';
+                    document.getElementById('mainForm').requestSubmit();
                 }
             });
         }

@@ -12,6 +12,7 @@ class Pagamento extends Model
     // Campos que permitimos salvar
     protected $fillable = [
         'user_id',
+        'email',
         'valor',
         'status'
     ];

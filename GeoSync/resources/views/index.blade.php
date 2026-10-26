@@ -1919,10 +1919,14 @@
         }
 
     </style>
+    <link rel="stylesheet" href="{{ asset('css/experience.css') }}">
+    <script defer src="{{ asset('js/experience.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('css/hero-video.css') }}">
+    <script defer src="{{ asset('js/hero-video.js') }}"></script>
 </head>
 
 
-<body>
+<body class="gs-experience">
 
     <!-- NOVO: barra de progresso de rolagem -->
     <div id="scroll-progress"></div>
@@ -2108,7 +2112,13 @@
          HERO
     ====================================================== -->
 
-    <section class="hero">
+    <section class="hero hero--video">
+        <div class="hero-video-background" aria-hidden="true">
+            <video id="hero-background-video" class="hero-background-video" muted loop playsinline preload="none"
+                poster="{{ asset('img/logistica-hero.jpg') }}" data-src="{{ asset('videos/video.mp4') }}" tabindex="-1" disablepictureinpicture>
+            </video>
+        </div>
+        <button type="button" class="hero-video-toggle" aria-controls="hero-background-video" hidden>Reproduzir vídeo de fundo</button>
 
         <!-- NOVO: camadas de profundidade do hero -->
         <div class="hero-grid-bg" data-depth="0.15"></div>
@@ -2163,7 +2173,7 @@
 
             <div class="hero-layer" data-depth="0.6">
 
-                <div class="hero-mockup" id="hero-mockup">
+                {{-- <div class="hero-mockup" id="hero-mockup">
 
                     <div class="mockup-header">
 
@@ -2215,13 +2225,15 @@
                         </div>
                     </div>
 
-                </div>
+                </div> --}}
 
             </div>
 
         </div>
 
     </section>
+    @include('partials.scroll-story', ['variant' => 'home'])
+
 
 
     <!-- =====================================================
@@ -3736,6 +3748,7 @@
     <script>
     document.addEventListener('DOMContentLoaded', function () {
 
+        if (document.body.classList.contains('gs-experience')) return;
         const reduzMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const podeHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
         const ehDesktop = () => window.innerWidth > 768;

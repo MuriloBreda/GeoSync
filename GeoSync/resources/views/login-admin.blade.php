@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+        <link rel="icon" type="image/png" href="{{ asset('img/favicon.png') }}">
     <meta charset="UTF-8">
     <title>GeoSync - Login Admin</title>
     <style>
@@ -28,6 +29,8 @@
         .link-cadastro { font-size: 13px; color: #2F6FB2; text-decoration: none; }
         .link-cadastro:hover { text-decoration: underline; }
     </style>
+    <link rel="stylesheet" href="{{ asset('css/dark-mode.css') }}">
+    <script src="{{ asset('js/theme.js') }}" defer></script>
 </head>
 <body>
 

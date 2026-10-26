@@ -6,12 +6,29 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Pagamento;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function showRegister(Request $request)
+    {
+        $email = strtolower((string) $request->query('email', ''));
+        $hasApprovedPayment = $email !== '' && Pagamento::whereRaw('LOWER(email) = ?', [$email])
+            ->where('status', 'Aprovado')->whereNull('user_id')->exists();
+
+        return view('createAccount', [
+            'paymentEmail' => $hasApprovedPayment ? $email : null,
+            'paymentRequired' => !$hasApprovedPayment,
+        ]);
+    }
+
     // CADASTRO
     public function register(Request $request)
 {
+
+    $request->merge(['email' => strtolower(trim((string) $request->input('email')))]);
 
     $request->validate(
         [
@@ -44,15 +61,32 @@ class AuthController extends Controller
         'password' => 'required|string|min:6|confirmed',
     ]);
 
-    // 2. Criação do Usuário
-    User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'tipo' => $request->tipo, // <--- CERTIFIQUE-SE DE QUE ESTÁ ASSIM
-        'cpf' => $request->cpf,
-        'telefone' => $request->telefone,
-        'password' => Hash::make($request->password),
-    ]);
+    if ($request->tipo !== 'cliente') {
+        throw ValidationException::withMessages(['tipo' => 'O cadastro pelo checkout está disponível para clientes.']);
+    }
+
+    DB::transaction(function () use ($request) {
+        $payment = Pagamento::whereRaw('LOWER(email) = ?', [$request->email])
+            ->where('status', 'Aprovado')->whereNull('user_id')->lockForUpdate()->first();
+
+        if (!$payment) {
+            throw ValidationException::withMessages([
+                'email' => 'Este e-mail não possui um pagamento aprovado disponível. Faça o pagamento antes de criar a conta.',
+            ]);
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'tipo' => 'cliente',
+            'cpf' => $request->cpf,
+            'telefone' => $request->telefone,
+            'password' => Hash::make($request->password),
+        ]);
+
+        $payment->user_id = $user->id;
+        $payment->save();
+    });
 
     return redirect('/login')->with('success', 'Cadastro realizado!');
 }

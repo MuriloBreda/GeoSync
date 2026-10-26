@@ -1,0 +1,46 @@
+.gs-team-intro { max-width: 680px; margin: -8px auto 38px; text-align: center; }
+.gs-team-open { display: block; position: relative; width: 100%; padding: 0; border: 0; background: #e5edf8; color: #fff; font: inherit; cursor: pointer; overflow: hidden; text-align: left; }
+.gs-team-open img { display: block; width: 100%; }
+.gs-team-discover { position: absolute; inset: auto 14px 14px; display: flex; justify-content: space-between; align-items: center; padding: 11px 15px; border: 1px solid #ffffff45; border-radius: 12px; background: #0b1c38d9; backdrop-filter: blur(12px); color: #fff; font-size: 12px; font-weight: 600; transition: background .25s, translate .25s; }
+.gs-team-open:hover .gs-team-discover,.gs-team-open:focus-visible .gs-team-discover { background: #245fce; translate: 0 -4px; }
+.gs-experience .gs-team-open:focus-visible { outline-offset: -4px; }
+body.gs-profile-open { overflow: hidden; }
+.gs-profile { position: fixed; inset: 0; margin: auto; padding: 0; width: min(920px, calc(100% - 40px)); max-height: 88vh; max-height: 88dvh; border: 1px solid #dce6f2; border-radius: 28px; background: #fff; color: #172033; box-shadow: 0 35px 120px #0005; overflow: auto; overscroll-behavior: contain; }
+.gs-profile::backdrop { background: #030d22b8; backdrop-filter: blur(8px); }
+.gs-profile[open] { animation: gs-profile-in .3s cubic-bezier(.2,.7,.2,1); }
+.gs-profile-layout { display: grid; grid-template-columns: .8fr 1.2fr; }
+.gs-profile-portrait { position: relative; min-height: 100%; background: #0d203c; }
+.gs-profile-portrait > img { display: block; position: absolute; width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+.gs-profile-portrait::after { content: ""; position: absolute; inset: 50% 0 0; background: linear-gradient(transparent,#07162bf2); pointer-events: none; }
+.gs-profile-school { position: absolute; z-index: 1; bottom: 30px; left: 26px; right: 26px; color: #fff; font-size: 26px; font-weight: 800; letter-spacing: .04em; }
+.gs-profile-school small { display: block; margin-top: 8px; font-size: 12px; line-height: 1.6; font-weight: 500; letter-spacing: 0; }
+.gs-profile-content { padding: 48px 36px 32px; }
+.gs-profile-content .gs-eyebrow { color: #2563eb; font-size: 10px; margin-bottom: 14px; }
+.gs-profile-content h2 { font-size: clamp(25px,3vw,36px); line-height: 1.14; margin-bottom: 12px; color: #112440; }
+.gs-profile-content p { font-size: 13px; line-height: 1.8; margin-bottom: 16px; color: #53647c; }
+.gs-profile-content .gs-profile-role { color: #245fc2; font-weight: 700; font-size: 12px; margin-bottom: 24px; }
+.gs-profile-content h3 { font-size: 14px; margin: 22px 0 8px; color: #152c4d; }
+.gs-profile-topics { display: flex; flex-wrap: wrap; gap: 7px; list-style: none; padding: 0; margin: 24px 0; }
+.gs-profile-topics li { border: 1px solid #d9e5f7; border-radius: 999px; padding: 6px 10px; background: #f1f6ff; color: #315785; font-size: 10px; font-weight: 600; }
+.gs-profile-note { display: block; border-top: 1px solid #e4ebf5; padding-top: 18px; color: #667a95; font-size: 11px; }
+.gs-profile-close { position: sticky; float: right; top: 12px; margin: 12px 12px -52px 0; z-index: 3; display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid #d9e3f1; border-radius: 50%; background: #fff; color: #233955; font-size: 28px; line-height: 1; cursor: pointer; }
+.gs-profile-close:hover { background: #eaf2ff; }
+.dark-mode .gs-profile { background: #111e32; border-color: #33455f; }
+.dark-mode .gs-profile-content :is(h2,h3) { color: #eef5ff; }
+.dark-mode .gs-profile-content p { color: #b8c9e0; }
+.dark-mode .gs-profile-content .gs-profile-role,.dark-mode .gs-profile-content .gs-eyebrow { color: #88b9ff; }
+.alto-contraste .gs-profile { background: #000; border: 2px solid #fff; }
+.alto-contraste .gs-profile-content :is(h2,h3,p,span) { color: #fff; }
+@keyframes gs-profile-in { from { opacity: 0; transform: translateY(24px) scale(.97); } to { opacity: 1; transform: none; } }
+@media(max-width: 640px) {
+    .gs-profile { width: calc(100% - 24px); border-radius: 20px; max-height: 92dvh; }
+    .gs-profile-layout { grid-template-columns: 1fr; }
+    .gs-profile-portrait { height: 260px; }
+    .gs-profile-portrait > img { object-position: center 20%; }
+    .gs-profile-content { padding: 28px 24px; }
+    .gs-profile-school { bottom: 20px; left: 24px; }
+}
+@media(prefers-reduced-motion: reduce) {
+    .gs-profile[open] { animation: none; }
+    .gs-team-discover { transition: none; }
+}

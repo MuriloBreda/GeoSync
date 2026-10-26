@@ -25,7 +25,8 @@ Route::get('/faq', function () { return view('faq'); });
 Route::get('/welcome', function () { return view('welcome'); });
 Route::get('/contact', function () { return view('contact'); });
 Route::post('/contato/enviar', [ContatoController::class, 'store'])->name('contato.store');
-Route::get('/pagamento', function () { return view('pagamento'); });
+Route::get('/pagamento', function () { return view('pagamento'); })->name('pagamento');
+Route::post('/pagamento/store', [PagamentoController::class, 'store'])->name('pagamento.store');
 Route::get('/planos', function () { return view('telaPlanos'); });
 Route::post('/avaliacao/store', [AvaliacaoController::class, 'store'])->name('avaliacao.store');
 Route::get('/avaliar', [AvaliacaoController::class, 'index'])->name('avaliacao.index');
@@ -37,7 +38,7 @@ Route::post('/chat/enviar', [ChatController::class, 'enviar'])->name('chat.envia
 
 /* --- AUTENTICAÇÃO COMUM --- */
 Route::get('/login', function () { return view('login'); })->name('login');
-Route::get('/register', function () { return view('createAccount'); });
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
@@ -65,8 +66,6 @@ Route::get('/ia-antifraude/{id?}', [IAController::class, 'antifraude']);
 Route::resource('remessas', RemessaController::class);
 Route::resource('alertas', AlertaController::class);
 Route::resource('localizacoes', LocalizacaoController::class);
-Route::post('/pagamento/store', [PagamentoController::class, 'store'])->name('pagamento.store');
-
 Route::get('/service-cliente', [RemessaController::class, 'dashboardCliente'])->middleware('role:cliente')->name('cliente.dashboard');
 // Use o middleware 'auth' para garantir que o usuário está logado
 Route::middleware(['auth'])->group(function () {

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+        <link rel="icon" type="image/png" href="{{ asset('img/favicon.png') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GeoSync | Criar Conta</title>
@@ -543,6 +544,8 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="{{ asset('css/dark-mode.css') }}">
+    <script src="{{ asset('js/theme.js') }}" defer></script>
 </head>
 
 <body>
@@ -621,7 +624,7 @@
             <div class="form-header">
                 <div class="mini-title">Cadastro de Usuário</div>
                 <h2>Crie sua conta</h2>
-                <p>Preencha os dados abaixo para iniciar seu cadastro.</p>
+                <p>{{ $paymentRequired ? 'Para criar sua conta, conclua um pagamento e use o mesmo e-mail informado no checkout.' : 'Pagamento aprovado! Use o mesmo e-mail do checkout para concluir seu cadastro.' }}</p>
             </div>
 
             <form action="/register" method="POST" id="registerForm" class="form-grid">
@@ -661,12 +664,21 @@
                             type="email"
                             id="email"
                             name="email"
-                            value="{{ old('email') }}"
+                            value="{{ old('email', $paymentEmail) }}"
                             placeholder="seu.email@empresa.com"
+                            {{ $paymentEmail ? 'readonly' : '' }}
                             required
                         >
                     </div>
                 </div>
+
+                @if($paymentRequired)
+                    <div class="field full" style="color:#b45309;font-size:13px;">
+                        <i class="fas fa-circle-info"></i>
+                        Ainda não encontramos um pagamento aprovado para este e-mail.
+                        <a href="{{ route('pagamento') }}">Ir para pagamento</a>
+                    </div>
+                @endif
 
                 <div class="field full">
                     <label for="tipo">Tipo de Conta</label>

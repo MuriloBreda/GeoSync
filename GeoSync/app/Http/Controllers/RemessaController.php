@@ -9,6 +9,7 @@ use App\Models\Alerta;
 use App\Services\GeocodificadorDestino;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Carbon;
 
 class RemessaController extends Controller
 {
@@ -86,8 +87,21 @@ class RemessaController extends Controller
                 ['em rota', 'em trânsito', 'em transito']
             );
         })->count();
-        $entregues = Remessa::where('cliente_id', $userId)->where('status', 'Entregue')->count();
-        $atrasadas = Remessa::where('cliente_id', $userId)->where('status', 'Pendente')->count();
+        $entregues = $remessas->filter(function ($remessa) {
+            return strtolower(trim($remessa->status ?? '')) === 'entregue';
+        })->count();
+        $hoje = Carbon::today();
+        $atrasadas = $remessas->filter(function ($remessa) use ($hoje) {
+            $status = strtolower(trim($remessa->status ?? ''));
+
+            if ($status === 'atrasado') {
+                return true;
+            }
+
+            return $status !== 'entregue'
+                && $remessa->previsao_entrega
+                && Carbon::parse($remessa->previsao_entrega)->lt($hoje);
+        })->count();
 
         // Busca os alertas vinculados às remessas desse cliente
         $alertas = \App\Models\Alerta::whereIn('remessa_id', $remessas->pluck('id'))->get();

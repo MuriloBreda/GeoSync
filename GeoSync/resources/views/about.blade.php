@@ -838,9 +838,13 @@
             .cta-section { width: 88%; padding: 35px 25px; }
         }
     </style>
+    <link rel="stylesheet" href="{{ asset('css/experience.css') }}">
+    <script defer src="{{ asset('js/experience.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('css/team.css') }}">
+    <script defer src="{{ asset('js/team.js') }}"></script>
 </head>
 
-<body>
+<body class="gs-experience">
 
     <div class="ambient-glow"></div>
     <div class="ambient-glow-bottom"></div>
@@ -932,6 +936,8 @@
             <p>Conheça a história, os pilares e as mentes por trás da plataforma que está redefinindo a gestão de frota inteligente.</p>
         </div>
     </section>
+    @include('partials.scroll-story', ['variant' => 'about'])
+
 
     <!-- SOBRE ESSÊNCIA -->
     <section class="container section">
@@ -1029,55 +1035,7 @@
             <h2>Mentes que movem a GeoSync</h2>
         </div>
 
-        <div class="team-grid">
-            <div class="team-card">
-                <img src="{{ asset('img/murilo.png') }}" alt="Murilo Moroni Breda">
-                <div class="team-text">
-                    <h5>Murilo Moroni Breda</h5>
-                    <small>Full-Stack Developer - PO</small>
-                </div>
-            </div>
-
-            <div class="team-card">
-                <img src="{{ asset('img/thayla.png') }}" alt="Thayla F. de Lima Ribeiro">
-                <div class="team-text">
-                    <h5>Thayla F. de Lima Ribeiro</h5>
-                    <small>Back-End Developer - Scrum Master</small>
-                </div>
-            </div>
-
-            <div class="team-card">
-                <img src="{{ asset('img/lucas.png') }}" alt="Lucas Rizzo Bertoloto">
-                <div class="team-text">
-                    <h5>Lucas Rizzo Bertoloto</h5>
-                    <small>Back-End Developer</small>
-                </div>
-            </div>
-
-            <div class="team-card">
-                <img src="{{ asset('img/mickael.png') }}" alt="Mickael H. Malafatti Ezequiel">
-                <div class="team-text">
-                    <h5>Mickael H. Malafatti Ezequiel</h5>
-                    <small>Front-End / Banco de Dados</small>
-                </div>
-            </div>
-
-            <div class="team-card">
-                <img src="{{ asset('img/mariaClara.png') }}" alt="Maria Clara Luz da Silva">
-                <div class="team-text">
-                    <h5>Maria Clara Luz da Silva</h5>
-                    <small>Front-End / Banco de Dados</small>
-                </div>
-            </div>
-
-            <div class="team-card">
-                <img src="{{ asset('img/theo.png') }}" alt="Théo Donizetti de Souza">
-                <div class="team-text">
-                    <h5>Théo Donizetti de Souza</h5>
-                    <small>Front-End / Banco de Dados</small>
-                </div>
-            </div>
-        </div>
+        @include('partials.team')
     </section>
 
     <!-- CTA BANNER -->

@@ -996,6 +996,225 @@ body {
     background: linear-gradient(135deg, #2563eb, #1d4ed8);
 }
 
+/* Comentários enviados pelos clientes */
+/* Acabamento do formulário de avaliação */
+.feedback-card { overflow: hidden; background: #fff; }
+.left-panel { min-height: 100%; }
+.left-panel h2 { max-width: 280px; font-size: clamp(30px, 3vw, 38px); line-height: 1.12; }
+.left-panel p { max-width: 290px; line-height: 1.8; }
+.rating-box { text-align: left; border: 1px solid rgba(255,255,255,.12); box-shadow: 0 18px 40px rgba(0,0,0,.12); }
+.rating-box h3 { display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: .02em; }
+.rating-value { font-size: 68px; letter-spacing: -3px; }
+.rating-label { display: inline-flex; padding: 7px 11px; border-radius: 999px; background: rgba(255,255,255,.08); }
+.right-panel { padding: clamp(28px, 5vw, 56px); }
+.form-title { display: flex; align-items: center; gap: 12px; margin-bottom: 9px; font-size: clamp(23px, 2.5vw, 29px); letter-spacing: -.8px; }
+.form-title::before { content: ""; width: 4px; height: 28px; border-radius: 9px; background: linear-gradient(#60a5fa, #2563eb); }
+.form-title + form::before { content: "Sua opinião nos ajuda a melhorar cada dia."; display: block; margin: 0 0 27px 16px; color: var(--texto-secundario); font-size: 13px; }
+.form-group label { margin-bottom: 10px; font-size: 13px; }
+.form-group label i { width: 18px; color: var(--azul-tech); }
+.form-group input, .form-group textarea { border-color: #e2e8f0; background: #f8fafc; box-shadow: inset 0 1px 2px rgba(15,23,42,.025); }
+.form-group textarea { min-height: 150px; line-height: 1.7; }
+.form-group input:focus, .form-group textarea:focus { border-color: #60a5fa; box-shadow: 0 0 0 4px rgba(37,99,235,.11); }
+.stars { width: fit-content; gap: 7px; padding: 7px 10px; border: 1px solid #e2e8f0; border-radius: 14px; background: #f8fafc; }
+.stars span { display: inline-grid; width: 42px; height: 42px; place-items: center; border-radius: 10px; color: #cbd5e1; font-size: 32px; line-height: 1; }
+.stars span:hover, .stars span.active { background: #fff7ed; }
+.gs-field-hint { display: block; margin-top: 9px; color: #64748b; font-size: 12px; line-height: 1.6; }
+.btn-submit { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 8px; box-shadow: 0 10px 24px rgba(37,99,235,.22); }
+.btn-submit::after { content: "→"; font-size: 20px; line-height: 1; transition: transform .2s ease; }
+.btn-submit:hover::after { transform: translateX(3px); }
+.dark-mode .form-title + form::before, .dark-mode .gs-field-hint { color: #94a3b8; }
+.dark-mode .stars, .dark-mode .form-group input, .dark-mode .form-group textarea { background: #1e293b; border-color: #334155; }
+.dark-mode .stars span:hover, .dark-mode .stars span.active { background: #422006; }
+.alto-contraste .stars, .alto-contraste .form-group input, .alto-contraste .form-group textarea { background: #000 !important; border: 1px solid #FFD700 !important; }
+
+@media (max-width: 768px) {
+    .feedback-card { margin-bottom: 72px; }
+    .left-panel { min-height: 0; gap: 30px; }
+    .left-panel h2, .left-panel p { max-width: none; }
+    .rating-box { margin-top: 0; }
+    .stars { max-width: 100%; gap: 3px; padding: 5px; }
+    .stars span { width: min(42px, 14vw); height: 40px; font-size: 29px; }
+}
+
+.reviews-section {
+    margin: 0 auto 100px;
+    max-width: 1040px;
+}
+
+.reviews-heading {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.reviews-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 7px 13px;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.reviews-heading h2 {
+    color: var(--azul-institucional);
+    font-size: clamp(28px, 3.5vw, 40px);
+    letter-spacing: -1.5px;
+    margin-bottom: 10px;
+}
+
+.reviews-heading p {
+    color: var(--texto-secundario);
+}
+
+.reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.review-card {
+    position: relative;
+    padding: 27px;
+    border: 1px solid #e5eaf2;
+    border-radius: 20px;
+    background: var(--card-bg);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, .055);
+    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+
+.review-card:hover {
+    transform: translateY(-4px);
+    border-color: #bfdbfe;
+    box-shadow: 0 22px 48px rgba(15, 23, 42, .10);
+}
+
+.review-card-header {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin-bottom: 20px;
+}
+
+.review-avatar {
+    display: grid;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #dbeafe, #eff6ff);
+    color: #2563eb;
+    font-size: 17px;
+}
+
+.review-author-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.review-author {
+    color: var(--azul-institucional);
+    font-weight: 700;
+}
+
+.review-date {
+    display: block;
+    color: var(--texto-secundario);
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.review-stars {
+    margin-left: auto;
+    padding: 6px 9px;
+    border-radius: 9px;
+    background: #fffbeb;
+    color: #f59e0b;
+    font-size: 13px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.review-comment {
+    color: var(--texto-principal);
+    font-size: 14px;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+.reviews-empty {
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+    padding: 44px 24px;
+    border: 1px dashed #bfdbfe;
+    border-radius: 20px;
+    background: rgba(239, 246, 255, .6);
+    color: var(--texto-secundario);
+    text-align: center;
+}
+
+.reviews-empty i {
+    color: #3b82f6;
+    font-size: 28px;
+}
+
+.dark-mode .reviews-heading h2,
+.dark-mode .review-author,
+.dark-mode .review-comment {
+    color: #f8fafc !important;
+}
+
+.dark-mode .reviews-eyebrow,
+.dark-mode .review-avatar,
+.dark-mode .review-stars {
+    background: #172554;
+    border-color: #1e3a8a;
+    color: #bfdbfe;
+}
+
+.dark-mode .review-card,
+.dark-mode .reviews-empty {
+    background: #0f172a;
+    border-color: #1e293b;
+}
+
+.alto-contraste .review-card,
+.alto-contraste .reviews-empty {
+    background: #111;
+    border: 1px solid #FFD700;
+}
+
+.alto-contraste .reviews-eyebrow,
+.alto-contraste .review-avatar,
+.alto-contraste .review-stars {
+    background: #111;
+    border: 1px solid #FFD700;
+    color: #FFD700;
+}
+
+@media (max-width: 768px) {
+    .reviews-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .review-card {
+        padding: 22px;
+    }
+
+    .review-stars {
+        font-size: 11px;
+        letter-spacing: 0;
+    }
+}
+
 /* Footer mais organizado */
 .footer {
     padding: 75px 0 28px;
@@ -1062,9 +1281,11 @@ body {
 }
 
     </style>
+    <link rel="stylesheet" href="{{ asset('css/experience.css') }}">
+    <script defer src="{{ asset('js/experience.js') }}"></script>
 </head>
 
-<body>
+<body class="gs-experience">
 
     <div class="ambient-glow"></div>
     <div class="ambient-glow-bottom"></div>
@@ -1187,16 +1408,21 @@ body {
                     <div class="form-title">Envie seu comentário</div>
                     <form action="{{ route('avaliacao.store') }}" method="POST" id="formAvaliacao">
                         @csrf
+                        @if ($errors->any())
+                            <div role="alert" style="color: #b42318; margin-bottom: 20px;">
+                                {{ $errors->first() }}
+                            </div>
+                        @endif
                         <input type="hidden" name="nota" id="inputNota" value="0">
 
                         <div class="form-group">
-                            <label><i class="fa-regular fa-user"></i> Nome (opcional)</label>
-                            <input type="text" name="nome_exibicao" placeholder="Seu nome completo">
+                            <label for="nome-exibicao"><i class="fa-regular fa-user"></i> Nome (opcional)</label>
+                            <input type="text" id="nome-exibicao" name="nome_exibicao" autocomplete="name" maxlength="255" value="{{ old('nome_exibicao') }}" placeholder="Como você quer ser identificado?">
                         </div>
 
                         <div class="form-group">
-                            <label><i class="fa-solid fa-star"></i> Sua Nota</label>
-                            <div class="stars" id="stars">
+                            <label id="nota-label"><i class="fa-solid fa-star"></i> Sua Nota</label>
+                            <div class="stars" id="stars" role="radiogroup" aria-labelledby="nota-label">
                                 <span data-value="1">★</span>
                                 <span data-value="2">★</span>
                                 <span data-value="3">★</span>
@@ -1206,8 +1432,9 @@ body {
                         </div>
 
                         <div class="form-group">
-                            <label><i class="fa-regular fa-comment"></i> Mensagem</label>
-                            <textarea name="comentario" id="comentario" placeholder="Escreva seu depoimento sobre a plataforma..."></textarea>
+                            <label for="comentario"><i class="fa-regular fa-comment"></i> Mensagem</label>
+                            <textarea name="comentario" id="comentario" maxlength="1000" aria-describedby="comentario-hint" placeholder="O que funcionou bem? O que podemos melhorar?">{{ old('comentario') }}</textarea>
+                            <small id="comentario-hint" class="gs-field-hint">Até 1.000 caracteres. Sua experiência ajuda a orientar nossas melhorias.</small>
                         </div>
 
                         <button type="button" class="btn-submit" onclick="validarEnvio()">Enviar Avaliação</button>
@@ -1216,6 +1443,44 @@ body {
             </div>
         </div>
     </div>
+
+    <!-- COMENTÁRIOS RECEBIDOS -->
+    <section class="container reviews-section" aria-labelledby="reviews-title">
+        <div class="reviews-heading">
+            <span class="reviews-eyebrow"><i class="fa-solid fa-heart"></i> Experiências reais</span>
+            <h2 id="reviews-title">O que nossos clientes dizem</h2>
+            <p>Veja como a GeoSync está ajudando equipes a cuidar melhor das suas operações.</p>
+        </div>
+
+        @if (isset($avaliacoes) && $avaliacoes->isNotEmpty())
+            <div class="reviews-grid">
+                @foreach ($avaliacoes as $avaliacao)
+                    <article class="review-card">
+                        <div class="review-card-header">
+                            <div class="review-avatar" aria-hidden="true"><i class="fa-regular fa-user"></i></div>
+                            <div class="review-author-info">
+                                <div class="review-author">{{ $avaliacao->nome_exibicao ?: 'Anônimo' }}</div>
+                                <time class="review-date" datetime="{{ $avaliacao->created_at?->toIso8601String() }}">
+                                    {{ $avaliacao->created_at?->format('d/m/Y') }}
+                                </time>
+                            </div>
+                            <div class="review-stars" role="img" aria-label="Nota {{ $avaliacao->nota }} de 5">
+                                @for ($estrela = 1; $estrela <= 5; $estrela++)
+                                    {{ $estrela <= (int) $avaliacao->nota ? '★' : '☆' }}
+                                @endfor
+                            </div>
+                        </div>
+                        <p class="review-comment">{{ $avaliacao->comentario }}</p>
+                    </article>
+                @endforeach
+            </div>
+        @else
+            <div class="reviews-empty">
+                <i class="fa-regular fa-comment-dots" aria-hidden="true"></i>
+                <span>Ainda não há comentários publicados. Seja o primeiro a compartilhar sua experiência!</span>
+            </div>
+        @endif
+    </section>
 
     <!-- VLIBRAS -->
     <div vw class="enabled">

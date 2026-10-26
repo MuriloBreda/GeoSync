@@ -2,6 +2,7 @@
 <html lang="pt-br">
 
 <head>
+        <link rel="icon" type="image/png" href="{{ asset('img/favicon.png') }}">
     <meta charset="utf-8">
     <title>GeoSync - Contato</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -744,6 +745,8 @@ FOOTER
 
         }
     </style>
+    <link rel="stylesheet" href="{{ asset('css/dark-mode.css') }}">
+    <script src="{{ asset('js/theme.js') }}" defer></script>
 </head>
 
 <body>
