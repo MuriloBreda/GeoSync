@@ -1768,9 +1768,9 @@
 
             <p>
 
-                Escolha a solução ideal para monitorar sua operação,
-                rastrear veículos em tempo real e otimizar seus
-                processos logísticos.
+                Compre o GPS GeoSync e acompanhe a localização da encomenda
+                pelo nosso dashboard. O transporte é realizado pela empresa
+                transportadora contratada.
 
             </p>
 
@@ -1840,8 +1840,8 @@
 
                     <p class="descricao">
 
-                        Ideal para pequenas empresas
-                        e profissionais autônomos.
+                        Para empresas que precisam comprar o GPS e acompanhar
+                        suas encomendas pelo dashboard GeoSync.
 
                     </p>
 
@@ -1919,8 +1919,8 @@
 
                     <p class="descricao">
 
-                        Controle completo para empresas
-                        em crescimento.
+                        Mais recursos de GPS e acompanhamento para empresas
+                        com maior volume de encomendas.
 
                     </p>
 

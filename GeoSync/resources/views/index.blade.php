@@ -1758,13 +1758,26 @@
         #loader {
             position: fixed;
             inset: 0;
-            background: radial-gradient(circle at center, #0a1120 0%, #020617 100%);
+            background: radial-gradient(ellipse at 50% 42%, #10264a 0%, #091426 42%, #030711 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 999999;
-            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 1;
+            visibility: visible;
+            transition: opacity .55s cubic-bezier(.22, 1, .36, 1), visibility .55s;
             overflow: hidden;
+        }
+
+        #loader::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: .2;
+            background-image: linear-gradient(rgba(148, 163, 184, .08) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, .08) 1px, transparent 1px);
+            background-size: 48px 48px;
+            mask-image: radial-gradient(ellipse at center, #000 0%, transparent 76%);
         }
 
         .loader-content {
@@ -1772,66 +1785,91 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            max-width: 300px;
-            width: 100%;
+            width: min(360px, calc(100% - 40px));
+            padding: 28px 20px;
+            animation: loaderEnter .8s cubic-bezier(.22, 1, .36, 1) both;
         }
 
         .glow-effect {
             position: absolute;
-            width: 180px;
-            height: 180px;
-            background: radial-gradient(circle, rgba(37, 99, 235, 0.35) 0%, rgba(37, 99, 235, 0) 70%);
+            width: 240px;
+            height: 240px;
+            background: radial-gradient(circle, rgba(37, 99, 235, .28) 0%, rgba(37, 99, 235, 0) 70%);
             border-radius: 50%;
-            top: -20px;
-            animation: ambientPulse 3s ease-in-out infinite alternate;
+            top: -48px;
+            animation: ambientPulse 4s ease-in-out infinite alternate;
             pointer-events: none;
         }
 
         .loader-icon-wrapper {
             position: relative;
-            width: 110px;
-            height: 110px;
+            width: 92px;
+            height: 92px;
             display: flex;
             justify-content: center;
             align-items: center;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(148, 163, 184, .18);
             backdrop-filter: blur(8px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(37, 99, 235, 0.2);
-            margin-bottom: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .36), inset 0 0 22px rgba(37, 99, 235, .18);
+            margin-bottom: 28px;
+            animation: logoPulse 2.4s ease-in-out infinite;
         }
 
         .radar-sweep {
             position: absolute;
-            inset: -2px;
+            inset: -7px;
             border-radius: 50%;
             border: 2px solid transparent;
-            border-top-color: #2563eb;
-            border-right-color: rgba(37, 99, 235, 0.3);
-            animation: radarSpin 1.2s linear infinite;
+            border-top-color: #7dd3fc;
+            border-right-color: rgba(59, 130, 246, .35);
+            animation: radarSpin 2.8s linear infinite;
+        }
+
+        .loader-icon-wrapper::before {
+            content: "";
+            position: absolute;
+            inset: -14px;
+            border: 1px solid rgba(96, 165, 250, .18);
+            border-left-color: rgba(96, 165, 250, .65);
+            border-radius: 50%;
+            animation: radarSpin 5s linear infinite reverse;
+        }
+
+        .loader-icon-wrapper::after {
+            content: "";
+            position: absolute;
+            top: -17px;
+            left: calc(50% - 3px);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #dbeafe;
+            box-shadow: 0 0 12px 2px rgba(96, 165, 250, .8);
+            transform-origin: 3px 63px;
+            animation: orbitDot 3.5s linear infinite;
         }
 
         .loader-img {
-            width: 54px;
+            width: 48px;
             height: auto;
             z-index: 2;
-            filter: drop-shadow(0 0 12px rgba(37, 99, 235, 0.6));
-            animation: logoBounce 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 14px rgba(59, 130, 246, .5));
         }
 
         .loader-text h2 {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 26px;
+            font-size: 27px;
             font-weight: 800;
             color: #ffffff;
-            letter-spacing: -0.5px;
-            margin: 0 0 6px 0;
+            letter-spacing: -.045em;
+            margin: 0 0 8px;
             text-align: center;
         }
 
         .loader-text h2 span {
-            color: #3b82f6;
+            color: #7dd3fc;
             background: linear-gradient(90deg, #60a5fa, #2563eb);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -1841,28 +1879,28 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            margin-bottom: 20px;
+            gap: 9px;
+            margin-bottom: 28px;
         }
 
         .status-container p {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 13px;
-            color: #94a3b8;
+            font-size: 12px;
+            color: #a8b8ce;
             font-weight: 500;
             margin: 0;
-            letter-spacing: 0.2px;
+            letter-spacing: .015em;
         }
 
         .status-dots {
             display: inline-flex;
-            gap: 4px;
+            gap: 3px;
         }
 
         .dot {
             width: 4px;
             height: 4px;
-            background-color: #3b82f6;
+            background-color: #7dd3fc;
             border-radius: 50%;
             animation: dotPulse 1.4s infinite ease-in-out both;
         }
@@ -1872,20 +1910,50 @@
 
         .progress-bar-container {
             width: 100%;
-            height: 3px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
+            height: 5px;
+            background: rgba(148, 163, 184, .16);
+            border-radius: 999px;
             overflow: hidden;
             position: relative;
+            box-shadow: 0 0 22px rgba(37, 99, 235, .15);
         }
 
         .progress-bar {
-            position: absolute;
+            position: relative;
             height: 100%;
-            width: 40%;
-            background: linear-gradient(90deg, transparent, #2563eb, #60a5fa, transparent);
-            border-radius: 10px;
-            animation: progressSlide 1.5s infinite ease-in-out;
+            width: 0%;
+            background: linear-gradient(90deg, #2563eb, #60a5fa, #a5f3fc);
+            border-radius: inherit;
+            box-shadow: 0 0 14px rgba(96, 165, 250, .65);
+            transition: width .12s linear;
+        }
+
+        .progress-bar::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .7), transparent);
+            transform: translateX(-100%);
+            animation: progressShine 1.6s ease-in-out infinite;
+        }
+
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-top: 11px;
+            color: #8293aa;
+            font-size: 10px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+
+        .progress-value {
+            color: #dbeafe;
+            font-size: 12px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
         }
 
         .loader-exit {
@@ -1893,14 +1961,35 @@
             visibility: hidden !important;
         }
 
+        @media (prefers-reduced-motion: reduce) {
+            #loader, #loader *, #loader *::before, #loader *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        @keyframes loaderEnter {
+            from { opacity: 0; transform: translateY(14px) scale(.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
         @keyframes radarSpin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
 
-        @keyframes logoBounce {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.06); }
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 20px 50px rgba(0, 0, 0, .36), inset 0 0 22px rgba(37, 99, 235, .18), 0 0 12px rgba(37, 99, 235, .12); }
+            50% { transform: scale(1.035); box-shadow: 0 22px 54px rgba(0, 0, 0, .4), inset 0 0 26px rgba(37, 99, 235, .3), 0 0 26px rgba(37, 99, 235, .3); }
+        }
+
+        @keyframes orbitDot {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes progressShine {
+            to { transform: translateX(100%); }
         }
 
         @keyframes ambientPulse {
@@ -1911,11 +2000,6 @@
         @keyframes dotPulse {
             0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
             40% { transform: scale(1); opacity: 1; }
-        }
-
-        @keyframes progressSlide {
-            0% { left: -40%; }
-            100% { left: 100%; }
         }
 
     </style>
@@ -1954,11 +2038,15 @@
                         <span class="dot"></span>
                         <span class="dot"></span>
                     </span>
-                    <p>Sincronizando telemetria em tempo real</p>
+                    <p>Preparando sua experiência</p>
                 </div>
             </div>
-            <div class="progress-bar-container">
-                <div class="progress-bar"></div>
+            <div class="progress-bar-container" id="loader-progress" role="progressbar" aria-label="Carregamento da página" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="progress-bar" id="loader-progress-bar"></div>
+            </div>
+            <div class="progress-meta">
+                <span>Carregando sistema</span>
+                <span class="progress-value" id="loader-progress-value">0%</span>
             </div>
         </div>
     </div>
@@ -2114,11 +2202,10 @@
 
     <section class="hero hero--video">
         <div class="hero-video-background" aria-hidden="true">
-            <video id="hero-background-video" class="hero-background-video" muted loop playsinline preload="none"
+            <video id="hero-background-video" class="hero-background-video" autoplay muted loop playsinline preload="auto"
                 poster="{{ asset('img/logistica-hero.jpg') }}" data-src="{{ asset('videos/video.mp4') }}" tabindex="-1" disablepictureinpicture>
             </video>
         </div>
-        <button type="button" class="hero-video-toggle" aria-controls="hero-background-video" hidden>Reproduzir vídeo de fundo</button>
 
         <!-- NOVO: camadas de profundidade do hero -->
         <div class="hero-grid-bg" data-depth="0.15"></div>
@@ -3511,23 +3598,49 @@
 
         /* LOADER */
 
-        window.addEventListener('load', function () {
+        (() => {
+            const loader = document.getElementById('loader');
+            const bar = document.getElementById('loader-progress-bar');
+            const value = document.getElementById('loader-progress-value');
+            const track = document.getElementById('loader-progress');
+            if (!loader || !bar || !value || !track) return;
 
-            setTimeout(() => {
+            const minimumDuration = 2000;
+            const startedAt = performance.now();
+            let pageLoaded = document.readyState === 'complete';
+            let progress = 0;
+            let dismissed = false;
 
-                const loader = document.getElementById('loader');
+            const timer = window.setInterval(() => {
+                const elapsed = Math.min(1, (performance.now() - startedAt) / minimumDuration);
+                progress = Math.min(95, Math.round(elapsed * 95));
+                updateProgress();
 
-                if (!loader) return;
+                if (pageLoaded && elapsed === 1) finishLoading();
+            }, 50);
 
-                loader.classList.add('loader-exit');
+            function updateProgress() {
+                bar.style.width = `${progress}%`;
+                value.textContent = `${progress}%`;
+                track.setAttribute('aria-valuenow', String(progress));
+            }
 
-                setTimeout(() => {
-                    loader.remove();
-                }, 600);
+            function finishLoading() {
+                if (!pageLoaded || dismissed) return;
+                dismissed = true;
+                window.clearInterval(timer);
+                progress = 100;
+                updateProgress();
+                window.setTimeout(() => {
+                    loader.classList.add('loader-exit');
+                    window.setTimeout(() => loader.remove(), 550);
+                }, 180);
+            }
 
-            }, 800);
-
-        });
+            window.addEventListener('load', () => {
+                pageLoaded = true;
+            }, { once: true });
+        })();
 
 
         /* ACESSIBILIDADE */

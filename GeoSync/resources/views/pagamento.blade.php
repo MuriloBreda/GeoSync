@@ -488,6 +488,25 @@
             color: var(--texto-principal);
         }
 
+        .field-box > input {
+            width: 100%;
+            height: 52px;
+            padding: 0 16px;
+            border: 1px solid var(--borda-suave);
+            border-radius: 12px;
+            background: #f8fafc;
+            color: var(--texto-principal);
+            font: inherit;
+            font-size: 14px;
+        }
+
+        .field-box > input:focus {
+            outline: none;
+            border-color: var(--azul-tech);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, .12);
+        }
+
         .email-field { margin-bottom: 28px; }
 
         .email-input-wrap { position: relative; }
@@ -973,7 +992,7 @@
     <div class="topbar">
         <div class="container flex">
             <div class="top-info">
-                <a href="https://wa.me/551994010744?text=Olá!%20Seja%20Bem-vindo(a)%20à%20GeoSync!%20Como%20posso%20ajudar?" target="_blank">
+                <a href="https://wa.me/5519994010744?text=Olá!%20Seja%20Bem-vindo(a)%20à%20GeoSync!%20Como%20posso%20ajudar?" target="_blank">
                     <i class="fas fa-phone-alt"></i> +55 (19) 99401-0744
                 </a>
                 <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contatogeosync@gmail.com" target="_blank">
@@ -1012,7 +1031,7 @@
             <div class="hero-content">
                 <span class="hero-tag"><i class="fa-solid fa-shield-halved"></i> Ambiente 100% Seguro</span>
                 <h1>Checkout <span>Premium</span></h1>
-                <p>Escolha o plano ideal para a sua frota e libere o monitoramento em tempo real instantaneamente.</p>
+                <p>Compre o GPS GeoSync e acompanhe a localização da encomenda pelo nosso dashboard. O transporte é feito pela empresa transportadora.</p>
             </div>
         </div>
     </section>
@@ -1027,6 +1046,12 @@
                     <i class="fa-solid fa-arrow-left"></i> Alterar Plano
                 </a>
 
+                @if (session('success'))
+                    <div role="status" style="margin:16px 0;padding:14px;border-radius:12px;background:#ecfdf5;color:#065f46;">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
                 <form id="mainForm" action="{{ route('pagamento.store') }}" method="POST">
                     @csrf
                     <input type="hidden" name="valor" id="db_valor" value="149.99">
@@ -1034,17 +1059,31 @@
                     <input type="hidden" name="metodo" id="db_metodo" value="credito">
 
                     <div class="section-title">
-                        <i class="fa-solid fa-envelope"></i> E-mail da conta
+                        <i class="fa-solid fa-envelope"></i> Contato da empresa
                     </div>
                     <div class="field-box email-field">
-                        <label for="emailPagamento">Informe um e-mail válido. Você usará este mesmo e-mail para criar sua conta.</label>
+                        <label for="emailPagamento">E-mail para contato sobre a compra e o acompanhamento do GPS.</label>
                         <div class="email-input-wrap">
                             <i class="fa-regular fa-envelope"></i>
                             <input type="email" id="emailPagamento" name="email" value="{{ old('email') }}"
                                 placeholder="voce@exemplo.com" autocomplete="email" required>
                         </div>
-                        <small class="email-hint">O cadastro será liberado para este endereço após a confirmação.</small>
+                        <small class="email-hint">Usaremos este endereço para enviar informações sobre o pedido.</small>
                         @error('email')<small style="color:#dc2626;">{{ $message }}</small>@enderror
+                    </div>
+
+                    <div class="field-box">
+                        <label for="telefonePagamento">Telefone</label>
+                        <input type="tel" id="telefonePagamento" name="telefone" value="{{ old('telefone') }}"
+                            placeholder="(00) 00000-0000" autocomplete="tel" maxlength="15" inputmode="numeric" required>
+                        @error('telefone')<small style="color:#dc2626;">{{ $message }}</small>@enderror
+                    </div>
+
+                    <div class="field-box">
+                        <label for="cnpjPagamento">CNPJ <span>(opcional)</span></label>
+                        <input type="text" id="cnpjPagamento" name="cnpj" value="{{ old('cnpj') }}"
+                            placeholder="00.000.000/0000-00" autocomplete="off" maxlength="18" inputmode="numeric">
+                        @error('cnpj')<small style="color:#dc2626;">{{ $message }}</small>@enderror
                     </div>
 
                     <div id="conteudo">
@@ -1132,9 +1171,9 @@
                         <i class="fa-regular fa-copy"></i> Copiar Chave PIX
                     </button>
                     
-                    <button class="btn-submit" style="background: var(--azul-institucional); margin-top: 10px;" onclick="finalizarNoBanco()">
+                    <a class="btn-submit" style="background: var(--azul-institucional); margin-top: 10px; text-align:center; text-decoration:none;" href="https://wa.me/5519994010744" target="_blank" rel="noopener noreferrer" onclick="return confirmarPorWhatsApp(event, 'pix')">
                         Confirmar Pagamento Realizado
-                    </button>
+                    </a>
                 </div>
 
                 <!-- DADOS BOLETO -->
@@ -1150,9 +1189,9 @@
                         <i class="fa-regular fa-copy"></i> Copiar Linha Digitável
                     </button>
 
-                    <button class="btn-submit" style="background: var(--azul-institucional); margin-top: 10px;" onclick="finalizarNoBanco()">
+                    <a class="btn-submit" style="background: var(--azul-institucional); margin-top: 10px; text-align:center; text-decoration:none;" href="https://wa.me/5519994010744" target="_blank" rel="noopener noreferrer" onclick="return confirmarPorWhatsApp(event, 'boleto')">
                         Confirmar Pagamento
-                    </button>
+                    </a>
                 </div>
             </div>
 
@@ -1266,6 +1305,24 @@
 
         document.addEventListener("DOMContentLoaded", function () {
             // MÁSCARAS
+            const telefone = document.getElementById('telefonePagamento');
+            const formatarTelefone = (valor) => {
+                const digitos = valor.replace(/\D/g, '').slice(0, 11);
+                if (digitos.length <= 2) return digitos ? `(${digitos}` : '';
+
+                const ddd = digitos.slice(0, 2);
+                const numero = digitos.slice(2);
+                const tamanhoPrefixo = numero.startsWith('9') ? 5 : 4;
+
+                if (numero.length <= tamanhoPrefixo) return `(${ddd}) ${numero}`;
+                return `(${ddd}) ${numero.slice(0, tamanhoPrefixo)}-${numero.slice(tamanhoPrefixo)}`;
+            };
+
+            telefone.addEventListener('input', () => {
+                telefone.value = formatarTelefone(telefone.value);
+            });
+            telefone.value = formatarTelefone(telefone.value);
+
             IMask(document.getElementById('numeroCartao'), { mask: '0000 0000 0000 0000' });
             IMask(document.getElementById('nomeCartao'), { mask: /^[a-zA-Z\s]*$/ });
             IMask(document.getElementById('validadeCartao'), {
@@ -1275,7 +1332,7 @@
                     YY: { mask: IMask.MaskedRange, from: 0, to: 99 }
                 }
             });
-            IMask(document.getElementById('cvvCartao'), { mask: '0000' });
+            IMask(document.getElementById('cvvCartao'), { mask: '000' });
 
             // URL PARAMS PARA SELEÇÃO AUTOMÁTICA
             const urlParams = new URLSearchParams(window.location.search);
@@ -1354,7 +1411,7 @@
                     });
                     return;
                 }
-                finalizarNoBanco();
+                abrirWhatsAppDireto('credito');
                 return;
             }
 
@@ -1390,26 +1447,79 @@
             });
         }
 
-        function finalizarNoBanco() {
-            const emailInput = document.getElementById('emailPagamento');
-            if (!emailInput.checkValidity()) {
-                emailInput.reportValidity();
+        function confirmarPorWhatsApp(event, metodo) {
+            const form = document.getElementById('mainForm');
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                form.reportValidity();
+                return false;
+            }
+
+            event.preventDefault();
+            iniciarPagamentoNoWhatsApp(metodo);
+            return false;
+        }
+
+        function iniciarPagamentoNoWhatsApp(metodo) {
+            const form = document.getElementById('mainForm');
+            const whatsappWindow = window.open('about:blank', '_blank');
+            if (!whatsappWindow) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Não foi possível abrir uma nova guia',
+                    text: 'Permita pop-ups para este site e tente novamente.'
+                });
                 return;
             }
 
-            Swal.fire({
-                icon: 'success',
-                title: 'Pagamento Concluído!',
-                text: 'Ao confirmar, você poderá criar uma conta usando ' + emailInput.value + '.',
-                confirmButtonColor: '#2563eb',
-                confirmButtonText: 'Confirmar e continuar',
-                showCancelButton: true,
-                cancelButtonText: 'Voltar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById('mainForm').requestSubmit();
+            registrarPagamento(metodo, whatsappWindow);
+        }
+
+        function registrarPagamento(metodo, whatsappWindow) {
+            const form = document.getElementById('mainForm');
+            document.getElementById('db_metodo').value = metodo;
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
+            }).then(async (resposta) => {
+                const dados = await resposta.json();
+                if (!resposta.ok || !dados.whatsapp_url) {
+                    throw new Error(dados.message || 'Não foi possível salvar o pedido.');
+                }
+                whatsappWindow.location.replace(dados.whatsapp_url);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Pagamento concluído!',
+                    text: 'Seu pedido foi registrado e o WhatsApp foi aberto com a mensagem pronta.',
+                    confirmButtonText: 'Continuar',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                }).then(() => {
+                    window.location.assign(@json(url('/')));
+                });
+            }).catch((erro) => {
+                whatsappWindow.close();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Não foi possível confirmar o pagamento',
+                    text: erro.message || 'Tente novamente.'
+                });
             });
+        }
+
+        function abrirWhatsAppDireto(metodo) {
+            const form = document.getElementById('mainForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            iniciarPagamentoNoWhatsApp(metodo);
         }
 
         /* ACESSIBILIDADE */

@@ -2,7 +2,7 @@
     'use strict';
     const boot = () => {
         const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-        const desktopStory = matchMedia('(min-width: 900px) and (min-height: 700px)');
+        // const desktopStory = matchMedia('(min-width: 900px) and (min-height: 700px)');
         const body = document.body;
         const navbar = document.querySelector('.navbar');
         const floatingTools = document.querySelector('.ferramentas-flutuantes-container');
