@@ -577,6 +577,18 @@ class _RemessasPageState extends State<RemessasPage> {
           const SizedBox(height: 16),
 
           _buildResumoRapido(),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const QrRemessaPage())),
+              icon: const Icon(LucideIcons.qrCode),
+              label: const Text('Escanear QR ou abrir código da remessa'),
+            ),
+          ),
         ],
       ),
     );
@@ -1251,7 +1263,9 @@ class _ComprovanteEntregaDialogState extends State<_ComprovanteEntregaDialog> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Não foi possível capturar a foto do comprovante.'),
+          content: Text(
+            'Não foi possível abrir a câmera. Confira a permissão do app; a foto é opcional e você pode tentar novamente.',
+          ),
         ),
       );
     } finally {
@@ -1304,7 +1318,7 @@ class _ComprovanteEntregaDialogState extends State<_ComprovanteEntregaDialog> {
               TextField(
                 controller: _destinatarioController,
                 decoration: const InputDecoration(
-                  labelText: 'Nome do destinatário',
+                  labelText: 'Nome do destinatário (obrigatório)',
                   hintText: 'Ex.: Maria da Silva',
                 ),
               ),
@@ -1331,7 +1345,13 @@ class _ComprovanteEntregaDialogState extends State<_ComprovanteEntregaDialog> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(LucideIcons.camera),
-                      label: Text(_carregandoFoto ? 'Capturando...' : 'Foto'),
+                      label: Text(
+                        _carregandoFoto
+                            ? 'Capturando...'
+                            : _fotoBase64 == null
+                            ? 'Foto (opcional)'
+                            : 'Refazer foto',
+                      ),
                     ),
                   ),
                 ],
@@ -1372,7 +1392,12 @@ class _ComprovanteEntregaDialogState extends State<_ComprovanteEntregaDialog> {
               ],
               const SizedBox(height: 12),
               const Text(
-                'Assinatura do destinatário',
+                'Campos obrigatórios: nome do destinatário, assinatura e localização IoT. A foto é opcional.',
+                style: TextStyle(fontSize: 12, height: 1.35),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Assinatura do destinatário (obrigatória)',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
@@ -1383,7 +1408,7 @@ class _ComprovanteEntregaDialogState extends State<_ComprovanteEntregaDialog> {
                 child: TextButton.icon(
                   onPressed: () => _signatureController.clear(),
                   icon: const Icon(LucideIcons.trash2),
-                  label: const Text('Limpar'),
+                  label: const Text('Limpar assinatura'),
                 ),
               ),
             ],
@@ -1896,43 +1921,72 @@ class _SincronizacaoDaEntregaState extends State<_SincronizacaoDaEntrega> {
     _atualizar();
   }
 
+  Future<void> _tentarAcaoNovamente(String id) async {
+    try {
+      await SyncEngine.instance.tentarAcaoNovamente(id);
+    } catch (_) {
+      // O estado de erro permanece visível no cartão da remessa.
+    }
+    _atualizar();
+  }
+
+  String _rotuloAcao(PendingAction acao) {
+    switch (acao.tipo) {
+      case 'comprovante_entrega':
+        return 'Comprovante de entrega';
+      case 'ocorrencia':
+        return 'Ocorrência';
+      case 'status':
+        return 'Status: ${acao.corpo?['status'] ?? 'atualizado'}';
+      case 'aceitar':
+        return 'Aceite da entrega';
+      default:
+        return 'Atualização da entrega';
+    }
+  }
+
   @override
   Widget build(BuildContext context) => FutureBuilder<List<PendingAction>>(
     future: _acoes,
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return const LinearProgressIndicator();
+        return const LinearProgressIndicator(minHeight: 3);
       }
       final id = widget.remessaId.toString();
-      final acao = snapshot.data
-          ?.where(
+      final acoes = (snapshot.data ?? const <PendingAction>[])
+          .where(
             (item) => item.remessaId == id || item.caminho.contains('/$id/'),
           )
-          .firstOrNull;
+          .toList();
       final sync = SyncEngine.instance.estado.value;
-      final pendente = acao != null;
-      final precisaIntervencao = acao?.requerIntervencao ?? false;
-      final cor = precisaIntervencao
-          ? const Color(0xFFB42318)
-          : pendente
-          ? const Color(0xFFB7791F)
+      final erro =
+          sync.erro != null ||
+          acoes.any(
+            (acao) => acao.requerIntervencao || acao.ultimoErro != null,
+          );
+      final pendente = acoes.isNotEmpty;
+      final cor = erro
+          ? Theme.of(context).colorScheme.error
+          : sync.sincronizando || pendente
+          ? const Color(0xFF9A6700)
           : const Color(0xFF15803D);
-      final titulo = precisaIntervencao
-          ? 'Alteração precisa de atenção'
+      final titulo = sync.sincronizando
+          ? 'Sincronizando entrega'
+          : erro
+          ? 'Falha na sincronização'
           : pendente
-          ? 'Alteração pendente de sincronização'
-          : 'Sem alterações pendentes';
-      final descricao = precisaIntervencao
-          ? (acao?.ultimoErro ?? 'Revise o conflito antes de sincronizar.')
+          ? 'Aguardando sincronização'
+          : 'Entrega sincronizada';
+      final descricao = sync.sincronizando
+          ? 'Enviando atualizações desta remessa.'
+          : erro
+          ? sync.erro ??
+                'Uma ação precisa de atenção. Tente novamente ou revise o erro.'
           : pendente
-          ? acao.tentativas == 0
-                ? 'Salva neste aparelho • aguardando conexão para o primeiro envio.'
-                : 'Salva neste aparelho • ${acao.tentativas} tentativa(s) • será reenviada quando houver conexão.'
-          : sync.erro != null
-          ? 'Esta remessa não tem ações pendentes na fila. Última sincronização: ${sync.erro}'
+          ? '${acoes.length} ação(ões) salva(s) neste aparelho; serão enviadas quando houver conexão.'
           : sync.ultimaSincronizacao != null
-          ? 'Sincronizada em ${sync.ultimaSincronizacao!.toLocal().toString().substring(0, 16)}.'
-          : 'Nenhuma alteração desta remessa está aguardando envio.';
+          ? 'Última sincronização: ${sync.ultimaSincronizacao!.toLocal().toString().substring(0, 16)}.'
+          : 'Não há ações pendentes para esta remessa.';
       return Container(
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
@@ -1940,49 +1994,146 @@ class _SincronizacaoDaEntregaState extends State<_SincronizacaoDaEntrega> {
           borderRadius: BorderRadius.circular(15),
           border: Border.all(color: cor.withValues(alpha: .25)),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              precisaIntervencao
-                  ? LucideIcons.triangleAlert
-                  : pendente
-                  ? LucideIcons.cloudOff
-                  : LucideIcons.cloudCheck,
-              color: cor,
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    titulo,
-                    style: TextStyle(
-                      color: cor,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 12,
+            Row(
+              children: [
+                Icon(
+                  erro
+                      ? LucideIcons.triangleAlert
+                      : sync.sincronizando
+                      ? LucideIcons.refreshCw
+                      : pendente
+                      ? LucideIcons.cloudOff
+                      : LucideIcons.cloudCheck,
+                  color: cor,
+                  size: 20,
+                  semanticLabel: titulo,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        titulo,
+                        style: TextStyle(
+                          color: cor,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        descricao,
+                        style: const TextStyle(fontSize: 11, height: 1.3),
+                      ),
+                    ],
+                  ),
+                ),
+                if ((erro || pendente) && !sync.sincronizando && acoes.isEmpty)
+                  IconButton(
+                    tooltip: 'Tentar sincronizar esta entrega novamente',
+                    onPressed: _tentarNovamente,
+                    constraints: const BoxConstraints.tightFor(
+                      width: 48,
+                      height: 48,
+                    ),
+                    icon: Icon(LucideIcons.refreshCw, color: cor, size: 18),
+                  ),
+                if (sync.sincronizando)
+                  const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    descricao,
-                    style: const TextStyle(fontSize: 11, height: 1.3),
-                  ),
-                ],
-              ),
+              ],
             ),
-            if (pendente)
-              IconButton(
-                tooltip: 'Tentar sincronizar agora',
-                onPressed: sync.sincronizando ? null : _tentarNovamente,
-                icon: sync.sincronizando
-                    ? const SizedBox.square(
-                        dimension: 17,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(LucideIcons.refreshCw, color: cor, size: 18),
-              ),
+            if (acoes.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              for (final acao in acoes)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Row(
+                    children: [
+                      Icon(
+                        acao.requerIntervencao || acao.ultimoErro != null
+                            ? LucideIcons.circleAlert
+                            : sync.sincronizando
+                            ? LucideIcons.refreshCw
+                            : LucideIcons.clock3,
+                        size: 16,
+                        color: acao.requerIntervencao || acao.ultimoErro != null
+                            ? Theme.of(context).colorScheme.error
+                            : cor,
+                        semanticLabel:
+                            acao.requerIntervencao || acao.ultimoErro != null
+                            ? 'Erro de sincronização'
+                            : sync.sincronizando
+                            ? 'Sincronizando'
+                            : 'Pendente',
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _rotuloAcao(acao),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              acao.requerIntervencao
+                                  ? 'Precisa de revisão: ${acao.ultimoErro ?? 'verifique os dados'}'
+                                  : acao.ultimoErro != null
+                                  ? 'Erro: ${acao.ultimoErro}'
+                                  : sync.sincronizando
+                                  ? 'Enviando agora'
+                                  : acao.tentativas > 0
+                                  ? 'Pendente • ${acao.tentativas} tentativa(s)'
+                                  : 'Pendente de envio',
+                              style: TextStyle(
+                                color:
+                                    acao.requerIntervencao ||
+                                        acao.ultimoErro != null
+                                    ? Theme.of(context).colorScheme.error
+                                    : Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Tentar novamente: ${_rotuloAcao(acao)}',
+                        onPressed: sync.sincronizando
+                            ? null
+                            : () => _tentarAcaoNovamente(acao.id),
+                        constraints: const BoxConstraints.tightFor(
+                          width: 48,
+                          height: 48,
+                        ),
+                        icon: sync.sincronizando
+                            ? const SizedBox.square(
+                                dimension: 17,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Icon(LucideIcons.refreshCw, color: cor, size: 18),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ],
         ),
       );
@@ -1993,6 +2144,90 @@ class _SincronizacaoDaEntregaState extends State<_SincronizacaoDaEntrega> {
 class _DetalhesRemessaState extends State<DetalhesRemessa> {
   Remessa get remessa => widget.remessa;
   bool _atualizandoStatus = false;
+
+  Widget _buildAcoesRapidas() {
+    final status = _normalizarStatusMotorista(remessa.status);
+    final aguardando = {
+      'aguardando coleta',
+      'aguardando retirada',
+      'pending',
+      'pending pickup',
+      'assigned',
+    }.contains(status);
+    final emTransito = _statusTransitoMotorista(status);
+    final podeAtualizar = remessa.disponivel || aguardando || emTransito;
+    final rotuloPrincipal = remessa.disponivel
+        ? 'Aceitar entrega'
+        : emTransito
+        ? 'Concluir entrega'
+        : 'Iniciar entrega';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'A??es r?pidas',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(minimumSize: const Size(0, 52)),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => MapaMotoristaPage(
+                      remessaInicial: '${remessa.id ?? remessa.codigo}',
+                    ),
+                  ),
+                ),
+                icon: const Icon(LucideIcons.navigation),
+                label: const Text('Abrir rota'),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(minimumSize: const Size(0, 52)),
+                onPressed: _registrarOcorrencia,
+                icon: const Icon(LucideIcons.octagonAlert),
+                label: const Text('Ocorr?ncia'),
+              ),
+            ),
+          ],
+        ),
+        if (podeAtualizar) ...[
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: FilledButton.icon(
+              onPressed: _atualizandoStatus
+                  ? null
+                  : remessa.disponivel
+                  ? _aceitarEntrega
+                  : _avancarStatus,
+              icon: _atualizandoStatus
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(
+                      remessa.disponivel
+                          ? LucideIcons.circleCheckBig
+                          : emTransito
+                          ? LucideIcons.packageCheck
+                          : LucideIcons.play,
+                    ),
+              label: Text(
+                _atualizandoStatus ? 'Atualizando entrega...' : rotuloPrincipal,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
 
   Future<void> _ligarSuporte() async {
     showModalBottomSheet<void>(
@@ -2089,7 +2324,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'O módulo IoT ainda não enviou uma localização válida para esta remessa.',
+            'O módulo IoT ainda não enviou uma localização válida. Confira se ele está ligado, aguarde uma nova posição e tente novamente.',
           ),
         ),
       );
@@ -2501,6 +2736,8 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
               const SizedBox(height: 25),
 
               _SincronizacaoDaEntrega(remessaId: remessa.id ?? remessa.codigo),
+              const SizedBox(height: 16),
+              _buildAcoesRapidas(),
 
               if (remessa.comprovanteEnviado != null) ...[
                 const SizedBox(height: 8),
@@ -2535,26 +2772,14 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
 
               const SizedBox(height: 22),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _ligarSuporte,
-                      icon: const Icon(LucideIcons.headset),
-                      label: const Text('Suporte'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _registrarOcorrencia,
-                      icon: const Icon(LucideIcons.octagonAlert),
-                      label: const Text('Ocorrência'),
-                    ),
-                  ),
-                ],
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _ligarSuporte,
+                  icon: const Icon(LucideIcons.headset),
+                  label: const Text('Falar com o suporte'),
+                ),
               ),
-
               const SizedBox(height: 22),
 
               _historicoEntrega(),
@@ -2644,62 +2869,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
 
               const SizedBox(height: 18),
 
-              if (remessa.disponivel) ...[
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: FilledButton.icon(
-                    onPressed: _atualizandoStatus ? null : _aceitarEntrega,
-                    icon: _atualizandoStatus
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(LucideIcons.circleCheckBig),
-                    label: const Text('Aceitar entrega'),
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ] else if ({
-                'aguardando coleta',
-                'aguardando retirada',
-                'pending',
-                'pending pickup',
-                'assigned',
-                'em rota',
-                'em transito',
-                'em deslocamento',
-                'saiu para entrega',
-                'in transit',
-                'in progress',
-                'out for delivery',
-              }.contains(_normalizarStatusMotorista(remessa.status))) ...[
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: FilledButton.icon(
-                    onPressed: _atualizandoStatus ? null : _avancarStatus,
-                    icon: _atualizandoStatus
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Icon(
-                            _statusTransitoMotorista(remessa.status)
-                                ? LucideIcons.circleCheckBig
-                                : LucideIcons.play,
-                          ),
-                    label: Text(
-                      _statusTransitoMotorista(remessa.status)
-                          ? 'Marcar como entregue'
-                          : 'Iniciar entrega',
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
+              const SizedBox(height: 8),
 
               SizedBox(
                 width: double.infinity,
@@ -2720,36 +2890,6 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
                 ),
               ),
               const SizedBox(height: 12),
-
-              // BOTÃO MAPA
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const MapaMotoristaPage(),
-                      ),
-                    );
-                  },
-                  icon: const Icon(LucideIcons.map, size: 20),
-                  label: const Text(
-                    "Acompanhar no mapa",
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0B2A4A),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ),

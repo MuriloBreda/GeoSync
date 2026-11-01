@@ -282,8 +282,13 @@ class SyncEngine {
         await _api.requisicao(acao.metodo, acao.caminho, body: acao.corpo);
         removidas.add(acao.id);
         enviadas++;
-      } on ApiConnectionException {
-        break; // Sem conexão: mantém o restante na fila, na mesma ordem.
+      } on ApiConnectionException catch (error) {
+        atualizadas[acao.id] = acao.comNovaTentativa(
+          agora: agora,
+          erro: error.message,
+        );
+        estado.value = estado.value.copyWith(erro: error.message);
+        break; // Mantém as próximas ações na fila e preserva a ordem.
       } on ApiException catch (error) {
         final codigo = error.statusCode;
         if (codigo == 401) break;

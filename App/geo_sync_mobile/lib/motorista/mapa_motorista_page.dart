@@ -48,11 +48,22 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
           .where((r) => r.ativa)
           .toList();
       if (!mounted) return;
-      final codigoSelecionado = remessas.any((r) => r.codigo == _selecionada)
-          ? _selecionada
-          : remessas.isEmpty
-          ? ''
-          : remessas.first.codigo;
+      final solicitada = remessas
+          .where(
+            (r) =>
+                r.codigo == widget.remessaInicial ||
+                r.id?.toString() == widget.remessaInicial,
+          )
+          .firstOrNull;
+      final atual = remessas
+          .where(
+            (r) => r.codigo == _selecionada || r.id?.toString() == _selecionada,
+          )
+          .firstOrNull;
+      final codigoSelecionado =
+          solicitada?.codigo ??
+          atual?.codigo ??
+          (remessas.isEmpty ? '' : remessas.first.codigo);
       setState(() {
         _remessas = remessas;
         _carregandoRemessas = false;
@@ -140,6 +151,114 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
       _pontosIoT = [];
     });
     _carregarRotaIoT(remessa);
+  }
+
+  void _abrirDetalhes(_Remessa item) {
+    showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Entrega ${item.codigo}',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 14),
+            Text('Destino: ${item.destino}'),
+            const SizedBox(height: 8),
+            Text('Status: ${item.status}'),
+            const SizedBox(height: 8),
+            Text('Distância: ${item.distancia}'),
+            const SizedBox(height: 8),
+            Text('Previsão: ${item.previsao}'),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: FilledButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Fechar'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _resumoParadas(_Remessa atual) {
+    final ativas = _remessas.where((item) => item.ativa).toList();
+    final indice = ativas.indexWhere((item) => item.codigo == atual.codigo);
+    final proxima = indice >= 0 && indice + 1 < ativas.length
+        ? ativas[indice + 1]
+        : null;
+    final scheme = Theme.of(context).colorScheme;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Row(
+          children: [
+            Icon(LucideIcons.navigation, color: scheme.primary, size: 20),
+            const SizedBox(width: 9),
+            Expanded(
+              child: Semantics(
+                liveRegion: true,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Destino atual • ${atual.destino}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      proxima == null
+                          ? 'Não há outra parada ativa'
+                          : 'Próximo: ${proxima.destino}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: scheme.onSurfaceVariant,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Ver detalhes da entrega ${atual.codigo}',
+              onPressed: () => _abrirDetalhes(atual),
+              constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+              icon: const Icon(LucideIcons.info),
+            ),
+            if (proxima != null)
+              IconButton(
+                tooltip: 'Ir para a próxima parada: ${proxima.destino}',
+                onPressed: () => _selecionar(proxima),
+                constraints: const BoxConstraints.tightFor(
+                  width: 48,
+                  height: 48,
+                ),
+                icon: const Icon(LucideIcons.arrowRight),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -233,7 +352,7 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: _Mapa(
                 remessa: remessa,
                 controller: _mapController,
@@ -241,6 +360,10 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
                 carregando: _carregandoRota,
                 erro: _erroRotaIoT,
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: _resumoParadas(remessa),
             ),
             Expanded(
               child: Container(
