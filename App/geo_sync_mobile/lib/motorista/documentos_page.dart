@@ -1,9 +1,16 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:mobile/app_session.dart';
 import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/services/api_service.dart';
+import 'package:mobile/sync/location_point.dart' show gerarIdLocal;
+import 'package:mobile/sync/pending_queue.dart';
+import 'package:mobile/sync/sync_engine.dart';
 import 'package:mobile/widgets/app_gradient_header.dart';
 import 'package:mobile/widgets/responsive_content.dart';
 
@@ -20,12 +27,55 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
   bool _carregando = true;
   List<Map<String, dynamic>> _documentosApi = [];
   Map<String, dynamic> _perfilApi = {};
+  List<PendingAction> _acoesOffline = [];
   String? _erro;
 
   @override
   void initState() {
     super.initState();
+    SyncEngine.instance.estado.addListener(_atualizarPendencias);
+    _atualizarPendencias();
     _carregarDocumentos();
+  }
+
+  @override
+  void dispose() {
+    SyncEngine.instance.estado.removeListener(_atualizarPendencias);
+    super.dispose();
+  }
+
+  Future<void> _atualizarPendencias() async {
+    final anteriores = _acoesOffline;
+    final atuais = (await PendingQueue.instance.listar())
+        .where(
+          (acao) =>
+              acao.tipo == TipoAcao.documentoCnh ||
+              acao.tipo == TipoAcao.documentoCrlv,
+        )
+        .toList();
+    if (!mounted) return;
+    setState(() => _acoesOffline = atuais);
+    final removida = anteriores.any(
+      (anterior) => !atuais.any((atual) => atual.id == anterior.id),
+    );
+    if (removida) await _carregarDocumentos();
+  }
+
+  Future<void> _tentarDocumento(String tipo) async {
+    final acao = _acoesOffline
+        .where((item) => item.tipo == _tipoAcaoDocumento(tipo))
+        .firstOrNull;
+    if (acao == null) return;
+    try {
+      await SyncEngine.instance.tentarAcaoNovamente(acao.id);
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    }
+    await _atualizarPendencias();
   }
 
   Future<void> _carregarDocumentos() async {
@@ -84,6 +134,14 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
   }
 
   String _status(String tipo, bool enviado) {
+    final acaoOffline = _acoesOffline
+        .where((acao) => acao.tipo == _tipoAcaoDocumento(tipo))
+        .firstOrNull;
+    if (acaoOffline != null) {
+      return acaoOffline.requerIntervencao
+          ? 'review_required'
+          : 'aguardando_sync';
+    }
     Map<String, dynamic>? documento;
     for (final item in _documentosApi) {
       final tipoApi =
@@ -117,6 +175,9 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
     if (status != null && '$status'.trim().isNotEmpty) return '$status';
     return enviado ? 'pendente' : 'não informado';
   }
+
+  String _tipoAcaoDocumento(String tipo) =>
+      tipo == 'cnh' ? TipoAcao.documentoCnh : TipoAcao.documentoCrlv;
 
   DateTime? _dataBr(String valor) {
     final partes = valor.split(RegExp(r'[/.-]'));
@@ -208,6 +269,10 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
       case 'pending':
       case 'pendente':
         return 'Pendente para an\u00e1lise';
+      case 'aguardando_sync':
+        return 'Aguardando sincroniza\u00e7\u00e3o';
+      case 'review_required':
+        return 'Precisa de revis\u00e3o';
       case 'expired':
       case 'vencido':
       case 'expirado':
@@ -243,12 +308,15 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
   }
 
   Future<void> _enviar(bool cnh) async {
+    String? caminhoImagem;
     try {
       final imagem = await ImagePicker().pickImage(
         source: ImageSource.gallery,
+        maxWidth: 1600,
         imageQuality: 80,
       );
       if (imagem == null || !mounted) return;
+      caminhoImagem = imagem.path;
       setState(() => _enviando = true);
       await ApiService.instance.enviarDocumentoMotorista(
         tipo: cnh ? 'cnh' : 'crlv',
@@ -271,6 +339,63 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
         ),
       );
     } on ApiException catch (error) {
+      if ((error.statusCode == null ||
+              error.statusCode == 429 ||
+              error.statusCode! >= 500) &&
+          mounted &&
+          caminhoImagem != null) {
+        final tipo = cnh ? 'cnh' : 'crlv';
+        final diretorio = await getApplicationDocumentsDirectory();
+        final pasta = Directory(
+          path.join(diretorio.path, 'documentos_pendentes'),
+        );
+        await pasta.create(recursive: true);
+        final id = gerarIdLocal();
+        final extensao = path.extension(caminhoImagem).isEmpty
+            ? '.jpg'
+            : path.extension(caminhoImagem);
+        final copia = await File(
+          caminhoImagem,
+        ).copy(path.join(pasta.path, '$id$extensao'));
+        final tipoAcao = _tipoAcaoDocumento(tipo);
+        final substituidas = (await PendingQueue.instance.listar())
+            .where((acao) => acao.tipo == tipoAcao)
+            .toList();
+        await SyncEngine.instance.registrarRequisicaoOffline(
+          tipo: tipoAcao,
+          metodo: 'POST',
+          caminho: 'motorista/documentos/$tipo',
+          corpo: {'caminho_arquivo': copia.path},
+        );
+        for (final antiga in substituidas) {
+          final caminhoAntigo = antiga.corpo?['caminho_arquivo'];
+          if (caminhoAntigo is String && caminhoAntigo != copia.path) {
+            try {
+              await File(caminhoAntigo).delete();
+            } catch (_) {
+              // A pendência nova já está salva; limpeza é apenas auxiliar.
+            }
+          }
+        }
+        AppSession.salvarDocumentos(
+          cnh
+              ? AppSession.documentosMotorista.value.copyWith(cnhEnviada: true)
+              : AppSession.documentosMotorista.value.copyWith(
+                  crlvEnviado: true,
+                ),
+        );
+        await _atualizarPendencias();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${tipo.toUpperCase()} guardado no aparelho. O envio ser\u00e1 tentado quando a conex\u00e3o voltar.',
+              ),
+            ),
+          );
+        }
+        return;
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -324,8 +449,18 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
     final cnhNormalizada = normalizar(cnhStatus);
     final crlvNormalizada = normalizar(crlvStatus);
     final pendente =
-        {'pendente', 'pending'}.contains(cnhNormalizada) ||
-        {'pendente', 'pending'}.contains(crlvNormalizada);
+        {
+          'pendente',
+          'pending',
+          'aguardando_sync',
+          'review_required',
+        }.contains(cnhNormalizada) ||
+        {
+          'pendente',
+          'pending',
+          'aguardando_sync',
+          'review_required',
+        }.contains(crlvNormalizada);
     final aprovados = {'aprovado', 'approved', 'valid', 'valido'};
     final regularizada =
         aprovados.contains(cnhNormalizada) &&
@@ -431,6 +566,7 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
                       ),
                     ],
                     _documento(
+                      'cnh',
                       LucideIcons.idCard,
                       'CNH',
                       AppSession.nome.isEmpty ? 'Motorista' : AppSession.nome,
@@ -439,6 +575,7 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
                       () => _enviar(true),
                     ),
                     _documento(
+                      'crlv',
                       LucideIcons.fileText,
                       'Documento do veículo',
                       'CRLV',
@@ -504,6 +641,7 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
   }
 
   Widget _documento(
+    String tipo,
     IconData icon,
     String titulo,
     String subtitulo,
@@ -512,13 +650,19 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
     VoidCallback tap,
   ) {
     final normalizado = status.toLowerCase();
+    final revisar = normalizado == 'review_required';
     final aprovado = {
       'approved',
       'aprovado',
       'valid',
       'válido',
     }.contains(normalizado);
-    final pendente = {'pending', 'pendente'}.contains(normalizado);
+    final pendente = {
+      'pending',
+      'pendente',
+      'aguardando_sync',
+      'review_required',
+    }.contains(normalizado);
     final rejeitado = {
       'rejected',
       'recusado',
@@ -526,14 +670,18 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
       'vencido',
       'expirado',
     }.contains(normalizado);
-    final cor = aprovado
+    final cor = revisar
+        ? Colors.red
+        : aprovado
         ? Colors.green
         : pendente
         ? Colors.orange
         : rejeitado
         ? Colors.red
         : Colors.grey;
-    final statusIcone = aprovado
+    final statusIcone = revisar
+        ? LucideIcons.circleAlert
+        : aprovado
         ? LucideIcons.circleCheckBig
         : pendente
         ? LucideIcons.hourglass
@@ -550,7 +698,14 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
         ),
         subtitle: Text('$subtitulo\n$detalhe'),
         isThreeLine: true,
-        trailing: Icon(statusIcone, color: cor),
+        trailing:
+            _acoesOffline.any((acao) => acao.tipo == _tipoAcaoDocumento(tipo))
+            ? IconButton(
+                tooltip: 'Tentar sincronizar $tipo novamente',
+                onPressed: () => _tentarDocumento(tipo),
+                icon: Icon(statusIcone, color: cor),
+              )
+            : Icon(statusIcone, color: cor),
       ),
     );
   }

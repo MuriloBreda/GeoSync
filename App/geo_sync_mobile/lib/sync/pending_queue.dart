@@ -7,6 +7,9 @@ class TipoAcao {
 
   static const status = 'status';
   static const aceitar = 'aceitar';
+  static const perfilVeiculo = 'perfil_veiculo';
+  static const documentoCnh = 'documento_cnh';
+  static const documentoCrlv = 'documento_crlv';
 
   /// Ações gravadas por versões antigas do app, sem metadados.
   static const generica = 'generica';
@@ -221,6 +224,14 @@ class PendingQueue {
         ).toJson();
         return;
       }
+    }
+    if ({
+      TipoAcao.perfilVeiculo,
+      TipoAcao.documentoCnh,
+      TipoAcao.documentoCrlv,
+    }.contains(acao.tipo)) {
+      // Conserva apenas a versão mais recente do perfil ou documento enviado.
+      itens.removeWhere((item) => item['tipo'] == acao.tipo);
     }
     itens.add(acao.toJson());
   });

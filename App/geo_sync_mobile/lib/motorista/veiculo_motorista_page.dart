@@ -5,6 +5,8 @@ import 'package:mobile/app_session.dart';
 import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/services/api_service.dart';
 import 'package:mobile/services/vehicle_document_status.dart';
+import 'package:mobile/sync/pending_queue.dart';
+import 'package:mobile/sync/sync_engine.dart';
 import 'package:mobile/widgets/app_gradient_header.dart';
 import 'package:mobile/widgets/form_widgets.dart';
 
@@ -32,6 +34,7 @@ class _VeiculoMotoristaPageState extends State<VeiculoMotoristaPage> {
   String _situacaoVeiculo = 'Situação não informada pela API';
   String _validadeCrlv = '';
   String _motivoVeiculo = '';
+  PendingAction? _acaoVeiculo;
 
   List<TextEditingController> get _campos => [
     _modelo,
@@ -53,7 +56,19 @@ class _VeiculoMotoristaPageState extends State<VeiculoMotoristaPage> {
     for (final c in _campos) {
       c.addListener(_atualizar);
     }
+    SyncEngine.instance.estado.addListener(_atualizarAcaoVeiculo);
+    _atualizarAcaoVeiculo();
     _carregarSituacaoApi();
+  }
+
+  Future<void> _atualizarAcaoVeiculo() async {
+    final acoes = await PendingQueue.instance.listar();
+    if (!mounted) return;
+    setState(() {
+      _acaoVeiculo = acoes
+          .where((acao) => acao.tipo == TipoAcao.perfilVeiculo)
+          .firstOrNull;
+    });
   }
 
   Future<void> _carregarSituacaoApi() async {
@@ -104,6 +119,7 @@ class _VeiculoMotoristaPageState extends State<VeiculoMotoristaPage> {
     for (final c in _campos) {
       c.dispose();
     }
+    SyncEngine.instance.estado.removeListener(_atualizarAcaoVeiculo);
     super.dispose();
   }
 
@@ -140,12 +156,29 @@ class _VeiculoMotoristaPageState extends State<VeiculoMotoristaPage> {
     final veiculo = _editado;
     try {
       await AppSession.salvarVeiculo(veiculo);
-      var mensagem =
-          'Dados salvos neste dispositivo. O servidor ainda precisa ser atualizado.';
+      var mensagem = 'Dados salvos neste dispositivo.';
+      var erro = false;
       try {
         await ApiService.instance.updateProfile({'veiculo': veiculo.toJson()});
+        await SyncEngine.instance.removerAcoesDoTipo(TipoAcao.perfilVeiculo);
         mensagem = 'Dados do veículo atualizados no servidor.';
-      } on ApiException {
+      } on ApiException catch (error) {
+        if (error.statusCode == null ||
+            error.statusCode == 429 ||
+            error.statusCode! >= 500) {
+          await SyncEngine.instance.registrarRequisicaoOffline(
+            tipo: TipoAcao.perfilVeiculo,
+            metodo: 'PUT',
+            caminho: 'perfil',
+            corpo: {'veiculo': veiculo.toJson()},
+          );
+          mensagem =
+              'Dados salvos neste aparelho e aguardando conex\u00e3o para envio.';
+        } else {
+          erro = true;
+          mensagem =
+              'Dados guardados neste aparelho, mas a API recusou: ${error.message}';
+        }
         // Preserva a edição local quando a API está offline ou indisponível.
       }
       if (!mounted) return;
@@ -153,7 +186,8 @@ class _VeiculoMotoristaPageState extends State<VeiculoMotoristaPage> {
         _salvo = veiculo;
         _salvando = false;
       });
-      _mensagem(mensagem);
+      _mensagem(mensagem, erro: erro);
+      await _atualizarAcaoVeiculo();
     } on ApiException catch (error) {
       if (!mounted) return;
       setState(() => _salvando = false);
@@ -312,6 +346,47 @@ class _VeiculoMotoristaPageState extends State<VeiculoMotoristaPage> {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       _CartaoVeiculo(veiculo: _editado),
+      if (_acaoVeiculo != null) ...[
+        const SizedBox(height: 12),
+        Card(
+          child: ListTile(
+            leading: Icon(
+              _acaoVeiculo!.requerIntervencao
+                  ? LucideIcons.triangleAlert
+                  : LucideIcons.cloudUpload,
+              color: _acaoVeiculo!.requerIntervencao
+                  ? Theme.of(context).colorScheme.error
+                  : Theme.of(context).colorScheme.primary,
+            ),
+            title: Text(
+              _acaoVeiculo!.requerIntervencao
+                  ? 'Atualização precisa de revisão'
+                  : SyncEngine.instance.estado.value.acaoAtualId ==
+                        _acaoVeiculo!.id
+                  ? 'Sincronizando veículo'
+                  : 'Veículo aguardando sincronização',
+            ),
+            subtitle: Text(
+              _acaoVeiculo!.ultimoErro ??
+                  'Os dados estão salvos neste aparelho e serão reenviados automaticamente.',
+            ),
+            trailing: IconButton(
+              tooltip: 'Tentar enviar os dados do veículo novamente',
+              onPressed: () async {
+                try {
+                  await SyncEngine.instance.tentarAcaoNovamente(
+                    _acaoVeiculo!.id,
+                  );
+                } on ApiException catch (error) {
+                  if (mounted) _mensagem(error.message, erro: true);
+                }
+                await _atualizarAcaoVeiculo();
+              },
+              icon: const Icon(LucideIcons.refreshCw),
+            ),
+          ),
+        ),
+      ],
       const SizedBox(height: 12),
       _StatusAprovacao(
         status: _situacaoVeiculo,

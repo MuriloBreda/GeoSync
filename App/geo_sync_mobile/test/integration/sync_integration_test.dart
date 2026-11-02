@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/app_session.dart';
@@ -7,6 +8,7 @@ import 'package:mobile/sync/data_exporter.dart';
 import 'package:mobile/sync/local_store.dart';
 import 'package:mobile/sync/location_point.dart';
 import 'package:mobile/sync/pending_queue.dart';
+import 'package:mobile/sync/performance_metrics.dart';
 import 'package:mobile/sync/sync_engine.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -52,6 +54,59 @@ void main() {
       (await SyncEngine.instance.remessasLocais()).firstWhere(
         (r) => '${r['id']}' == '$id',
       );
+
+  test('sincroniza atualizacao de veiculo guardada offline', () async {
+    await offline();
+    await SyncEngine.instance.registrarRequisicaoOffline(
+      tipo: TipoAcao.perfilVeiculo,
+      metodo: 'PUT',
+      caminho: 'perfil',
+      corpo: {
+        'veiculo': {'modelo': 'Volvo VM', 'placa': 'ABC1D23'},
+      },
+    );
+    expect(await PendingQueue.instance.contar(), 1);
+
+    await online();
+    final relatorio = await SyncEngine.instance.sincronizar();
+
+    expect(relatorio.acoesEnviadas, 1);
+    expect(servidor.perfisAtualizados.single['veiculo']['placa'], 'ABC1D23');
+    expect(await PendingQueue.instance.contar(), 0);
+    final metrica = (await SyncPerformanceStore.instance.listar()).first;
+    expect(metrica.sucesso, isTrue);
+    expect(metrica.duracaoMs, greaterThanOrEqualTo(0));
+    expect(metrica.bytesEnviadosEstimados, greaterThan(0));
+    expect(metrica.bytesRecebidos, greaterThan(0));
+  });
+
+  test(
+    'sincroniza documento pendente e remove o arquivo local enviado',
+    () async {
+      final arquivo = File(
+        '${Directory.systemTemp.path}${Platform.pathSeparator}geosync_crlv_teste.txt',
+      );
+      await arquivo.writeAsString('CRLV de teste');
+      addTearDown(() async {
+        if (await arquivo.exists()) await arquivo.delete();
+      });
+      await offline();
+      await SyncEngine.instance.registrarRequisicaoOffline(
+        tipo: TipoAcao.documentoCrlv,
+        metodo: 'POST',
+        caminho: 'motorista/documentos/crlv',
+        corpo: {'caminho_arquivo': arquivo.path},
+      );
+
+      await online();
+      final relatorio = await SyncEngine.instance.sincronizar();
+
+      expect(relatorio.acoesEnviadas, 1);
+      expect(servidor.documentosEnviados, ['crlv']);
+      expect(await arquivo.exists(), isFalse);
+      expect(await PendingQueue.instance.contar(), 0);
+    },
+  );
 
   group('Sincronização offline e fila de ações', () {
     test(

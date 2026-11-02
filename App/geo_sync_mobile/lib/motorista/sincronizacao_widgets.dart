@@ -590,9 +590,11 @@ class _ExportarDadosSheetState extends State<ExportarDadosSheet> {
   Future<void> _atualizarContagemRemessas() async {
     await _servico.atualizarRemessas();
     final remessas = await _servico.contar(ConjuntoExportacao.remessas);
+    final metricas = await _servico.contar(ConjuntoExportacao.sincronizacoes);
     if (mounted) {
       setState(() {
         _contagens[ConjuntoExportacao.remessas] = remessas;
+        _contagens[ConjuntoExportacao.sincronizacoes] = metricas;
       });
     }
   }
@@ -649,7 +651,9 @@ class _ExportarDadosSheetState extends State<ExportarDadosSheet> {
     }
   }
 
-  String get _mensagemVazio => _conjunto == ConjuntoExportacao.localizacoes
+  String get _mensagemVazio => _conjunto == ConjuntoExportacao.sincronizacoes
+      ? 'Ainda não há rodadas de sincronização registradas.'
+      : _conjunto == ConjuntoExportacao.localizacoes
       ? 'Ainda não há localizações registradas. Elas são gravadas enquanto o '
             'rastreamento de uma entrega está ativo.'
       : 'Nenhuma remessa disponível. Sincronize com a internet ligada e '
@@ -729,6 +733,21 @@ class _ExportarDadosSheetState extends State<ExportarDadosSheet> {
                   ),
                 ],
               ),
+              const SizedBox(height: 10),
+              _OpcaoConjunto(
+                icon: LucideIcons.activity,
+                titulo: 'Métricas de sincronização',
+                contagem: _contagens[ConjuntoExportacao.sincronizacoes],
+                unidade: 'rodada',
+                selecionado: _conjunto == ConjuntoExportacao.sincronizacoes,
+                onTap: _ocupado
+                    ? null
+                    : () => setState(() {
+                        _conjunto = ConjuntoExportacao.sincronizacoes;
+                        _formato = FormatoExportacao.csv;
+                        _erro = null;
+                      }),
+              ),
               const SizedBox(height: 18),
               _rotulo('Formato do arquivo'),
               _OpcaoFormato(
@@ -742,19 +761,21 @@ class _ExportarDadosSheetState extends State<ExportarDadosSheet> {
                     : () => setState(() => _formato = FormatoExportacao.csv),
               ),
               const SizedBox(height: 10),
-              _OpcaoFormato(
-                icon: LucideIcons.globe,
-                color: SettingsColors.indigo,
-                titulo: 'GeoJSON',
-                descricao: _conjunto == ConjuntoExportacao.localizacoes
-                    ? 'Pontos e trajetos para QGIS, geojson.io e Google Earth'
-                    : 'Remessas com coordenadas para ferramentas de mapa',
-                selecionado: _formato == FormatoExportacao.geoJson,
-                onTap: _ocupado
-                    ? null
-                    : () =>
-                          setState(() => _formato = FormatoExportacao.geoJson),
-              ),
+              if (_conjunto != ConjuntoExportacao.sincronizacoes)
+                _OpcaoFormato(
+                  icon: LucideIcons.globe,
+                  color: SettingsColors.indigo,
+                  titulo: 'GeoJSON',
+                  descricao: _conjunto == ConjuntoExportacao.localizacoes
+                      ? 'Pontos e trajetos para QGIS, geojson.io e Google Earth'
+                      : 'Remessas com coordenadas para ferramentas de mapa',
+                  selecionado: _formato == FormatoExportacao.geoJson,
+                  onTap: _ocupado
+                      ? null
+                      : () => setState(
+                          () => _formato = FormatoExportacao.geoJson,
+                        ),
+                ),
               const SizedBox(height: 16),
               if (_erro != null || vazio)
                 _Aviso(texto: _erro ?? _mensagemVazio)

@@ -1297,13 +1297,35 @@ class _ComprovanteEntregaDialogState extends State<_ComprovanteEntregaDialog> {
   }
 
   Future<void> _tirarFoto() async {
+    final origem = await showModalBottomSheet<ImageSource>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(LucideIcons.camera),
+              title: const Text('Tirar foto'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(LucideIcons.images),
+              title: const Text('Escolher da galeria'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (origem == null || !mounted) return;
     setState(() => _carregandoFoto = true);
     try {
       final file = await _picker.pickImage(
-        source: ImageSource.camera,
+        source: origem,
         preferredCameraDevice: CameraDevice.rear,
-        maxWidth: 1600,
-        imageQuality: 80,
+        maxWidth: 1440,
+        imageQuality: 72,
       );
       if (file == null) return;
       final bytes = await File(file.path).readAsBytes();

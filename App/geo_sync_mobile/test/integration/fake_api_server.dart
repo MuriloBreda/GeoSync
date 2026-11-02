@@ -12,6 +12,8 @@ class FakeApiServer {
   /// Remessas do motorista, por id.
   final remessas = <String, Map<String, dynamic>>{};
   final comprovantes = <Map<String, dynamic>>[];
+  final documentosEnviados = <String>[];
+  final perfisAtualizados = <Map<String, dynamic>>[];
 
   /// Pontos recebidos em `POST /localizacao`.
   final localizacoes = <Map<String, dynamic>>[];
@@ -83,7 +85,14 @@ class FakeApiServer {
     requisicoes.add(descricao);
 
     final corpoTexto = await utf8.decoder.bind(req).join();
-    final corpo = corpoTexto.isEmpty ? null : jsonDecode(corpoTexto);
+    dynamic corpo;
+    if (corpoTexto.isNotEmpty) {
+      try {
+        corpo = jsonDecode(corpoTexto);
+      } on FormatException {
+        corpo = corpoTexto;
+      }
+    }
 
     // Rotas públicas de autenticação.
     if (req.method == 'POST' && caminho == 'auth/login') {
@@ -130,6 +139,17 @@ class FakeApiServer {
     if (req.method == 'POST' && caminho == 'auth/logout') {
       tokenRevogado = true;
       return _responder(req, 200, {'message': 'Sessão encerrada.'});
+    }
+    if (req.method == 'PUT' && caminho == 'perfil') {
+      perfisAtualizados.add(Map<String, dynamic>.from(corpo as Map));
+      return _responder(req, 200, {'data': perfisAtualizados.last});
+    }
+    if (req.method == 'POST' &&
+        RegExp(r'^motorista/documentos/(cnh|crlv)$').hasMatch(caminho)) {
+      documentosEnviados.add(caminho.split('/').last);
+      return _responder(req, 201, {
+        'data': {'status': 'pendente'},
+      });
     }
     if (req.method == 'GET' && caminho == 'remessas/minhas') {
       final desde = DateTime.tryParse(
