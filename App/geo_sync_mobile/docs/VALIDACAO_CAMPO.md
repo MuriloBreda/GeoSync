@@ -6,11 +6,15 @@ reais.
 
 ## ETA por ruas (Google Routes API)
 
-- Configure `GOOGLE_MAPS_API_KEY` com `--dart-define` e habilite a Routes API
-  no projeto Google Cloud com faturamento configurado.
-- Restrinja a chave ao identificador e certificado do app e à Routes API.
+- Configure `GOOGLE_ROUTES_API_KEY` somente no `.env` do Laravel e habilite a
+  Routes API no projeto Google Cloud com faturamento configurado.
+- O app envia origem/destino ao endpoint autenticado do Laravel. A chave Google
+  não deve ser passada por `--dart-define` nem distribuída no binário mobile.
 - Com GPS recente e destino válido, confirme que a ETA informa trajeto por ruas.
-- Desative a rede, negue a chave ou use um destino sem rota: a tela deve indicar
+- Deixe os detalhes abertos por cinco minutos e confirme a atualização; coloque
+  o app em segundo plano e confirme que o polling pausa até retornar.
+- Desative a rede, desconfigure temporariamente a chave no servidor ou use um
+  destino sem rota: a tela deve indicar
   que a previsão é aproximada e explicar a indisponibilidade.
 - Confirme no consentimento e na documentação do app que origem e destino da
   remessa são enviados ao Google para calcular a rota.

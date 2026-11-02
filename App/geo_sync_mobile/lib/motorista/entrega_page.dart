@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -2229,9 +2230,62 @@ class _SincronizacaoDaEntregaState extends State<_SincronizacaoDaEntrega> {
 
 class _DetalhesRemessaState extends State<DetalhesRemessa> {
   static final _rotasGoogle = GoogleRoutesService();
+  static const _intervaloAtualizacaoEta = Duration(minutes: 5);
   Remessa get remessa => widget.remessa;
   bool _atualizandoStatus = false;
   Future<EtaResultado>? _etaFuture;
+  Timer? _etaTimer;
+  AppLifecycleListener? _cicloVidaEta;
+
+  @override
+  void initState() {
+    super.initState();
+    _cicloVidaEta = AppLifecycleListener(onStateChange: _aoMudarCicloVida);
+    _agendarAtualizacaoEta();
+  }
+
+  @override
+  void didUpdateWidget(covariant DetalhesRemessa oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.remessa.id != remessa.id ||
+        oldWidget.remessa.destinoLatitude != remessa.destinoLatitude ||
+        oldWidget.remessa.destinoLongitude != remessa.destinoLongitude) {
+      _etaFuture = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _etaTimer?.cancel();
+    _cicloVidaEta?.dispose();
+    super.dispose();
+  }
+
+  void _aoMudarCicloVida(AppLifecycleState estado) {
+    if (estado == AppLifecycleState.resumed) {
+      _etaAtualizadaAoRetomar();
+    } else {
+      _etaTimer?.cancel();
+      _etaTimer = null;
+    }
+  }
+
+  void _agendarAtualizacaoEta() {
+    _etaTimer?.cancel();
+    if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+      return;
+    }
+    _etaTimer = Timer.periodic(_intervaloAtualizacaoEta, (_) {
+      if (mounted) setState(() => _etaFuture = null);
+    });
+  }
+
+  void _etaAtualizadaAoRetomar() {
+    if (mounted && _etaFuture != null) {
+      setState(() => _etaFuture = null);
+    }
+    _agendarAtualizacaoEta();
+  }
 
   Widget _buildAcoesRapidas() {
     final status = _normalizarStatusMotorista(remessa.status);
@@ -3059,8 +3113,14 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
       )?.toLocal();
       velocidade = _numeroCoordenada(atual['velocidade'] ?? atual['speed']);
     }
-    if (!_coordenadasValidas(latitude, longitude) && locais.isNotEmpty) {
-      final ultimo = locais.last;
+    final ultimaLocal = locais.isEmpty ? null : locais.last;
+    final localMaisRecente =
+        ultimaLocal != null &&
+        (posicaoEm == null ||
+            ultimaLocal.registradoEm.isAfter(posicaoEm.toUtc()));
+    if (ultimaLocal != null &&
+        (!_coordenadasValidas(latitude, longitude) || localMaisRecente)) {
+      final ultimo = ultimaLocal;
       latitude = ultimo.latitude;
       longitude = ultimo.longitude;
       posicaoEm = ultimo.registradoEm.toLocal();
@@ -3096,10 +3156,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
       longitudeFinal: destinoLon,
     );
     String? motivoRota;
-    if (!_rotasGoogle.configurado) {
-      motivoRota =
-          'Configure GOOGLE_MAPS_API_KEY para calcular por ruas. Com a chave ativa, origem e destino são enviados ao Google Maps.';
-    } else if (posicaoEm == null ||
+    if (posicaoEm == null ||
         instante.difference(posicaoEm).abs() > EtaService.idadeMaximaPosicao) {
       motivoRota =
           'A posição está antiga; o trajeto por ruas exige uma leitura recente.';
@@ -3122,7 +3179,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
         motivoRota = 'O Google Maps não encontrou uma rota para este destino.';
       } catch (_) {
         motivoRota =
-            'A rota do Google Maps está indisponível; foi usada distância aproximada. A consulta envia origem e destino ao Google Maps.';
+            'A rota viária está indisponível; foi usada distância aproximada.';
       }
     }
     return EtaService.calcularComDistancia(

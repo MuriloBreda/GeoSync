@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'package:mobile/services/api_service.dart';
 
 class RoadRouteEstimate {
   const RoadRouteEstimate({
@@ -13,91 +13,97 @@ class RoadRouteEstimate {
   final int durationMin;
 }
 
-/// Calcula um trajeto por ruas pela Routes API do Google Maps Platform.
-/// A chave deve ser fornecida em tempo de build e restrita no Google Cloud
-/// ao aplicativo Android/iOS e à Routes API.
+typedef RouteProxy =
+    Future<Map<String, dynamic>> Function({
+      required LatLng origin,
+      required LatLng destination,
+    });
+
+/// Consulta o backend autenticado. A chave Google fica apenas no servidor.
+/// Respostas próximas são mantidas brevemente para reduzir tráfego e custo.
 class GoogleRoutesService {
   GoogleRoutesService({
-    String? apiKey,
-    http.Client? client,
-    Uri? endpoint,
+    RouteProxy? proxy,
     DateTime Function()? clock,
-  }) : apiKey = apiKey ?? const String.fromEnvironment('GOOGLE_MAPS_API_KEY'),
-       _client = client ?? http.Client(),
-       _endpoint =
-           endpoint ??
-           Uri.https('routes.googleapis.com', '/directions/v2:computeRoutes'),
+    this.cacheDuration = const Duration(minutes: 2),
+    this.maxCacheEntries = 32,
+  }) : _proxy = proxy ?? GoogleRoutesService._requestBackend,
        _clock = clock ?? DateTime.now;
 
-  final String apiKey;
-  final http.Client _client;
-  final Uri _endpoint;
+  final RouteProxy _proxy;
   final DateTime Function() _clock;
-
-  bool get configurado => apiKey.trim().isNotEmpty;
+  final Duration cacheDuration;
+  final int maxCacheEntries;
+  final Map<String, _CacheEntry> _cache = {};
 
   Future<RoadRouteEstimate?> calcular({
     required LatLng origem,
     required LatLng destino,
   }) async {
-    if (!configurado) return null;
-    final resposta = await _client
-        .post(
-          _endpoint,
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Goog-Api-Key': apiKey,
-            'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters',
-          },
-          body: jsonEncode({
-            'origin': {
-              'location': {
-                'latLng': {
-                  'latitude': origem.latitude,
-                  'longitude': origem.longitude,
-                },
-              },
-            },
-            'destination': {
-              'location': {
-                'latLng': {
-                  'latitude': destino.latitude,
-                  'longitude': destino.longitude,
-                },
-              },
-            },
-            'travelMode': 'DRIVE',
-            'routingPreference': 'TRAFFIC_AWARE',
-            'departureTime': _clock().toUtc().toIso8601String(),
-            'units': 'METRIC',
-          }),
-        )
-        .timeout(const Duration(seconds: 8));
-    if (resposta.statusCode < 200 || resposta.statusCode >= 300) {
-      throw StateError('Routes API respondeu HTTP ${resposta.statusCode}.');
+    final agora = _clock();
+    final chave = _cacheKey(origem, destino);
+    final guardada = _cache.remove(chave);
+    if (guardada != null && guardada.expiraEm.isAfter(agora)) {
+      _cache[chave] = guardada;
+      return guardada.rota;
     }
-    final body = jsonDecode(resposta.body);
-    if (body is! Map ||
-        body['routes'] is! List ||
-        (body['routes'] as List).isEmpty) {
+
+    final resposta = await _proxy(origin: origem, destination: destino);
+    final payload = resposta['data'] is Map
+        ? Map<String, dynamic>.from(resposta['data'] as Map)
+        : resposta;
+    final distancia = _numero(payload['distance_km']);
+    final duracao = _numero(payload['duration_minutes']);
+    if (distancia == null ||
+        duracao == null ||
+        distancia <= 0 ||
+        duracao <= 0) {
       return null;
     }
-    final rota = (body['routes'] as List).first;
-    if (rota is! Map) return null;
-    final metros = rota['distanceMeters'];
-    final segundos = _segundos(rota['duration']);
-    if (metros is! num || segundos == null || metros <= 0 || segundos <= 0) {
-      return null;
-    }
-    return RoadRouteEstimate(
-      distanceKm: metros.toDouble() / 1000,
-      durationMin: (segundos / 60).ceil(),
+    final rota = RoadRouteEstimate(
+      distanceKm: distancia,
+      durationMin: duracao.ceil(),
     );
+    _cache[chave] = _CacheEntry(rota, agora.add(cacheDuration));
+    while (_cache.length > maxCacheEntries) {
+      _cache.remove(_cache.keys.first);
+    }
+    return rota;
   }
 
-  int? _segundos(Object? value) {
-    final match = RegExp(r'^(\d+(?:\.\d+)?)s$').firstMatch('$value');
-    if (match == null) return null;
-    return double.tryParse(match.group(1)!)?.round();
+  static Future<Map<String, dynamic>> _requestBackend({
+    required LatLng origin,
+    required LatLng destination,
+  }) async {
+    final result = await ApiService.instance.requisicao(
+      'POST',
+      'rotas/estimativa',
+      body: {
+        'origin': {'latitude': origin.latitude, 'longitude': origin.longitude},
+        'destination': {
+          'latitude': destination.latitude,
+          'longitude': destination.longitude,
+        },
+      },
+    );
+    if (result is Map) return Map<String, dynamic>.from(result);
+    throw const FormatException('Resposta inválida do serviço de rotas.');
   }
+
+  String _cacheKey(LatLng origem, LatLng destino) => jsonEncode([
+    origem.latitude.toStringAsFixed(3),
+    origem.longitude.toStringAsFixed(3),
+    destino.latitude.toStringAsFixed(4),
+    destino.longitude.toStringAsFixed(4),
+  ]);
+
+  double? _numero(Object? value) =>
+      value is num ? value.toDouble() : double.tryParse('$value');
+}
+
+class _CacheEntry {
+  const _CacheEntry(this.rota, this.expiraEm);
+
+  final RoadRouteEstimate? rota;
+  final DateTime expiraEm;
 }

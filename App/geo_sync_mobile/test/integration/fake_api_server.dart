@@ -17,6 +17,7 @@ class FakeApiServer {
 
   /// Pontos recebidos em `POST /localizacao`.
   final localizacoes = <Map<String, dynamic>>[];
+  final estimativasRotas = <Map<String, dynamic>>[];
 
   /// Todas as requisições recebidas (`METODO caminho?query`).
   final requisicoes = <String>[];
@@ -129,6 +130,14 @@ class FakeApiServer {
     }
 
     final partes = caminho.split('/');
+    if (req.method == 'POST' && caminho == 'rotas/estimativa') {
+      final estimativa = Map<String, dynamic>.from(corpo as Map);
+      estimativasRotas.add(estimativa);
+      return _responder(req, 200, {
+        'data': {'distance_km': 12.5, 'duration_minutes': 15},
+        'cached': false,
+      });
+    }
     if (req.method == 'GET' && caminho == 'auth/me') {
       final usuario =
           usuarios[token == 'token-cliente'

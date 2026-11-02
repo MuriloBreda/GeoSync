@@ -8,7 +8,7 @@
          Backup desativado: o token fica cifrado com uma chave do Keystore,
          que não pode ser restaurada em outro aparelho. -->
     <application
-        android:label="mobile"
+        android:label="Geo Sync Mobile"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="false"

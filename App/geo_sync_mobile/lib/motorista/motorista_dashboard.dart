@@ -27,7 +27,8 @@ class MotoristaDashboard extends StatefulWidget {
   State<MotoristaDashboard> createState() => _MotoristaDashboardState();
 }
 
-class _MotoristaDashboardState extends State<MotoristaDashboard> {
+class _MotoristaDashboardState extends State<MotoristaDashboard>
+    with WidgetsBindingObserver {
   // ============================================================
   // CORES
   // ============================================================
@@ -237,6 +238,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _currentIndex = widget.initialIndex.clamp(0, 2).toInt();
     unawaited(SyncEngine.instance.atualizarContadores());
@@ -250,15 +252,34 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
         fetch: () => ApiService.instance.avisosMotorista(),
       );
     });
+    if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+      _iniciarMonitorDeEntregas();
+      _verificarNovasEntregas();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _iniciarMonitorDeEntregas();
+      _verificarNovasEntregas();
+    } else {
+      _novasEntregasTimer?.cancel();
+      _novasEntregasTimer = null;
+    }
+  }
+
+  void _iniciarMonitorDeEntregas() {
+    _novasEntregasTimer?.cancel();
     _novasEntregasTimer = Timer.periodic(
       const Duration(seconds: 60),
       (_) => _verificarNovasEntregas(),
     );
-    _verificarNovasEntregas();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     AppNotificationCenter.instance.detach();
     _novasEntregasTimer?.cancel();
     super.dispose();

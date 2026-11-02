@@ -9,7 +9,7 @@ enum NotificationSeverity { info, warning, critical }
 /// Centraliza a contagem de não lidos e exibe um banner chamativo (com som e
 /// vibração) quando surge um item novo. Não depende de nenhum pacote de push;
 /// funciona por polling enquanto o app está aberto.
-class AppNotificationCenter {
+class AppNotificationCenter with WidgetsBindingObserver {
   AppNotificationCenter._();
 
   static final AppNotificationCenter instance = AppNotificationCenter._();
@@ -17,6 +17,8 @@ class AppNotificationCenter {
   final ValueNotifier<int> unreadCount = ValueNotifier<int>(0);
 
   Timer? _timer;
+  Duration _interval = const Duration(seconds: 45);
+  bool _observandoCicloVida = false;
   Future<List<dynamic>> Function()? _fetcher;
   OverlayState? _overlay;
   final Set<String> _seenIds = {};
@@ -30,12 +32,19 @@ class AppNotificationCenter {
     Duration interval = const Duration(seconds: 45),
   }) {
     _fetcher = fetch;
+    _interval = interval;
     _overlay = Overlay.maybeOf(context, rootOverlay: true);
     _seenIds.clear();
     _primed = false;
     _timer?.cancel();
     unawaited(_poll());
-    _timer = Timer.periodic(interval, (_) => _poll());
+    if (!_observandoCicloVida) {
+      WidgetsBinding.instance.addObserver(this);
+      _observandoCicloVida = true;
+    }
+    if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+      _iniciarPolling();
+    }
   }
 
   void detach() {
@@ -43,6 +52,26 @@ class AppNotificationCenter {
     _timer = null;
     _fetcher = null;
     _overlay = null;
+    if (_observandoCicloVida) {
+      WidgetsBinding.instance.removeObserver(this);
+      _observandoCicloVida = false;
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _fetcher != null) {
+      _iniciarPolling();
+      unawaited(_poll());
+    } else {
+      _timer?.cancel();
+      _timer = null;
+    }
+  }
+
+  void _iniciarPolling() {
+    _timer?.cancel();
+    _timer = Timer.periodic(_interval, (_) => _poll());
   }
 
   Future<void> refreshNow() => _poll();

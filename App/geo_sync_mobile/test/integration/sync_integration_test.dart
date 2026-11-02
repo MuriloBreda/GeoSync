@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/app_session.dart';
 import 'package:mobile/services/api_service.dart';
+import 'package:mobile/services/google_routes_service.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:mobile/sync/data_exporter.dart';
 import 'package:mobile/sync/local_store.dart';
 import 'package:mobile/sync/location_point.dart';
@@ -54,6 +56,21 @@ void main() {
       (await SyncEngine.instance.remessasLocais()).firstWhere(
         (r) => '${r['id']}' == '$id',
       );
+
+  test('ETA envia coordenadas ao proxy Laravel autenticado', () async {
+    final service = GoogleRoutesService();
+
+    final rota = await service.calcular(
+      origem: const LatLng(-23.5, -46.6),
+      destino: const LatLng(-23.6, -46.4),
+    );
+
+    expect(rota?.distanceKm, 12.5);
+    expect(rota?.durationMin, 15);
+    expect(servidor.requisicoes, contains('POST rotas/estimativa'));
+    expect(servidor.estimativasRotas.single['origin']['latitude'], -23.5);
+    expect(servidor.estimativasRotas.single['destination']['longitude'], -46.4);
+  });
 
   test('sincroniza atualizacao de veiculo guardada offline', () async {
     await offline();

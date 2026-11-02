@@ -520,11 +520,29 @@ class SyncEngine {
 
   /// Sincroniza periodicamente e sempre que o app volta ao primeiro plano.
   void iniciarAutomatico() {
+    _ciclo?.dispose();
+    _ciclo = AppLifecycleListener(onStateChange: _aoMudarCicloVida);
+    if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+      _iniciarTimerAutomatico();
+    }
+    unawaited(_carregarEstado().then((_) => _tentar()));
+  }
+
+  void _aoMudarCicloVida(AppLifecycleState estado) {
+    if (estado == AppLifecycleState.resumed) {
+      _iniciarTimerAutomatico();
+      unawaited(_tentar());
+    } else {
+      // O polling de rede para quando a interface fica em segundo plano.
+      // A fila local permanece intacta e será enviada ao retomar o app.
+      _timer?.cancel();
+      _timer = null;
+    }
+  }
+
+  void _iniciarTimerAutomatico() {
     _timer?.cancel();
     _timer = Timer.periodic(intervaloAutomatico, (_) => _tentar());
-    _ciclo?.dispose();
-    _ciclo = AppLifecycleListener(onResume: _tentar);
-    unawaited(_carregarEstado().then((_) => _tentar()));
   }
 
   void pararAutomatico() {
