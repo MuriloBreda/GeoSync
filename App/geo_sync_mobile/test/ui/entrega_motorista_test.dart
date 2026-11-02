@@ -49,6 +49,10 @@ void main() {
       }
       expect(find.text('GS-PEND'), findsWidgets);
       expect(
+        find.textContaining('continuar usando as remessas guardadas'),
+        findsOneWidget,
+      );
+      expect(
         find.textContaining('tiles do mapa precisam de internet'),
         findsOneWidget,
       );

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:mobile/app_session.dart';
 import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/services/api_service.dart';
+import 'package:mobile/services/vehicle_document_status.dart';
 import 'package:mobile/widgets/app_gradient_header.dart';
 import 'package:mobile/widgets/form_widgets.dart';
 
@@ -686,30 +687,16 @@ class _StatusAprovacao extends StatelessWidget {
   final String validade;
   final String motivo;
 
-  DateTime? _dataBr(String valor) {
-    final partes = valor.split(RegExp(r'[/.-]'));
-    if (partes.length != 3) return null;
-    final dia = int.tryParse(partes[0]);
-    final mes = int.tryParse(partes[1]);
-    final ano = int.tryParse(partes[2]);
-    if (dia == null || mes == null || ano == null || ano < 1000) return null;
-    return DateTime(ano, mes, dia);
-  }
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final normalizado = status.toLowerCase();
-    final validadeData = DateTime.tryParse(validade) ?? _dataBr(validade);
-    final vencido =
-        validadeData != null &&
-        DateTime(
-          validadeData.year,
-          validadeData.month,
-          validadeData.day,
-        ).isBefore(DateTime.now());
+    final validadeStatus = VehicleDocumentStatus.fromValidity(validade);
+    final vencido = validadeStatus.state == VehicleDocumentState.expired;
+    final vencendo = validadeStatus.state == VehicleDocumentState.expiringSoon;
     final aprovado =
         !vencido &&
+        !vencendo &&
         (normalizado.contains('aprov') ||
             normalizado.contains('approved') ||
             normalizado == 'valid');
@@ -720,15 +707,25 @@ class _StatusAprovacao extends StatelessWidget {
         normalizado.contains('recus');
     final pendente =
         normalizado.contains('pend') || normalizado.contains('analis');
+    final diasRestantes = validadeStatus.daysRemaining;
+    final textoVencimento = diasRestantes == null
+        ? ''
+        : diasRestantes == 0
+        ? 'CRLV vence hoje'
+        : 'CRLV vence em $diasRestantes dia${diasRestantes == 1 ? '' : 's'}';
     final cor = aprovado
         ? const Color(0xFF16A34A)
         : recusado
         ? const Color(0xFFB42318)
+        : vencendo
+        ? const Color(0xFFB7791F)
         : pendente
         ? const Color(0xFFB7791F)
         : scheme.onSurfaceVariant;
     final rotulo = aprovado
         ? 'Veículo aprovado pela API'
+        : vencendo
+        ? textoVencimento
         : recusado
         ? vencido
               ? 'CRLV vencido'
@@ -740,6 +737,8 @@ class _StatusAprovacao extends StatelessWidget {
         ? motivo
         : aprovado
         ? 'Liberado conforme a situação retornada pelo servidor.'
+        : vencendo
+        ? 'Programe a atualização do documento antes do vencimento.'
         : recusado
         ? vencido
               ? 'Atualize o CRLV vencido antes de usar o veículo nas entregas.'
@@ -768,8 +767,8 @@ class _StatusAprovacao extends StatelessWidget {
             child: Icon(
               aprovado
                   ? LucideIcons.badgeCheck
-                  : recusado
-                  ? LucideIcons.circleAlert
+                  : (recusado || vencendo)
+                  ? LucideIcons.triangleAlert
                   : LucideIcons.clock,
               color: cor,
               size: 22,

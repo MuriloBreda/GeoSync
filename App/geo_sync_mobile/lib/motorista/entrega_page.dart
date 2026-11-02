@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/services/api_service.dart';
 import 'package:mobile/services/eta_service.dart';
+import 'package:mobile/services/offline_position_service.dart';
 import 'package:mobile/app_session.dart';
 import 'package:mobile/sync/location_point.dart';
 import 'package:mobile/sync/local_store.dart';
@@ -2373,6 +2374,11 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
       }
       return latlong2.LatLng(latitude, longitude);
     } on ApiException catch (error) {
+      final ponto = await _ultimaPosicaoLocal();
+      if (ponto != null) {
+        _avisarPosicaoEmCache(ponto);
+        return latlong2.LatLng(ponto.latitude, ponto.longitude);
+      }
       if (!mounted) return null;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -2383,6 +2389,11 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
       );
       return null;
     } on FormatException {
+      final ponto = await _ultimaPosicaoLocal();
+      if (ponto != null) {
+        _avisarPosicaoEmCache(ponto);
+        return latlong2.LatLng(ponto.latitude, ponto.longitude);
+      }
       if (!mounted) return null;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -2393,6 +2404,31 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
       );
       return null;
     }
+  }
+
+  Future<LocationPoint?> _ultimaPosicaoLocal() async {
+    try {
+      final remessaId = (remessa.id ?? remessa.codigo).toString();
+      final pontos = await LocationStore.instance.todos();
+      return OfflinePositionService.maisRecente(
+        pontos: pontos,
+        remessaId: remessaId,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _avisarPosicaoEmCache(LocationPoint ponto) {
+    if (!mounted) return;
+    final hora = ponto.registradoEm.toLocal();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'API indisponivel. Usando posicao guardada de ${hora.hour.toString().padLeft(2, '0')}:${hora.minute.toString().padLeft(2, '0')}; ela pode nao ser a posicao atual.',
+        ),
+      ),
+    );
   }
 
   Future<void> _registrarOcorrencia() async {

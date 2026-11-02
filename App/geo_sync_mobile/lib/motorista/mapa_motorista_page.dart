@@ -232,15 +232,29 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
 
   String? get _avisoDeAtualidade {
     if (_dadosDesatualizados) {
-      return 'Sem conex\u00e3o. Remessas e \u00faltima posi\u00e7\u00e3o usam dados guardados; os tiles do mapa precisam de internet.';
+      final ultimaSincronizacao =
+          SyncEngine.instance.estado.value.ultimaSincronizacao;
+      final quando = ultimaSincronizacao == null
+          ? 'A atualiza\u00e7\u00e3o mais recente n\u00e3o est\u00e1 dispon\u00edvel.'
+          : '\u00daltima sincroniza\u00e7\u00e3o: ${_formatarData(ultimaSincronizacao.toLocal())}.';
+      return 'N\u00e3o foi poss\u00edvel atualizar agora. Voc\u00ea pode continuar usando as remessas guardadas. $quando Os tiles do mapa precisam de internet.';
     }
     final data = _ultimaPosicaoEm;
-    if (data == null) return null;
+    if (data == null) {
+      if (_pontosIoT.isNotEmpty) {
+        return 'N\u00e3o foi poss\u00edvel confirmar quando a posi\u00e7\u00e3o foi atualizada.';
+      }
+      return null;
+    }
     if (DateTime.now().difference(data).abs() > const Duration(minutes: 20)) {
       return 'Posi\u00e7\u00e3o desatualizada. \u00faltima atualiza\u00e7\u00e3o: ${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')} ${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}.';
     }
     return null;
   }
+
+  String _formatarData(DateTime data) =>
+      '${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')} '
+      '${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}';
 
   _Remessa? get _remessa {
     for (final item in _remessas) {
@@ -468,29 +482,33 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
             if (_avisoDeAtualidade != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                child: Material(
-                  color: scheme.tertiaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Row(
-                      children: [
-                        Icon(
-                          LucideIcons.cloudOff,
-                          size: 18,
-                          color: scheme.onTertiaryContainer,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _avisoDeAtualidade!,
-                            style: TextStyle(
-                              color: scheme.onTertiaryContainer,
-                              fontSize: 11,
+                child: Semantics(
+                  container: true,
+                  liveRegion: true,
+                  child: Material(
+                    color: scheme.tertiaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Row(
+                        children: [
+                          Icon(
+                            LucideIcons.cloudOff,
+                            size: 18,
+                            color: scheme.onTertiaryContainer,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _avisoDeAtualidade!,
+                              style: TextStyle(
+                                color: scheme.onTertiaryContainer,
+                                fontSize: 11,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
