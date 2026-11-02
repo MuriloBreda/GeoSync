@@ -10,6 +10,7 @@ import 'package:mobile/services/api_service.dart';
 import 'package:mobile/services/eta_service.dart';
 import 'package:mobile/app_session.dart';
 import 'package:mobile/sync/location_point.dart';
+import 'package:mobile/sync/local_store.dart';
 import 'package:mobile/sync/pending_queue.dart';
 import 'package:mobile/sync/sync_engine.dart';
 import 'package:mobile/widgets/signature_pad.dart';
@@ -77,6 +78,16 @@ class _RemessasPageState extends State<RemessasPage> {
     'out for delivery',
   }.contains(_normalizarStatus(status));
 
+  bool _statusPendente(Object? status) => {
+    'aguardando coleta',
+    'aguardando retirada',
+    'pending',
+    'pending pickup',
+    'assigned',
+    'pendente',
+    'pendentes',
+  }.contains(_normalizarStatus(status));
+
   bool _statusEntregue(Object? status) => {
     'entregue',
     'delivered',
@@ -100,6 +111,9 @@ class _RemessasPageState extends State<RemessasPage> {
       case 'transito':
       case 'em transito':
         return _statusTransito(remessa.status);
+      case 'pendente':
+      case 'pendentes':
+        return _statusPendente(remessa.status);
       case 'entregue':
         return _statusEntregue(remessa.status);
       case 'alerta':
@@ -299,6 +313,25 @@ class _RemessasPageState extends State<RemessasPage> {
         ]),
       ),
       progresso: normalizedProgress.clamp(0.0, 1.0).toDouble(),
+      destinoLatitude: _parseCoordenada(
+        campo([
+          'destino_latitude',
+          'delivery_latitude',
+          'latitude_destino',
+          'latitude',
+          'lat',
+        ]),
+      ),
+      destinoLongitude: _parseCoordenada(
+        campo([
+          'destino_longitude',
+          'delivery_longitude',
+          'longitude_destino',
+          'longitude',
+          'lng',
+          'lon',
+        ]),
+      ),
       id: campo([
         'id',
         'remessa_id',
@@ -330,6 +363,13 @@ class _RemessasPageState extends State<RemessasPage> {
           : null,
       disponivel: disponivel,
     );
+  }
+
+  double? _parseCoordenada(Object? value) {
+    final numero = value is num
+        ? value.toDouble()
+        : double.tryParse('${value ?? ''}');
+    return numero != null && numero.isFinite ? numero : null;
   }
 
   DateTime? _parsePrazo(Object? value) {
@@ -963,6 +1003,11 @@ class _RemessasPageState extends State<RemessasPage> {
             quantidade: quantidadePorStatus("Todas"),
           ),
           _filtro(
+            texto: "Pendentes",
+            filtro: "Pendentes",
+            quantidade: quantidadePorStatus("Pendentes"),
+          ),
+          _filtro(
             texto: "Em rota",
             filtro: "Trânsito",
             quantidade: quantidadePorStatus("Trânsito"),
@@ -1168,6 +1213,8 @@ class Remessa {
   final String prioridade;
   final DateTime? prazoEntrega;
   double progresso;
+  final double? destinoLatitude;
+  final double? destinoLongitude;
   final Object? id;
   final bool comOcorrencia;
   bool? comprovanteEnviado;
@@ -1184,6 +1231,8 @@ class Remessa {
     required this.peso,
     required this.eta,
     required this.progresso,
+    this.destinoLatitude,
+    this.destinoLongitude,
     this.distancia = 'Não informado',
     this.id,
     this.prioridade = 'Normal',
@@ -1885,16 +1934,33 @@ class DetalhesRemessa extends StatefulWidget {
 
 class _SincronizacaoDaEntrega extends StatefulWidget {
   const _SincronizacaoDaEntrega({required this.remessaId});
-
   final Object remessaId;
-
   @override
   State<_SincronizacaoDaEntrega> createState() =>
       _SincronizacaoDaEntregaState();
 }
 
 class _SincronizacaoDaEntregaState extends State<_SincronizacaoDaEntrega> {
-  late Future<List<PendingAction>> _acoes = PendingQueue.instance.listar();
+  late Future<
+    ({List<PendingAction> pendentes, List<Map<String, dynamic>> concluidas})
+  >
+  _dados = _carregar();
+
+  Future<
+    ({List<PendingAction> pendentes, List<Map<String, dynamic>> concluidas})
+  >
+  _carregar() async {
+    final fila = PendingQueue.instance;
+    final id = widget.remessaId.toString();
+    final pendentes = await fila.listar();
+    final concluidas = await fila.sincronizadasDaRemessa(id);
+    return (
+      pendentes: pendentes
+          .where((a) => a.remessaId == id || a.caminho.contains('/$id/'))
+          .toList(),
+      concluidas: concluidas,
+    );
+  }
 
   @override
   void initState() {
@@ -1909,84 +1975,89 @@ class _SincronizacaoDaEntregaState extends State<_SincronizacaoDaEntrega> {
   }
 
   void _atualizar() {
-    if (mounted) setState(() => _acoes = PendingQueue.instance.listar());
+    if (!mounted) return;
+    setState(() {
+      _dados = _carregar();
+    });
   }
 
-  Future<void> _tentarNovamente() async {
-    try {
-      await SyncEngine.instance.sincronizar();
-    } catch (_) {
-      // O estado detalhado do SyncEngine é exibido no próprio cartão.
-    }
-    _atualizar();
-  }
-
-  Future<void> _tentarAcaoNovamente(String id) async {
+  Future<void> _tentarNovamente(String id) async {
     try {
       await SyncEngine.instance.tentarAcaoNovamente(id);
     } catch (_) {
-      // O estado de erro permanece visível no cartão da remessa.
+      // A mensagem detalhada fica persistida na a??o da fila.
     }
     _atualizar();
   }
 
-  String _rotuloAcao(PendingAction acao) {
-    switch (acao.tipo) {
+  String _rotulo(String tipo, Map<String, dynamic>? corpo) {
+    switch (tipo) {
       case 'comprovante_entrega':
         return 'Comprovante de entrega';
       case 'ocorrencia':
-        return 'Ocorrência';
+        return 'Ocorr\u00eancia';
       case 'status':
-        return 'Status: ${acao.corpo?['status'] ?? 'atualizado'}';
+        return 'Status: ${corpo?['status'] ?? 'atualizado'}';
       case 'aceitar':
         return 'Aceite da entrega';
       default:
-        return 'Atualização da entrega';
+        return 'Atualiza\u00e7\u00e3o da entrega';
     }
   }
 
+  String _hora(Object? valor) {
+    final data = DateTime.tryParse('$valor')?.toLocal();
+    if (data == null) return '';
+    return '${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}';
+  }
+
   @override
-  Widget build(BuildContext context) => FutureBuilder<List<PendingAction>>(
-    future: _acoes,
+  Widget build(
+    BuildContext context,
+  ) => FutureBuilder<({List<PendingAction> pendentes, List<Map<String, dynamic>> concluidas})>(
+    future: _dados,
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         return const LinearProgressIndicator(minHeight: 3);
       }
-      final id = widget.remessaId.toString();
-      final acoes = (snapshot.data ?? const <PendingAction>[])
-          .where(
-            (item) => item.remessaId == id || item.caminho.contains('/$id/'),
-          )
-          .toList();
+      final dados = snapshot.data;
+      final acoes = dados?.pendentes ?? const <PendingAction>[];
+      final concluidas =
+          dados?.concluidas.take(4).toList() ?? const <Map<String, dynamic>>[];
       final sync = SyncEngine.instance.estado.value;
-      final erro =
-          sync.erro != null ||
-          acoes.any(
-            (acao) => acao.requerIntervencao || acao.ultimoErro != null,
-          );
+      final precisaRevisao = acoes.any((a) => a.requerIntervencao);
+      final temErro =
+          acoes.any((a) => a.ultimoErro != null) || sync.erro != null;
       final pendente = acoes.isNotEmpty;
-      final cor = erro
+      final cor = precisaRevisao || temErro
           ? Theme.of(context).colorScheme.error
           : sync.sincronizando || pendente
           ? const Color(0xFF9A6700)
           : const Color(0xFF15803D);
-      final titulo = sync.sincronizando
+      final titulo = precisaRevisao
+          ? 'A\u00e7\u00e3o precisa de revis\u00e3o'
+          : sync.sincronizando
           ? 'Sincronizando entrega'
-          : erro
-          ? 'Falha na sincronização'
+          : temErro
+          ? 'Falha na sincroniza\u00e7\u00e3o'
           : pendente
-          ? 'Aguardando sincronização'
-          : 'Entrega sincronizada';
-      final descricao = sync.sincronizando
-          ? 'Enviando atualizações desta remessa.'
-          : erro
+          ? 'Aguardando sincroniza\u00e7\u00e3o'
+          : concluidas.isNotEmpty
+          ? 'A\u00e7\u00f5es sincronizadas'
+          : 'Sem a\u00e7\u00f5es pendentes';
+      final descricao = precisaRevisao
+          ? 'O servidor recusou uma altera\u00e7\u00e3o. Confira o motivo abaixo; revise os dados antes de tentar novamente.'
+          : sync.sincronizando
+          ? 'As a\u00e7\u00f5es s\u00e3o enviadas em ordem. A que est\u00e1 sendo transmitida aparece marcada abaixo.'
+          : temErro
           ? sync.erro ??
-                'Uma ação precisa de atenção. Tente novamente ou revise o erro.'
+                'Uma a\u00e7\u00e3o falhou. Veja o motivo e tente novamente.'
           : pendente
-          ? '${acoes.length} ação(ões) salva(s) neste aparelho; serão enviadas quando houver conexão.'
-          : sync.ultimaSincronizacao != null
-          ? 'Última sincronização: ${sync.ultimaSincronizacao!.toLocal().toString().substring(0, 16)}.'
-          : 'Não há ações pendentes para esta remessa.';
+          ? '${acoes.length} a\u00e7\u00e3o(\u00f5es) guardada(s) neste aparelho.'
+          : concluidas.isNotEmpty
+          ? 'O servidor confirmou as a\u00e7\u00f5es recentes desta remessa.'
+          : 'As altera\u00e7\u00f5es desta remessa est\u00e3o em dia.';
+
       return Container(
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
@@ -2000,7 +2071,7 @@ class _SincronizacaoDaEntregaState extends State<_SincronizacaoDaEntrega> {
             Row(
               children: [
                 Icon(
-                  erro
+                  precisaRevisao || temErro
                       ? LucideIcons.triangleAlert
                       : sync.sincronizando
                       ? LucideIcons.refreshCw
@@ -2032,16 +2103,6 @@ class _SincronizacaoDaEntregaState extends State<_SincronizacaoDaEntrega> {
                     ],
                   ),
                 ),
-                if ((erro || pendente) && !sync.sincronizando && acoes.isEmpty)
-                  IconButton(
-                    tooltip: 'Tentar sincronizar esta entrega novamente',
-                    onPressed: _tentarNovamente,
-                    constraints: const BoxConstraints.tightFor(
-                      width: 48,
-                      height: 48,
-                    ),
-                    icon: Icon(LucideIcons.refreshCw, color: cor, size: 18),
-                  ),
                 if (sync.sincronizando)
                   const Padding(
                     padding: EdgeInsets.all(12),
@@ -2052,98 +2113,100 @@ class _SincronizacaoDaEntregaState extends State<_SincronizacaoDaEntrega> {
                   ),
               ],
             ),
-            if (acoes.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              for (final acao in acoes)
-                Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Row(
-                    children: [
-                      Icon(
-                        acao.requerIntervencao || acao.ultimoErro != null
-                            ? LucideIcons.circleAlert
-                            : sync.sincronizando
-                            ? LucideIcons.refreshCw
-                            : LucideIcons.clock3,
-                        size: 16,
-                        color: acao.requerIntervencao || acao.ultimoErro != null
-                            ? Theme.of(context).colorScheme.error
-                            : cor,
-                        semanticLabel:
-                            acao.requerIntervencao || acao.ultimoErro != null
-                            ? 'Erro de sincronização'
-                            : sync.sincronizando
-                            ? 'Sincronizando'
-                            : 'Pendente',
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _rotuloAcao(acao),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            Text(
-                              acao.requerIntervencao
-                                  ? 'Precisa de revisão: ${acao.ultimoErro ?? 'verifique os dados'}'
-                                  : acao.ultimoErro != null
-                                  ? 'Erro: ${acao.ultimoErro}'
-                                  : sync.sincronizando
-                                  ? 'Enviando agora'
-                                  : acao.tentativas > 0
-                                  ? 'Pendente • ${acao.tentativas} tentativa(s)'
-                                  : 'Pendente de envio',
-                              style: TextStyle(
-                                color:
-                                    acao.requerIntervencao ||
-                                        acao.ultimoErro != null
-                                    ? Theme.of(context).colorScheme.error
-                                    : Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: 'Tentar novamente: ${_rotuloAcao(acao)}',
-                        onPressed: sync.sincronizando
-                            ? null
-                            : () => _tentarAcaoNovamente(acao.id),
-                        constraints: const BoxConstraints.tightFor(
-                          width: 48,
-                          height: 48,
-                        ),
-                        icon: sync.sincronizando
-                            ? const SizedBox.square(
-                                dimension: 17,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Icon(LucideIcons.refreshCw, color: cor, size: 18),
-                      ),
-                    ],
-                  ),
+            for (final acao in acoes) ...[
+              const SizedBox(height: 8),
+              _linhaAcao(
+                titulo: _rotulo(acao.tipo, acao.corpo),
+                icone: acao.requerIntervencao
+                    ? LucideIcons.circleAlert
+                    : sync.acaoAtualId == acao.id
+                    ? LucideIcons.refreshCw
+                    : LucideIcons.clock3,
+                cor: acao.requerIntervencao || acao.ultimoErro != null
+                    ? Theme.of(context).colorScheme.error
+                    : cor,
+                detalhe: acao.requerIntervencao
+                    ? 'Precisa de revis\u00e3o: ${acao.ultimoErro ?? 'verifique os dados'}'
+                    : sync.acaoAtualId == acao.id
+                    ? 'Sincronizando agora'
+                    : acao.proximaTentativa != null &&
+                          acao.proximaTentativa!.isAfter(DateTime.now())
+                    ? 'Nova tentativa autom\u00e1tica \u00e0s ${_hora(acao.proximaTentativa)}. Motivo: ${acao.ultimoErro ?? 'falha tempor\u00e1ria'}'
+                    : acao.ultimoErro != null
+                    ? 'Falha; nova tentativa autom\u00e1tica ser\u00e1 feita. Motivo: ${acao.ultimoErro}'
+                    : acao.tentativas > 0
+                    ? 'Na fila \u2022 ${acao.tentativas} tentativa(s) realizada(s)'
+                    : 'Na fila para envio quando houver conex\u00e3o',
+                acaoId: acao.id,
+                sincronizando: sync.sincronizando,
+                aoTentar: _tentarNovamente,
+              ),
+            ],
+            for (final acao in concluidas) ...[
+              const SizedBox(height: 8),
+              _linhaAcao(
+                titulo: _rotulo(
+                  '${acao['tipo'] ?? ''}',
+                  acao['body'] is Map
+                      ? Map<String, dynamic>.from(acao['body'] as Map)
+                      : null,
                 ),
+                icone: LucideIcons.cloudCheck,
+                cor: const Color(0xFF15803D),
+                detalhe:
+                    'Sincronizada \u00e0s ${_hora(acao['sincronizada_em'])}',
+              ),
             ],
           ],
         ),
       );
     },
   );
+
+  Widget _linhaAcao({
+    required String titulo,
+    required IconData icone,
+    required Color cor,
+    required String detalhe,
+    String? acaoId,
+    bool sincronizando = false,
+    Future<void> Function(String id)? aoTentar,
+  }) => Row(
+    children: [
+      Icon(icone, size: 16, color: cor, semanticLabel: detalhe),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              titulo,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+            ),
+            Text(detalhe, style: TextStyle(color: cor, fontSize: 11)),
+          ],
+        ),
+      ),
+      if (acaoId != null)
+        IconButton(
+          tooltip: 'Tentar novamente: $titulo',
+          onPressed: sincronizando ? null : () => aoTentar?.call(acaoId),
+          constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+          icon: sincronizando
+              ? const SizedBox.square(
+                  dimension: 17,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Icon(LucideIcons.refreshCw, color: cor, size: 18),
+        ),
+    ],
+  );
 }
 
 class _DetalhesRemessaState extends State<DetalhesRemessa> {
   Remessa get remessa => widget.remessa;
   bool _atualizandoStatus = false;
+  Future<EtaResultado>? _etaFuture;
 
   Widget _buildAcoesRapidas() {
     final status = _normalizarStatusMotorista(remessa.status);
@@ -2165,7 +2228,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'A??es r?pidas',
+          'A\u00e7\u00f5es r\u00e1pidas',
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 10),
@@ -2191,7 +2254,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
                 style: OutlinedButton.styleFrom(minimumSize: const Size(0, 52)),
                 onPressed: _registrarOcorrencia,
                 icon: const Icon(LucideIcons.octagonAlert),
-                label: const Text('Ocorr?ncia'),
+                label: const Text('Ocorr\u00eancia'),
               ),
             ),
           ],
@@ -2897,83 +2960,182 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
     );
   }
 
-  Widget _buildEtaCard() {
-    const pontos = <LocationPoint>[];
-    final resultado = EtaService.calcular(
-      progresso: remessa.progresso,
-      etaReferencia: remessa.eta,
-      pontos: pontos,
-      distanciaKm: remessa.progresso > 0
-          ? 14.0 * (1 - remessa.progresso) + 4.0
-          : 14.0,
-    );
+  Future<EtaResultado> _calcularEta() async {
+    final destinoLat = remessa.destinoLatitude;
+    final destinoLon = remessa.destinoLongitude;
+    if (destinoLat == null ||
+        destinoLon == null ||
+        destinoLat < -90 ||
+        destinoLat > 90 ||
+        destinoLon < -180 ||
+        destinoLon > 180) {
+      return EtaService.semCoordenadas(remessa.eta);
+    }
 
-    final corAlerta = resultado.possivelAtraso
-        ? const Color(0xFFF59E0B)
-        : const Color(0xFF16A34A);
+    final id = '${remessa.id ?? remessa.codigo}';
+    Map<String, dynamic>? atual;
+    try {
+      atual = await ApiService.instance.ultimaLocalizacaoPorRemessa(id);
+    } on ApiException {
+      // Usa a ?ltima posi??o local da mesma remessa se estiver dispon?vel.
+    } catch (_) {
+      // O cart?o informa que a estimativa ? aproximada quando a rede falha.
+    }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: resultado.possivelAtraso
-            ? const Color(0xFFFFF7ED)
-            : const Color(0xFFEAFBF1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: resultado.possivelAtraso
-              ? const Color(0xFFFCD34D)
-              : const Color(0xFFBBF7D0),
+    final locais = (await LocationStore.instance.todos())
+        .where((p) => p.remessaId == id)
+        .toList();
+    double? latitude;
+    double? longitude;
+    DateTime? posicaoEm;
+    double? velocidade;
+    if (atual != null) {
+      latitude = _numeroCoordenada(atual['latitude'] ?? atual['lat']);
+      longitude = _numeroCoordenada(
+        atual['longitude'] ?? atual['lng'] ?? atual['lon'],
+      );
+      posicaoEm = DateTime.tryParse(
+        '${atual['registrado_em'] ?? atual['updated_at'] ?? atual['created_at'] ?? atual['timestamp'] ?? ''}',
+      )?.toLocal();
+      velocidade = _numeroCoordenada(atual['velocidade'] ?? atual['speed']);
+    }
+    if (!_coordenadasValidas(latitude, longitude) && locais.isNotEmpty) {
+      final ultimo = locais.last;
+      latitude = ultimo.latitude;
+      longitude = ultimo.longitude;
+      posicaoEm = ultimo.registradoEm.toLocal();
+      velocidade = ultimo.velocidade;
+    }
+    if (!_coordenadasValidas(latitude, longitude)) {
+      return EtaService.semPosicao(remessa.eta);
+    }
+
+    final instante = DateTime.now();
+    final recentes = locais
+        .where(
+          (p) =>
+              instante.difference(p.registradoEm.toLocal()).abs() <=
+              const Duration(minutes: 30),
+        )
+        .toList();
+    if (velocidade != null && posicaoEm != null) {
+      recentes.add(
+        LocationPoint.capturado(
+          remessaId: id,
+          latitude: latitude!,
+          longitude: longitude!,
+          registradoEm: posicaoEm,
+          velocidade: velocidade,
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: corAlerta.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              resultado.possivelAtraso
-                  ? LucideIcons.alertTriangle
-                  : LucideIcons.route,
-              color: corAlerta,
-              size: 17,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  resultado.possivelAtraso
-                      ? 'Possível atraso'
-                      : 'ETA atualizada',
-                  style: TextStyle(
-                    color: corAlerta,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  resultado.texto,
-                  style: const TextStyle(
-                    color: Color(0xFF172033),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      );
+    }
+    final distancia = EtaService.distanciaKm(
+      latitudeInicial: latitude!,
+      longitudeInicial: longitude!,
+      latitudeFinal: destinoLat,
+      longitudeFinal: destinoLon,
+    );
+    return EtaService.calcularComDistancia(
+      distanciaRestanteKm: distancia,
+      etaReferencia: remessa.eta,
+      pontos: recentes,
+      posicaoEm: posicaoEm,
+      agora: instante,
     );
   }
+
+  double? _numeroCoordenada(Object? valor) =>
+      valor is num ? valor.toDouble() : double.tryParse('${valor ?? ''}');
+
+  bool _coordenadasValidas(double? latitude, double? longitude) =>
+      latitude != null &&
+      longitude != null &&
+      latitude.isFinite &&
+      longitude.isFinite &&
+      latitude >= -90 &&
+      latitude <= 90 &&
+      longitude >= -180 &&
+      longitude <= 180;
+
+  Widget _buildEtaCard() => FutureBuilder<EtaResultado>(
+    future: _etaFuture ??= _calcularEta(),
+    builder: (context, snapshot) {
+      final resultado = snapshot.data;
+      final alerta = resultado?.possivelAtraso ?? false;
+      final aproximada = resultado?.aproximada ?? true;
+      final cor = alerta ? const Color(0xFFF59E0B) : const Color(0xFF16A34A);
+      final texto = snapshot.connectionState == ConnectionState.waiting
+          ? 'Calculando com a \u00faltima posi\u00e7\u00e3o dispon\u00edvel...'
+          : resultado?.texto ?? 'ETA indispon\u00edvel no momento.';
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: alerta ? const Color(0xFFFFF7ED) : const Color(0xFFEAFBF1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: alerta ? const Color(0xFFFCD34D) : const Color(0xFFBBF7D0),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              alerta ? LucideIcons.alertTriangle : LucideIcons.route,
+              color: cor,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    alerta
+                        ? 'Poss\u00edvel atraso'
+                        : 'Previs\u00e3o de chegada',
+                    style: TextStyle(
+                      color: cor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    texto,
+                    style: const TextStyle(
+                      color: Color(0xFF172033),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (aproximada && resultado?.motivo != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Estimativa aproximada: ${resultado!.motivo}',
+                      style: const TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                  if (resultado?.distanciaRestanteKm != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      'Dist\u00e2ncia em linha reta: ${resultado!.distanciaRestanteKm!.toStringAsFixed(1)} km',
+                      style: const TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
 
   Widget _buildRota() {
     return Container(

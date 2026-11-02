@@ -19,6 +19,7 @@ class SyncState {
     this.acoesPendentes = 0,
     this.conflitos = 0,
     this.acoesPrecisamIntervencao = 0,
+    this.acaoAtualId,
     this.erro,
   });
 
@@ -27,6 +28,7 @@ class SyncState {
   final int acoesPendentes;
   final int conflitos;
   final int acoesPrecisamIntervencao;
+  final String? acaoAtualId;
   final String? erro;
 
   int get totalPendente => acoesPendentes;
@@ -37,8 +39,10 @@ class SyncState {
     int? acoesPendentes,
     int? conflitos,
     int? acoesPrecisamIntervencao,
+    String? acaoAtualId,
     String? erro,
     bool limparErro = false,
+    bool limparAcaoAtual = false,
   }) => SyncState(
     sincronizando: sincronizando ?? this.sincronizando,
     ultimaSincronizacao: ultimaSincronizacao ?? this.ultimaSincronizacao,
@@ -46,6 +50,7 @@ class SyncState {
     conflitos: conflitos ?? this.conflitos,
     acoesPrecisamIntervencao:
         acoesPrecisamIntervencao ?? this.acoesPrecisamIntervencao,
+    acaoAtualId: limparAcaoAtual ? null : (acaoAtualId ?? this.acaoAtualId),
     erro: limparErro ? null : (erro ?? this.erro),
   );
 }
@@ -146,7 +151,10 @@ class SyncEngine {
       rethrow;
     } finally {
       await atualizarContadores();
-      estado.value = estado.value.copyWith(sincronizando: false);
+      estado.value = estado.value.copyWith(
+        sincronizando: false,
+        limparAcaoAtual: true,
+      );
     }
   }
 
@@ -232,6 +240,7 @@ class SyncEngine {
     final removidas = <String>{};
     final atualizadas = <String, PendingAction>{};
     final remessasRejeitadas = <String>{};
+    final sincronizadas = <PendingAction>[];
     var enviadas = 0;
 
     for (final acao in acoes) {
@@ -254,6 +263,7 @@ class SyncEngine {
       if (acao.tipo == TipoAcao.aceitar && servidor.containsKey(remessa)) {
         // A remessa já aparece como sua: o aceite já foi processado.
         removidas.add(acao.id);
+        sincronizadas.add(acao);
         continue;
       }
 
@@ -279,8 +289,10 @@ class SyncEngine {
       }
 
       try {
+        estado.value = estado.value.copyWith(acaoAtualId: acao.id);
         await _api.requisicao(acao.metodo, acao.caminho, body: acao.corpo);
         removidas.add(acao.id);
+        sincronizadas.add(acao);
         enviadas++;
       } on ApiConnectionException catch (error) {
         atualizadas[acao.id] = acao.comNovaTentativa(
@@ -291,7 +303,15 @@ class SyncEngine {
         break; // Mantém as próximas ações na fila e preserva a ordem.
       } on ApiException catch (error) {
         final codigo = error.statusCode;
-        if (codigo == 401) break;
+        if (codigo == 401) {
+          atualizadas[acao.id] = acao.comNovaTentativa(
+            agora: agora,
+            erro: error.message,
+            espera: const Duration(minutes: 5),
+          );
+          estado.value = estado.value.copyWith(erro: error.message);
+          break;
+        }
         if (codigo != null && codigo >= 400 && codigo < 500 && codigo != 429) {
           // O servidor rejeitou a alteração (ex.: 409 conflito, 404, 422):
           // o estado do servidor prevalece.
@@ -308,6 +328,9 @@ class SyncEngine {
     }
 
     await _fila.concluir(removidas: removidas, atualizadas: atualizadas);
+    if (sincronizadas.isNotEmpty) {
+      await _fila.registrarSincronizadas(sincronizadas, _relogio().toUtc());
+    }
     rel.acoesEnviadas += enviadas;
     return enviadas;
   }

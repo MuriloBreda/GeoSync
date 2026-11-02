@@ -140,11 +140,36 @@ class PendingQueue {
   static final instance = PendingQueue();
 
   final JsonListStore _store;
+  final JsonListStore _concluidas = JsonListStore(
+    'motorista_acoes_sincronizadas',
+  );
 
   Future<List<PendingAction>> listar() async =>
       (await _store.ler()).map(PendingAction.fromJson).nonNulls.toList();
 
   Future<int> contar() async => (await _store.ler()).length;
+
+  /// A??es recentes j? aceitas pelo servidor, usadas para mostrar confirma??o
+  /// por tipo de a??o no detalhe da remessa.
+  Future<List<Map<String, dynamic>>> sincronizadasDaRemessa(
+    String remessaId,
+  ) async => (await _concluidas.ler())
+      .where((item) => item['remessa_id']?.toString() == remessaId)
+      .toList();
+
+  Future<void> registrarSincronizadas(
+    Iterable<PendingAction> acoes,
+    DateTime sincronizadaEm,
+  ) => _concluidas.atualizar((itens) {
+    for (final acao in acoes) {
+      itens.removeWhere((item) => item['id'] == acao.id);
+      itens.insert(0, {
+        ...acao.toJson(),
+        'sincronizada_em': sincronizadaEm.toIso8601String(),
+      });
+    }
+    if (itens.length > 100) itens.removeRange(100, itens.length);
+  });
 
   Future<List<PendingAction>> quePrecisamIntervencao() async =>
       (await listar()).where((acao) => acao.requerIntervencao).toList();
@@ -217,7 +242,10 @@ class PendingQueue {
     }
   });
 
-  Future<void> limpar() => _store.gravar([]);
+  Future<void> limpar() async {
+    await _store.gravar([]);
+    await _concluidas.gravar([]);
+  }
 }
 
 /// Registro de um conflito resolvido, exibido ao motorista.

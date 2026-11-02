@@ -9,129 +9,165 @@ class EtaResultado {
     required this.distanciaRestanteKm,
     required this.tempoRestanteMin,
     required this.margemMinutos,
+    required this.aproximada,
+    this.motivo,
   });
 
   final String texto;
   final bool possivelAtraso;
-  final double distanciaRestanteKm;
-  final int tempoRestanteMin;
+  final double? distanciaRestanteKm;
+  final int? tempoRestanteMin;
   final int margemMinutos;
+  final bool aproximada;
+  final String? motivo;
 }
 
+/// Estimativa local de chegada, sem afirmar precis\u00e3o de uma rota externa.
 class EtaService {
-  static const double _distanciaPadraoKm = 12.0;
   static const double _velocidadePadraoKmh = 18.0;
+  static const Duration idadeMaximaPosicao = Duration(minutes: 20);
 
-  /// Calcula uma ETA local e detecta atraso provável sem depender de rota
-  /// externa. O algoritmo usa a posição atual, a velocidade média recente e o
-  /// progresso da entrega; quando não há dados suficientes, cai para uma média
-  /// conservadora para não apontar falso positivo.
-  static EtaResultado calcular({
-    required double progresso,
+  /// Calcula a estimativa com uma dist\u00e2ncia restante medida entre coordenadas.
+  static EtaResultado calcularComDistancia({
+    required double distanciaRestanteKm,
     required String etaReferencia,
-    List<LocationPoint> pontos = const <LocationPoint>[],
-    double? distanciaKm,
+    List<LocationPoint> pontos = const [],
+    DateTime? posicaoEm,
+    DateTime? agora,
   }) {
-    final progressoNormalizado = progresso.clamp(0.0, 1.0);
-    final distanciaBaseKm = (distanciaKm ?? _distanciaPadraoKm).clamp(1.0, 80.0);
-    final distanciaRestanteKm = math.max(
-      0.0,
-      (1 - progressoNormalizado) * distanciaBaseKm,
-    );
-
-    final velocidadeKmh = _velocidadeMediaKmh(pontos);
-    final tempoRestanteMin = distanciaRestanteKm <= 0
-        ? 0
-        : ((distanciaRestanteKm / (velocidadeKmh / 3.6)) / 60.0).round();
-
-    final tempoPlanejadoMin = _parseTempoMin(etaReferencia);
-    final margemMinutos = math.max(8, (tempoPlanejadoMin * 0.25).round());
-    final possivelAtraso = tempoRestanteMin > 0 &&
-        tempoPlanejadoMin > 0 &&
-        tempoRestanteMin > tempoPlanejadoMin + margemMinutos;
-
-    final texto = _montarTexto(
-      distanciaRestanteKm: distanciaRestanteKm,
-      tempoRestanteMin: tempoRestanteMin,
-      possivelAtraso: possivelAtraso,
-      tempoPlanejadoMin: tempoPlanejadoMin,
-    );
+    final instante = agora ?? DateTime.now();
+    final distancia = distanciaRestanteKm.clamp(0.0, 500.0);
+    final velocidades = pontos
+        .where((p) => p.velocidade != null && p.velocidade! > 0)
+        .map((p) => p.velocidade! * 3.6)
+        .where((v) => v >= 4 && v <= 100)
+        .toList();
+    final temVelocidade = velocidades.isNotEmpty;
+    final velocidade = temVelocidade
+        ? (velocidades.reduce((a, b) => a + b) / velocidades.length).clamp(
+            4.0,
+            80.0,
+          )
+        : _velocidadePadraoKmh;
+    final minutos = distancia <= 0 ? 0 : (distancia / velocidade * 60).round();
+    final planejado = _tempoRestantePlanejado(etaReferencia, instante);
+    final margem = math.max(8, ((planejado ?? 0) * .25).round());
+    final atraso = planejado != null && minutos > planejado + margem;
+    final posicaoAntiga =
+        posicaoEm == null ||
+        instante.difference(posicaoEm).abs() > idadeMaximaPosicao;
+    final aproximada = true;
+    final texto = distancia <= 0
+        ? 'Motorista chegou ao destino'
+        : atraso
+        ? 'Poss\u00edvel atraso \u2022 cerca de $minutos min restantes'
+        : 'Chegada estimada: ${math.max(1, minutos - 5)} - ${minutos + 5} min';
+    final motivos = <String>[
+      'dist\u00e2ncia em linha reta n\u00e3o considera o tra\u00e7ado real nem o tr\u00e2nsito',
+    ];
+    if (posicaoAntiga) {
+      motivos.add('a posi\u00e7\u00e3o pode estar desatualizada');
+    }
+    if (!temVelocidade) {
+      motivos.add('foi usada velocidade m\u00e9dia padr\u00e3o');
+    }
 
     return EtaResultado(
       texto: texto,
-      possivelAtraso: possivelAtraso,
-      distanciaRestanteKm: distanciaRestanteKm,
-      tempoRestanteMin: tempoRestanteMin,
-      margemMinutos: margemMinutos,
+      possivelAtraso: atraso,
+      distanciaRestanteKm: distancia,
+      tempoRestanteMin: minutos,
+      margemMinutos: margem,
+      aproximada: aproximada,
+      motivo: motivos.isEmpty ? null : '${motivos.join('; ')}.',
     );
   }
 
-  static String _montarTexto({
-    required double distanciaRestanteKm,
-    required int tempoRestanteMin,
-    required bool possivelAtraso,
-    required int tempoPlanejadoMin,
+  /// Sem as duas coordenadas n\u00e3o calcula dist\u00e2ncia ou atraso com valores
+  /// inventados; deixa expl\u00edcito que a informa\u00e7\u00e3o do servidor \u00e9 a refer\u00eancia.
+  static EtaResultado semPosicao(String etaReferencia) {
+    final referencia = etaReferencia.trim();
+    return EtaResultado(
+      texto: referencia.isEmpty || referencia == '-'
+          ? 'ETA indispon\u00edvel: aguardando a posi\u00e7\u00e3o atual do motorista.'
+          : 'Previs\u00e3o do servidor: $referencia. A posi\u00e7\u00e3o atual est\u00e1 indispon\u00edvel.',
+      possivelAtraso: false,
+      distanciaRestanteKm: null,
+      tempoRestanteMin: null,
+      margemMinutos: 0,
+      aproximada: true,
+      motivo:
+          'N\u00e3o foi poss\u00edvel obter uma localiza\u00e7\u00e3o recente desta remessa.',
+    );
+  }
+
+  static EtaResultado semCoordenadas(String etaReferencia) {
+    final referencia = etaReferencia.trim();
+    return EtaResultado(
+      texto: referencia.isEmpty || referencia == '-'
+          ? 'ETA indispon\u00edvel: faltam coordenadas do destino e posi\u00e7\u00e3o recente.'
+          : 'Previs\u00e3o do servidor: $referencia. Dist\u00e2ncia ainda n\u00e3o calcul\u00e1vel.',
+      possivelAtraso: false,
+      distanciaRestanteKm: null,
+      tempoRestanteMin: null,
+      margemMinutos: 0,
+      aproximada: true,
+      motivo:
+          'A estimativa por dist\u00e2ncia requer localiza\u00e7\u00e3o atual e destino v\u00e1lidos.',
+    );
+  }
+
+  static double distanciaKm({
+    required double latitudeInicial,
+    required double longitudeInicial,
+    required double latitudeFinal,
+    required double longitudeFinal,
   }) {
-    if (possivelAtraso) {
-      final faixa = tempoRestanteMin <= 0 ? 0 : tempoRestanteMin;
-      return '⚠️ Possível atraso • estimativa de $faixa min até a entrega';
-    }
-
-    if (tempoRestanteMin <= 0) {
-      return 'Entrega em andamento';
-    }
-
-    if (distanciaRestanteKm > 0 && tempoPlanejadoMin > 0) {
-      final inicio = math.max(0, tempoRestanteMin - 5);
-      final fim = tempoRestanteMin + 5;
-      return 'Chegada estimada: $inicio–$fim minutos';
-    }
-
-    if (distanciaRestanteKm > 0) {
-      return 'Motorista a ~${distanciaRestanteKm.toStringAsFixed(1)} km do destino';
-    }
-
-    return 'Chegada estimada em $tempoPlanejadoMin min';
+    const raioTerraKm = 6371.0;
+    final lat1 = _rad(latitudeInicial);
+    final lat2 = _rad(latitudeFinal);
+    final deltaLat = _rad(latitudeFinal - latitudeInicial);
+    final deltaLon = _rad(longitudeFinal - longitudeInicial);
+    final a =
+        math.sin(deltaLat / 2) * math.sin(deltaLat / 2) +
+        math.cos(lat1) *
+            math.cos(lat2) *
+            math.sin(deltaLon / 2) *
+            math.sin(deltaLon / 2);
+    return raioTerraKm * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
   }
 
-  static double _velocidadeMediaKmh(List<LocationPoint> pontos) {
-    final validos = pontos
-        .where((p) => p.velocidade != null && p.velocidade! > 0)
-        .map((p) => p.velocidade! * 3.6)
-        .toList();
-
-    if (validos.isEmpty) return _velocidadePadraoKmh;
-
-    final media = validos.reduce((soma, item) => soma + item) / validos.length;
-    return media.clamp(4.0, 80.0);
-  }
-
-  static int _parseTempoMin(String valor) {
+  static int? _tempoRestantePlanejado(String valor, DateTime agora) {
     final texto = valor.trim();
-    if (texto.isEmpty || texto == '-' || texto == '--:--') return 0;
-
-    final semTexto = texto.toLowerCase().replaceAll(RegExp(r'[^0-9,.-]'), ' ');
-    final numeros = semTexto
-        .split(RegExp(r'\s+'))
-        .where((item) => item.isNotEmpty)
-        .map(double.tryParse)
-        .whereType<double>()
-        .toList();
-
-    if (numeros.isEmpty) return 0;
-
-    final base = numeros.first;
-    if (texto.toLowerCase().contains('hora') || texto.toLowerCase().contains('horas')) {
-      return (base * 60).round();
+    if (texto.isEmpty || texto == '-' || texto == '--:--') return null;
+    final data = DateTime.tryParse(texto);
+    if (data != null) {
+      final minutos = data.difference(agora).inMinutes;
+      return minutos < 0 ? 0 : minutos;
     }
-    if (texto.toLowerCase().contains('dia') || texto.toLowerCase().contains('dias')) {
-      return (base * 24 * 60).round();
+    final horario = RegExp(r'^(\d{1,2}):(\d{2})(?::\d{2})?$').firstMatch(texto);
+    if (horario != null) {
+      final alvo = DateTime(
+        agora.year,
+        agora.month,
+        agora.day,
+        int.parse(horario.group(1)!),
+        int.parse(horario.group(2)!),
+      );
+      final minutos = alvo.difference(agora).inMinutes;
+      return minutos < 0 ? 0 : minutos;
     }
-    if (texto.toLowerCase().contains('min') || texto.toLowerCase().contains('minute')) {
-      return base.round();
-    }
-
-    if (base > 23) return base.round();
-    return base.round();
+    final duracao = RegExp(
+      r'(\d+(?:[,.]\d+)?)\s*(min(?:uto)?s?|h(?:ora)?s?)',
+      caseSensitive: false,
+    ).firstMatch(texto);
+    if (duracao == null) return null;
+    final quantidade = double.tryParse(duracao.group(1)!.replaceAll(',', '.'));
+    if (quantidade == null) return null;
+    return (quantidade *
+            (duracao.group(2)!.toLowerCase().startsWith('h') ? 60 : 1))
+        .round();
   }
+
+  static double _rad(double graus) => graus * math.pi / 180;
 }
