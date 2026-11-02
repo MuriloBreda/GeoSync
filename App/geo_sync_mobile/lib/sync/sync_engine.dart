@@ -146,6 +146,13 @@ class SyncEngine {
       await _garantirDono();
       final servidor = await _baixar(relatorio, forcarCompleta: forcarCompleta);
       final enviadas = await _enviarPendentes(servidor, relatorio);
+      // Limpa apenas GPS antigo já confirmado pelo servidor; a fila offline
+      // continua intacta para não perder trabalho ainda não enviado.
+      try {
+        await DataRetentionPolicy.aplicar(agora: _relogio(), store: _pontos);
+      } catch (_) {
+        // Retenção é auxiliar e não pode invalidar uma sincronização bem-sucedida.
+      }
       // Busca o resultado das ações enviadas para atualizar o cache.
       if (enviadas > 0) await _baixar(relatorio);
 

@@ -28,6 +28,8 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
   List<Map<String, dynamic>> _documentosApi = [];
   Map<String, dynamic> _perfilApi = {};
   List<PendingAction> _acoesOffline = [];
+  final Map<String, int> _tamanhosPendentes = {};
+  String? _removendoId;
   String? _erro;
 
   @override
@@ -53,12 +55,83 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
               acao.tipo == TipoAcao.documentoCrlv,
         )
         .toList();
+    final tamanhos = <String, int>{};
+    for (final acao in atuais) {
+      final arquivo = acao.corpo?['caminho_arquivo'];
+      if (arquivo is! String) continue;
+      try {
+        tamanhos[acao.id] = await File(arquivo).length();
+      } on FileSystemException {
+        // Um arquivo ausente fica visível como erro abaixo, sem ocultar a ação.
+      }
+    }
     if (!mounted) return;
-    setState(() => _acoesOffline = atuais);
+    setState(() {
+      _acoesOffline = atuais;
+      _tamanhosPendentes
+        ..clear()
+        ..addAll(tamanhos);
+    });
     final removida = anteriores.any(
       (anterior) => !atuais.any((atual) => atual.id == anterior.id),
     );
     if (removida) await _carregarDocumentos();
+  }
+
+  Future<void> _removerDocumentoPendente(PendingAction acao) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remover envio pendente?'),
+        content: const Text(
+          'A foto salva neste aparelho e a tentativa de envio serão removidas.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Manter'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Remover'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar != true || !mounted) return;
+    setState(() => _removendoId = acao.id);
+    try {
+      final arquivo = acao.corpo?['caminho_arquivo'];
+      await SyncEngine.instance.removerAcaoPendente(acao.id);
+      if (arquivo is String) {
+        try {
+          await File(arquivo).delete();
+        } on FileSystemException {
+          // A fila foi removida; arquivo já ausente não precisa de ação adicional.
+        }
+      }
+      final documentos = AppSession.documentosMotorista.value;
+      AppSession.salvarDocumentos(
+        acao.tipo == TipoAcao.documentoCnh
+            ? documentos.copyWith(cnhEnviada: false)
+            : documentos.copyWith(crlvEnviado: false),
+      );
+      await _atualizarPendencias();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Envio pendente removido do aparelho.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _removendoId = null);
+    }
+  }
+
+  String _formatarTamanho(int? bytes) {
+    if (bytes == null) return 'Arquivo não encontrado';
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
   }
 
   Future<void> _tentarDocumento(String tipo) async {
@@ -583,6 +656,10 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
                       crlvStatus,
                       () => _enviar(false),
                     ),
+                    if (_acoesOffline.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      _cartaoPendencias(),
+                    ],
                     const SizedBox(height: 24),
                     const Text(
                       'Dados da habilitação',
@@ -706,6 +783,66 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
                 icon: Icon(statusIcone, color: cor),
               )
             : Icon(statusIcone, color: cor),
+      ),
+    );
+  }
+
+  Widget _cartaoPendencias() {
+    final sincronizando = SyncEngine.instance.estado.value.sincronizando;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 8, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Arquivos aguardando envio',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 4),
+            const Text('Os arquivos ficam no armazenamento privado do app.'),
+            for (final acao in _acoesOffline)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  acao.requerIntervencao
+                      ? LucideIcons.circleAlert
+                      : sincronizando &&
+                            SyncEngine.instance.estado.value.acaoAtualId ==
+                                acao.id
+                      ? LucideIcons.loaderCircle
+                      : LucideIcons.clock3,
+                  color: acao.requerIntervencao ? Colors.deepOrange : primary,
+                ),
+                title: Text(
+                  acao.tipo == TipoAcao.documentoCnh ? 'CNH' : 'CRLV',
+                ),
+                subtitle: Text(
+                  '${_formatarTamanho(_tamanhosPendentes[acao.id])} • '
+                  '${acao.requerIntervencao
+                      ? 'Requer revisão'
+                      : sincronizando
+                      ? 'Sincronizando ou na fila'
+                      : 'Pendente de sincronização'}'
+                  '${acao.ultimoErro == null ? '' : '\n${acao.ultimoErro}'}',
+                ),
+                isThreeLine: acao.ultimoErro != null,
+                trailing: IconButton(
+                  tooltip:
+                      'Remover ${acao.tipo == TipoAcao.documentoCnh ? 'CNH' : 'CRLV'} pendente',
+                  onPressed: sincronizando || _removendoId != null
+                      ? null
+                      : () => _removerDocumentoPendente(acao),
+                  icon: _removendoId == acao.id
+                      ? const SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(LucideIcons.trash2),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

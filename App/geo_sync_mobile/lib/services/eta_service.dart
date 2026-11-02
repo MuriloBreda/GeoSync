@@ -10,6 +10,7 @@ class EtaResultado {
     required this.tempoRestanteMin,
     required this.margemMinutos,
     required this.aproximada,
+    this.rotaViaria = false,
     this.motivo,
   });
 
@@ -19,6 +20,7 @@ class EtaResultado {
   final int? tempoRestanteMin;
   final int margemMinutos;
   final bool aproximada;
+  final bool rotaViaria;
   final String? motivo;
 }
 
@@ -27,6 +29,37 @@ class EtaService {
   static const double _velocidadePadraoKmh = 18.0;
   static const Duration idadeMaximaPosicao = Duration(minutes: 20);
 
+  /// Usa a duração e a distância retornadas por uma API de rotas viárias.
+  static EtaResultado calcularComRotaViaria({
+    required double distanciaRotaKm,
+    required int duracaoRotaMin,
+    required String etaReferencia,
+    DateTime? agora,
+    String? motivoAdicional,
+  }) {
+    final instante = agora ?? DateTime.now();
+    final minutos = duracaoRotaMin.clamp(1, 24 * 60);
+    final planejado = _tempoRestantePlanejado(etaReferencia, instante);
+    final margem = math.max(8, ((planejado ?? 0) * .25).round());
+    final atraso = planejado != null && minutos > planejado + margem;
+    return EtaResultado(
+      texto: atraso
+          ? 'Possível atraso • cerca de $minutos min pela rota'
+          : 'Chegada estimada: cerca de $minutos min pela rota',
+      possivelAtraso: atraso,
+      distanciaRestanteKm: distanciaRotaKm,
+      tempoRestanteMin: minutos,
+      margemMinutos: margem,
+      aproximada: false,
+      rotaViaria: true,
+      motivo: [
+        'Trajeto por ruas com trânsito estimado; a duração pode mudar',
+        if (motivoAdicional != null && motivoAdicional.trim().isNotEmpty)
+          motivoAdicional.trim(),
+      ].join('. '),
+    );
+  }
+
   /// Calcula a estimativa com uma dist\u00e2ncia restante medida entre coordenadas.
   static EtaResultado calcularComDistancia({
     required double distanciaRestanteKm,
@@ -34,6 +67,7 @@ class EtaService {
     List<LocationPoint> pontos = const [],
     DateTime? posicaoEm,
     DateTime? agora,
+    String? motivoAdicional,
   }) {
     final instante = agora ?? DateTime.now();
     final distancia = distanciaRestanteKm.clamp(0.0, 500.0);
@@ -70,6 +104,9 @@ class EtaService {
     }
     if (!temVelocidade) {
       motivos.add('foi usada velocidade m\u00e9dia padr\u00e3o');
+    }
+    if (motivoAdicional != null && motivoAdicional.trim().isNotEmpty) {
+      motivos.add(motivoAdicional.trim());
     }
 
     return EtaResultado(

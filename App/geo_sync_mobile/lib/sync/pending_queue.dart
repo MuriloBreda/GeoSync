@@ -156,9 +156,46 @@ class PendingQueue {
   /// por tipo de a??o no detalhe da remessa.
   Future<List<Map<String, dynamic>>> sincronizadasDaRemessa(
     String remessaId,
-  ) async => (await _concluidas.ler())
-      .where((item) => item['remessa_id']?.toString() == remessaId)
-      .toList();
+  ) async {
+    final salvas = await _concluidas.ler();
+    final resumo = [for (final item in salvas) _resumoConcluido(item)];
+    if (!_mesmaLista(salvas, resumo)) await _concluidas.gravar(resumo);
+    return resumo
+        .where((item) => item['remessa_id']?.toString() == remessaId)
+        .toList();
+  }
+
+  Map<String, dynamic> _resumoConcluido(Map<String, dynamic> item) {
+    final tipo = item['tipo'];
+    final corpo = item['body'];
+    return {
+      'id': item['id'],
+      'tipo': tipo,
+      'remessa_id': item['remessa_id'],
+      'body': tipo == TipoAcao.status && corpo is Map
+          ? {'status': corpo['status']}
+          : null,
+      'criado_em': item['criado_em'],
+      'sincronizada_em': item['sincronizada_em'],
+    };
+  }
+
+  bool _mesmaLista(
+    List<Map<String, dynamic>> antiga,
+    List<Map<String, dynamic>> nova,
+  ) =>
+      antiga.length == nova.length &&
+      List.generate(antiga.length, (i) {
+        final corpoAntigo = antiga[i]['body'];
+        return antiga[i].keys
+                .toSet()
+                .difference(nova[i].keys.toSet())
+                .isEmpty &&
+            (corpoAntigo == null ||
+                (antiga[i]['tipo'] == TipoAcao.status &&
+                    corpoAntigo is Map &&
+                    corpoAntigo.keys.toSet().difference({'status'}).isEmpty));
+      }).every((igual) => igual);
 
   Future<void> registrarSincronizadas(
     Iterable<PendingAction> acoes,
@@ -167,7 +204,7 @@ class PendingQueue {
     for (final acao in acoes) {
       itens.removeWhere((item) => item['id'] == acao.id);
       itens.insert(0, {
-        ...acao.toJson(),
+        ..._resumoConcluido(acao.toJson()),
         'sincronizada_em': sincronizadaEm.toIso8601String(),
       });
     }

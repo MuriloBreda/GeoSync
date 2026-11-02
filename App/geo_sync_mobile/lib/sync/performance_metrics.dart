@@ -69,4 +69,6 @@ class SyncPerformanceStore {
         itens.insert(0, metric.toJson());
         if (itens.length > 2000) itens.removeRange(2000, itens.length);
       });
+
+  Future<void> limpar() => _store.gravar([]);
 }

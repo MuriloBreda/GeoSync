@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/services/api_service.dart';
 import 'package:mobile/services/eta_service.dart';
+import 'package:mobile/services/google_routes_service.dart';
 import 'package:mobile/services/offline_position_service.dart';
 import 'package:mobile/app_session.dart';
 import 'package:mobile/sync/location_point.dart';
@@ -2227,6 +2228,7 @@ class _SincronizacaoDaEntregaState extends State<_SincronizacaoDaEntrega> {
 }
 
 class _DetalhesRemessaState extends State<DetalhesRemessa> {
+  static final _rotasGoogle = GoogleRoutesService();
   Remessa get remessa => widget.remessa;
   bool _atualizandoStatus = false;
   Future<EtaResultado>? _etaFuture;
@@ -3093,12 +3095,43 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
       latitudeFinal: destinoLat,
       longitudeFinal: destinoLon,
     );
+    String? motivoRota;
+    if (!_rotasGoogle.configurado) {
+      motivoRota =
+          'Configure GOOGLE_MAPS_API_KEY para calcular por ruas. Com a chave ativa, origem e destino são enviados ao Google Maps.';
+    } else if (posicaoEm == null ||
+        instante.difference(posicaoEm).abs() > EtaService.idadeMaximaPosicao) {
+      motivoRota =
+          'A posição está antiga; o trajeto por ruas exige uma leitura recente.';
+    } else {
+      try {
+        final rota = await _rotasGoogle.calcular(
+          origem: latlong2.LatLng(latitude, longitude),
+          destino: latlong2.LatLng(destinoLat, destinoLon),
+        );
+        if (rota != null) {
+          return EtaService.calcularComRotaViaria(
+            distanciaRotaKm: rota.distanceKm,
+            duracaoRotaMin: rota.durationMin,
+            etaReferencia: remessa.eta,
+            agora: instante,
+            motivoAdicional:
+                'A origem e o destino desta remessa são enviados ao Google Maps para calcular a rota.',
+          );
+        }
+        motivoRota = 'O Google Maps não encontrou uma rota para este destino.';
+      } catch (_) {
+        motivoRota =
+            'A rota do Google Maps está indisponível; foi usada distância aproximada. A consulta envia origem e destino ao Google Maps.';
+      }
+    }
     return EtaService.calcularComDistancia(
       distanciaRestanteKm: distancia,
       etaReferencia: remessa.eta,
       pontos: recentes,
       posicaoEm: posicaoEm,
       agora: instante,
+      motivoAdicional: motivoRota,
     );
   }
 
@@ -3120,7 +3153,6 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
     builder: (context, snapshot) {
       final resultado = snapshot.data;
       final alerta = resultado?.possivelAtraso ?? false;
-      final aproximada = resultado?.aproximada ?? true;
       final cor = alerta ? const Color(0xFFF59E0B) : const Color(0xFF16A34A);
       final texto = snapshot.connectionState == ConnectionState.waiting
           ? 'Calculando com a \u00faltima posi\u00e7\u00e3o dispon\u00edvel...'
@@ -3166,10 +3198,12 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  if (aproximada && resultado?.motivo != null) ...[
+                  if (resultado?.motivo != null) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'Estimativa aproximada: ${resultado!.motivo}',
+                      resultado!.rotaViaria
+                          ? 'Google Maps: ${resultado.motivo}'
+                          : 'Estimativa aproximada: ${resultado.motivo}',
                       style: const TextStyle(
                         color: Color(0xFF64748B),
                         fontSize: 10,
@@ -3179,7 +3213,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
                   if (resultado?.distanciaRestanteKm != null) ...[
                     const SizedBox(height: 3),
                     Text(
-                      'Dist\u00e2ncia em linha reta: ${resultado!.distanciaRestanteKm!.toStringAsFixed(1)} km',
+                      '${resultado!.rotaViaria ? 'Dist\u00e2ncia pela rota' : 'Dist\u00e2ncia em linha reta'}: ${resultado.distanciaRestanteKm!.toStringAsFixed(1)} km',
                       style: const TextStyle(
                         color: Color(0xFF64748B),
                         fontSize: 10,
