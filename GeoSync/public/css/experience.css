@@ -17,7 +17,7 @@ body.gs-experience { background: #f7f9fc; }
 .gs-experience .team-card { overflow: hidden; }
 .gs-experience .team-card:hover img { transform: scale(1.035); }
 .gs-experience :focus-visible { outline: 3px solid #3787f5; outline-offset: 5px; }
-.gs-experience #loader { display: none; }
+.gs-experience #loader { display: flex; }
 .gs-experience .hero-anim,.gs-experience .hero-mockup { animation-delay: .1s; }
 .gs-experience .scan-line,.gs-experience .hero-orb,.gs-experience .mockup-chip { animation: none; }
 .gs-experience .scroll-reveal { opacity: 1; translate: none; scale: 1; filter: none; }
