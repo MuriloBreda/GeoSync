@@ -343,6 +343,8 @@ composer run test
 ./vendor/bin/pint --test
 ```
 
+O aplicativo Flutter em `App/geo_sync_mobile` também tem um workflow próprio em [`.github/workflows/flutter-mobile.yml`](.github/workflows/flutter-mobile.yml). Ele executa análise estática, testes automatizados e build Android release em pull requests e alterações mobile. Localmente, rode `flutter analyze` e `flutter test` dentro da pasta do app.
+
 ## Deploy em produção
 
 Checklist mínimo:
@@ -370,6 +372,7 @@ Antes de publicar, confirme no `.env`:
 
 - Nunca versione o arquivo `.env` ou credenciais de produção.
 - Use sempre HTTPS em produção, principalmente para a comunicação com os dispositivos IoT.
+- O cliente mobile rejeita URLs de API com credenciais embutidas e omite query strings e detalhes brutos de erros nos logs.
 - Revogue tokens de dispositivos perdidos ou comprometidos.
 - Para reportar uma vulnerabilidade, **não abra uma issue pública**: entre em contato diretamente com o autor via GitHub ou **[e-mail de contato]**.
 

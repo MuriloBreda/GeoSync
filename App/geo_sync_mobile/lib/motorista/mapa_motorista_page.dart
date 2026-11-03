@@ -1,11 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as latlong2;
+import 'package:mobile/core/remessa_repository.dart';
 import 'package:mobile/services/api_exception.dart';
-import 'package:mobile/services/api_service.dart';
-import 'package:mobile/sync/local_store.dart';
-import 'package:mobile/sync/sync_engine.dart';
 import 'package:mobile/widgets/responsive_content.dart';
 
 class MapaMotoristaPage extends StatefulWidget {
@@ -16,7 +16,9 @@ class MapaMotoristaPage extends StatefulWidget {
   State<MapaMotoristaPage> createState() => _MapaMotoristaPageState();
 }
 
-class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
+class _MapaMotoristaPageState extends State<MapaMotoristaPage>
+    with WidgetsBindingObserver {
+  final RemessaRepository _remessaRepository = RemessaRepository();
   late String _selecionada;
   List<_Remessa> _remessas = [];
   bool _carregandoRemessas = true;
@@ -26,13 +28,76 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
   List<latlong2.LatLng> _pontosIoT = [];
   bool _carregandoRota = false;
   String? _erroRotaIoT;
+  Timer? _timerLocalizacao;
+  bool _atualizandoAutomaticamente = false;
   final MapController _mapController = MapController();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _selecionada = widget.remessaInicial ?? '';
     _carregarRemessas();
+    _timerLocalizacao = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_appEmPrimeiroPlano) unawaited(_atualizarLocalizacaoSelecionada());
+    });
+  }
+
+  bool get _appEmPrimeiroPlano =>
+      WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_atualizarLocalizacaoSelecionada());
+    }
+  }
+
+  Future<void> _atualizarLocalizacaoSelecionada() async {
+    final remessa = _remessa;
+    if (remessa == null ||
+        remessa.id == null ||
+        _atualizandoAutomaticamente ||
+        _carregandoRota) {
+      return;
+    }
+    _atualizandoAutomaticamente = true;
+    try {
+      final ultima = await _remessaRepository.ultimaLocalizacao(remessa.id!);
+      final latitude = double.tryParse(
+        '${ultima['latitude'] ?? ultima['lat']}',
+      );
+      final longitude = double.tryParse(
+        '${ultima['longitude'] ?? ultima['lng'] ?? ultima['lon']}',
+      );
+      if (latitude == null ||
+          longitude == null ||
+          latitude < -90 ||
+          latitude > 90 ||
+          longitude < -180 ||
+          longitude > 180) {
+        return;
+      }
+      if (!mounted || _remessa?.id?.toString() != remessa.id.toString()) {
+        return;
+      }
+      final ponto = latlong2.LatLng(latitude, longitude);
+      setState(() {
+        if (_pontosIoT.isEmpty ||
+            _pontosIoT.last.latitude != latitude ||
+            _pontosIoT.last.longitude != longitude) {
+          _pontosIoT = [..._pontosIoT, ponto];
+        }
+        _erroRotaIoT = null;
+      });
+      _mapController.move(ponto, 13);
+    } on ApiException catch (error) {
+      if (mounted && _remessa?.id?.toString() == remessa.id.toString()) {
+        setState(() => _erroRotaIoT = error.message);
+      }
+    } finally {
+      _atualizandoAutomaticamente = false;
+    }
   }
 
   Future<void> _carregarRemessas() async {
@@ -43,9 +108,7 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
       });
     }
     try {
-      final dados = await ApiService.instance.minhasRemessas(
-        forceRefresh: true,
-      );
+      final dados = await _remessaRepository.minhas(forceRefresh: true);
       final remessas = dados
           .whereType<Map>()
           .map(_Remessa.fromApi)
@@ -135,9 +198,7 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
       _pontosIoT = [];
     });
     try {
-      final dados = await ApiService.instance.localizacoesPorRemessa(
-        remessa.id!,
-      );
+      final dados = await _remessaRepository.localizacoes(remessa.id!);
       final registros = dados.whereType<Map>().toList()
         ..sort((a, b) {
           final da = DateTime.tryParse(
@@ -230,31 +291,12 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
     }
   }
 
-  String? get _avisoDeAtualidade {
-    if (_dadosDesatualizados) {
-      final ultimaSincronizacao =
-          SyncEngine.instance.estado.value.ultimaSincronizacao;
-      final quando = ultimaSincronizacao == null
-          ? 'A atualiza\u00e7\u00e3o mais recente n\u00e3o est\u00e1 dispon\u00edvel.'
-          : '\u00daltima sincroniza\u00e7\u00e3o: ${_formatarData(ultimaSincronizacao.toLocal())}.';
-      return 'N\u00e3o foi poss\u00edvel atualizar agora. Voc\u00ea pode continuar usando as remessas guardadas. $quando Os tiles do mapa precisam de internet.';
-    }
-    final data = _ultimaPosicaoEm;
-    if (data == null) {
-      if (_pontosIoT.isNotEmpty) {
-        return 'N\u00e3o foi poss\u00edvel confirmar quando a posi\u00e7\u00e3o foi atualizada.';
-      }
-      return null;
-    }
-    if (DateTime.now().difference(data).abs() > const Duration(minutes: 20)) {
-      return 'Posi\u00e7\u00e3o desatualizada. \u00faltima atualiza\u00e7\u00e3o: ${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')} ${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}.';
-    }
-    return null;
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _timerLocalizacao?.cancel();
+    super.dispose();
   }
-
-  String _formatarData(DateTime data) =>
-      '${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')} '
-      '${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}';
 
   _Remessa? get _remessa {
     for (final item in _remessas) {

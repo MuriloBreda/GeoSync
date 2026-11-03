@@ -402,11 +402,28 @@ Código-fonte em [`/iot`](./iot).
 
 O cliente mobile é desenvolvido em **Flutter** e mantido em repositório separado: **[mariaclaraluz0/geo_sync_mobile](https://github.com/mariaclaraluz0/geo_sync_mobile)**.
 
+O app oferece fluxos para clientes e motoristas e adota operação **offline-first**: ações sem conexão ficam em uma fila local e são sincronizadas quando a rede retorna. Sua camada `lib/core/` contém contratos de API e repositórios por domínio. Telas de remessas, alertas, perfil, motorista, pagamentos e avaliações usam esses repositórios; o `ApiService` implementa os contratos e concentra as chamadas HTTP, cache e integração com a sincronização. `SessionRepository` trata respostas e dados locais da sessão, enquanto `SyncRepository` expõe a orquestração do `SyncEngine`.
+
+O app consulta as posições IoT associadas às remessas e **não coleta a localização do celular**. A documentação detalhada, incluindo rotas esperadas, permissões, armazenamento local e testes, está no [README do aplicativo](../App/geo_sync_mobile/README.md).
+
+No mapa, a posição da remessa selecionada é atualizada a cada 30 segundos enquanto o app está em primeiro plano, usando `GET /api/localizacao/remessa/{id}/ultima`. A atualização pausa em segundo plano; se a API falhar, o último ponto conhecido permanece visível.
+
 Para conectar o app a esta API:
 
 1. Inicie o backend (`composer dev`).
-2. Configure a **URL base da API** no app. **[TODO: indicar arquivo/variável]**
-3. No emulador Android, use `http://10.0.2.2:8000` no lugar de `localhost`.
+2. Configure a URL base com o prefixo `/api`, na tela de configuração do servidor ou durante a execução com `--dart-define=API_BASE_URL=http://10.0.2.2:8000/api`.
+3. No emulador Android, use `10.0.2.2` para acessar o backend rodando no computador; em dispositivo físico, use o IP da máquina na rede local.
+
+Para executar e testar o app a partir da pasta `App/geo_sync_mobile`:
+
+```bash
+flutter pub get
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api
+flutter analyze
+flutter test
+```
+
+O [workflow Flutter mobile](../.github/workflows/flutter-mobile.yml) automatiza a análise, a suíte de testes e o build Android release. A suíte também valida rótulos semânticos e áreas tocáveis na tela de login.
 
 ---
 

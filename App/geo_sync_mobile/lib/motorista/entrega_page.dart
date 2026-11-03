@@ -6,11 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:latlong2/latlong.dart' as latlong2;
 import 'package:image_picker/image_picker.dart';
+import 'package:mobile/core/remessa_repository.dart';
 import 'package:mobile/services/api_exception.dart';
-import 'package:mobile/services/api_service.dart';
 import 'package:mobile/services/eta_service.dart';
-import 'package:mobile/services/google_routes_service.dart';
-import 'package:mobile/services/offline_position_service.dart';
+import 'package:mobile/services/shipment_progress.dart';
 import 'package:mobile/app_session.dart';
 import 'package:mobile/sync/location_point.dart';
 import 'package:mobile/sync/local_store.dart';
@@ -36,6 +35,7 @@ class RemessasPage extends StatefulWidget {
 }
 
 class _RemessasPageState extends State<RemessasPage> {
+  final RemessaRepository _remessaRepository = RemessaRepository();
   final TextEditingController _searchController = TextEditingController();
 
   String filtroSelecionado = "Todas";
@@ -139,6 +139,8 @@ class _RemessasPageState extends State<RemessasPage> {
   String? _erroDisponiveis;
   bool _apiDisponivel = false;
   bool _dadosDesatualizados = false;
+  Timer? _timerAtualizacao;
+  bool _atualizandoPeriodicamente = false;
   String? get _erroAtual => _modoDisponiveis ? _erroDisponiveis : _erroRemessas;
   List<Remessa> get _listaAtual => _modoDisponiveis ? disponiveis : remessas;
 
@@ -205,6 +207,13 @@ class _RemessasPageState extends State<RemessasPage> {
       setState(() {});
     });
     _carregarRemessas(forceRefresh: true);
+    _timerAtualizacao = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_atualizandoPeriodicamente || !mounted) return;
+      _atualizandoPeriodicamente = true;
+      _carregarRemessas(forceRefresh: true).whenComplete(() {
+        _atualizandoPeriodicamente = false;
+      });
+    });
   }
 
   Future<void> _carregarRemessas({bool forceRefresh = true}) async {
@@ -217,7 +226,7 @@ class _RemessasPageState extends State<RemessasPage> {
     String? erroDisponiveis;
 
     try {
-      dados = (await ApiService.instance.minhasRemessas(
+      dados = (await _remessaRepository.minhas(
         forceRefresh: forceRefresh,
       )).whereType<Map>().map(_remessaFromApi).toList();
     } on ApiException catch (error) {
@@ -227,7 +236,7 @@ class _RemessasPageState extends State<RemessasPage> {
     }
 
     try {
-      vagas = (await ApiService.instance.remessasDisponiveis())
+      vagas = (await _remessaRepository.disponiveis())
           .whereType<Map>()
           .map((item) => _remessaFromApi(item, disponivel: true))
           .toList();
@@ -284,17 +293,12 @@ class _RemessasPageState extends State<RemessasPage> {
     }
 
     final rawProgress = campo(['progresso', 'progress', 'percentual']) ?? 0;
-    final progress = rawProgress is num
-        ? rawProgress.toDouble()
-        : double.tryParse(
-                '$rawProgress'.replaceAll('%', '').replaceAll(',', '.'),
-              ) ??
-              0;
-    final normalizedProgress = progress > 1 ? progress / 100 : progress;
+    final status =
+        '${campo(['status', 'situacao', 'status_name']) ?? 'Status não informado'}';
     return Remessa(
-      codigo: '${campo(['codigo', 'code', 'tracking_code', 'id']) ?? '-'}',
-      status:
-          '${campo(['status', 'situacao', 'status_name']) ?? 'Status não informado'}',
+      codigo:
+          '${campo(['codigo', 'codigo_rastreio', 'code', 'tracking_code', 'id']) ?? '-'}',
+      status: status,
       origem:
           '${campo(['origem', 'origin', 'remetente_endereco', 'pickup_address']) ?? '-'}',
       destino:
@@ -315,26 +319,7 @@ class _RemessasPageState extends State<RemessasPage> {
           'delivery_date',
         ]),
       ),
-      progresso: normalizedProgress.clamp(0.0, 1.0).toDouble(),
-      destinoLatitude: _parseCoordenada(
-        campo([
-          'destino_latitude',
-          'delivery_latitude',
-          'latitude_destino',
-          'latitude',
-          'lat',
-        ]),
-      ),
-      destinoLongitude: _parseCoordenada(
-        campo([
-          'destino_longitude',
-          'delivery_longitude',
-          'longitude_destino',
-          'longitude',
-          'lng',
-          'lon',
-        ]),
-      ),
+      progresso: shipmentProgress(status: status, apiProgress: rawProgress),
       id: campo([
         'id',
         'remessa_id',
@@ -391,6 +376,7 @@ class _RemessasPageState extends State<RemessasPage> {
 
   @override
   void dispose() {
+    _timerAtualizacao?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -437,7 +423,7 @@ class _RemessasPageState extends State<RemessasPage> {
     }
     setState(() {
       remessa.status = novoStatus;
-      remessa.progresso = novoStatus == 'Entregue' ? 1 : remessa.progresso;
+      remessa.progresso = shipmentProgress(status: novoStatus);
     });
   }
 
@@ -1773,7 +1759,7 @@ class _RemessaCardState extends State<_RemessaCard> {
                   Row(
                     children: [
                       const Text(
-                        "Progresso da entrega",
+                        "Progresso pela etapa",
                         style: TextStyle(
                           color: Color(0xFF94A3B8),
                           fontSize: 9,
@@ -2229,146 +2215,56 @@ class _SincronizacaoDaEntregaState extends State<_SincronizacaoDaEntrega> {
 }
 
 class _DetalhesRemessaState extends State<DetalhesRemessa> {
-  static final _rotasGoogle = GoogleRoutesService();
-  static const _intervaloAtualizacaoEta = Duration(minutes: 5);
+  final RemessaRepository _remessaRepository = RemessaRepository();
   Remessa get remessa => widget.remessa;
   bool _atualizandoStatus = false;
-  Future<EtaResultado>? _etaFuture;
-  Timer? _etaTimer;
-  AppLifecycleListener? _cicloVidaEta;
+  Timer? _timerProgresso;
 
   @override
   void initState() {
     super.initState();
-    _cicloVidaEta = AppLifecycleListener(onStateChange: _aoMudarCicloVida);
-    _agendarAtualizacaoEta();
-  }
-
-  @override
-  void didUpdateWidget(covariant DetalhesRemessa oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.remessa.id != remessa.id ||
-        oldWidget.remessa.destinoLatitude != remessa.destinoLatitude ||
-        oldWidget.remessa.destinoLongitude != remessa.destinoLongitude) {
-      _etaFuture = null;
-    }
+    _timerProgresso = Timer.periodic(const Duration(seconds: 30), (_) {
+      _atualizarProgresso();
+    });
   }
 
   @override
   void dispose() {
-    _etaTimer?.cancel();
-    _cicloVidaEta?.dispose();
+    _timerProgresso?.cancel();
     super.dispose();
   }
 
-  void _aoMudarCicloVida(AppLifecycleState estado) {
-    if (estado == AppLifecycleState.resumed) {
-      _etaAtualizadaAoRetomar();
-    } else {
-      _etaTimer?.cancel();
-      _etaTimer = null;
+  Future<void> _atualizarProgresso() async {
+    try {
+      final itens = await RemessaRepository().minhas(forceRefresh: true);
+      final id = '${remessa.id ?? remessa.codigo}';
+      Map? atual;
+      for (final item in itens.whereType<Map>()) {
+        final itemId =
+            '${item['id'] ?? item['remessa_id'] ?? item['shipment_id'] ?? item['uuid'] ?? item['codigo'] ?? item['codigo_rastreio'] ?? item['code'] ?? item['tracking_code']}';
+        if (itemId == id || itemId == remessa.codigo) {
+          atual = item;
+          break;
+        }
+      }
+      if (!mounted || atual == null) return;
+      final rawStatus =
+          atual['status'] ?? atual['situacao'] ?? atual['status_name'];
+      final status = rawStatus is Map
+          ? rawStatus['nome'] ?? rawStatus['name'] ?? rawStatus['status']
+          : rawStatus;
+      final progress =
+          atual['progresso'] ?? atual['progress'] ?? atual['percentual'];
+      setState(() {
+        if (status != null) remessa.status = '$status';
+        remessa.progresso = shipmentProgress(
+          status: status ?? remessa.status,
+          apiProgress: progress,
+        );
+      });
+    } catch (_) {
+      // Mantém o último progresso recebido quando não há conexão.
     }
-  }
-
-  void _agendarAtualizacaoEta() {
-    _etaTimer?.cancel();
-    if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
-      return;
-    }
-    _etaTimer = Timer.periodic(_intervaloAtualizacaoEta, (_) {
-      if (mounted) setState(() => _etaFuture = null);
-    });
-  }
-
-  void _etaAtualizadaAoRetomar() {
-    if (mounted && _etaFuture != null) {
-      setState(() => _etaFuture = null);
-    }
-    _agendarAtualizacaoEta();
-  }
-
-  Widget _buildAcoesRapidas() {
-    final status = _normalizarStatusMotorista(remessa.status);
-    final aguardando = {
-      'aguardando coleta',
-      'aguardando retirada',
-      'pending',
-      'pending pickup',
-      'assigned',
-    }.contains(status);
-    final emTransito = _statusTransitoMotorista(status);
-    final podeAtualizar = remessa.disponivel || aguardando || emTransito;
-    final rotuloPrincipal = remessa.disponivel
-        ? 'Aceitar entrega'
-        : emTransito
-        ? 'Concluir entrega'
-        : 'Iniciar entrega';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'A\u00e7\u00f5es r\u00e1pidas',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(minimumSize: const Size(0, 52)),
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => MapaMotoristaPage(
-                      remessaInicial: '${remessa.id ?? remessa.codigo}',
-                    ),
-                  ),
-                ),
-                icon: const Icon(LucideIcons.navigation),
-                label: const Text('Abrir rota'),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(minimumSize: const Size(0, 52)),
-                onPressed: _registrarOcorrencia,
-                icon: const Icon(LucideIcons.octagonAlert),
-                label: const Text('Ocorr\u00eancia'),
-              ),
-            ),
-          ],
-        ),
-        if (podeAtualizar) ...[
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: FilledButton.icon(
-              onPressed: _atualizandoStatus
-                  ? null
-                  : remessa.disponivel
-                  ? _aceitarEntrega
-                  : _avancarStatus,
-              icon: _atualizandoStatus
-                  ? const SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(
-                      remessa.disponivel
-                          ? LucideIcons.circleCheckBig
-                          : emTransito
-                          ? LucideIcons.packageCheck
-                          : LucideIcons.play,
-                    ),
-              label: Text(
-                _atualizandoStatus ? 'Atualizando entrega...' : rotuloPrincipal,
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
   }
 
   Future<void> _ligarSuporte() async {
@@ -2435,7 +2331,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
 
   Future<latlong2.LatLng?> _obterLocalizacaoAtual() async {
     try {
-      final dados = await ApiService.instance.ultimaLocalizacaoPorRemessa(
+      final dados = await _remessaRepository.ultimaLocalizacao(
         remessa.id ?? remessa.codigo,
       );
       final latitude = double.tryParse('${dados['latitude'] ?? dados['lat']}');
@@ -2622,7 +2518,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
     if (localizacao == null) return;
 
     try {
-      final resposta = await ApiService.instance.registrarOcorrenciaRemessa(
+      final resposta = await _remessaRepository.registrarOcorrencia(
         remessa.id ?? remessa.codigo,
         descricao: descricao,
         categoria: '${resultado['categoria']}',
@@ -2664,17 +2560,16 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
 
     setState(() => _atualizandoStatus = true);
     try {
-      final respostaComprovante = await ApiService.instance
-          .registrarComprovanteEntrega(
-            remessa.id ?? remessa.codigo,
-            destinatario: prova.destinatario,
-            assinaturaBase64: prova.assinaturaBase64,
-            fotoBase64: prova.fotoBase64,
-            observacao: prova.observacao,
-            latitude: localizacao.latitude,
-            longitude: localizacao.longitude,
-          );
-      final respostaStatus = await ApiService.instance.atualizarStatusRemessa(
+      final respostaComprovante = await _remessaRepository.registrarComprovante(
+        remessa.id ?? remessa.codigo,
+        destinatario: prova.destinatario,
+        assinaturaBase64: prova.assinaturaBase64,
+        fotoBase64: prova.fotoBase64,
+        observacao: prova.observacao,
+        latitude: localizacao.latitude,
+        longitude: localizacao.longitude,
+      );
+      final respostaStatus = await _remessaRepository.atualizarStatus(
         remessa.id ?? remessa.codigo,
         'Entregue',
       );
@@ -2719,7 +2614,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
     if (_atualizandoStatus) return;
     setState(() => _atualizandoStatus = true);
     try {
-      final resposta = await ApiService.instance.aceitarRemessa(
+      final resposta = await _remessaRepository.aceitar(
         remessa.id ?? remessa.codigo,
       );
       if (!mounted) return;
@@ -2797,7 +2692,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
     }
     setState(() => _atualizandoStatus = true);
     try {
-      final resposta = await ApiService.instance.atualizarStatusRemessa(
+      final resposta = await _remessaRepository.atualizarStatus(
         remessa.id ?? remessa.codigo,
         proximo,
       );
@@ -3322,7 +3217,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
   }
 
   Widget _historicoEntrega() => FutureBuilder<List<dynamic>>(
-    future: ApiService.instance.historicoRemessa(remessa.id ?? remessa.codigo),
+    future: _remessaRepository.historico(remessa.id ?? remessa.codigo),
     builder: (context, snapshot) {
       final eventos = snapshot.data?.whereType<Map>().toList() ?? const <Map>[];
       return Column(

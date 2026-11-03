@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:mobile/app_session.dart';
+import 'package:mobile/core/motorista_repository.dart';
+import 'package:mobile/core/perfil_repository.dart';
 import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/services/api_service.dart';
 import 'package:mobile/sync/location_point.dart' show gerarIdLocal;
@@ -22,6 +24,8 @@ class DocumentosMotoristaPage extends StatefulWidget {
 }
 
 class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
+  final PerfilRepository _perfilRepository = PerfilRepository();
+  final MotoristaRepository _motoristaRepository = MotoristaRepository();
   static const primary = Color(0xFF0C46FF);
   bool _enviando = false;
   bool _carregando = true;
@@ -159,7 +163,7 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
       });
     }
     try {
-      final resposta = await ApiService.instance.documentosMotorista();
+      final resposta = await _motoristaRepository.documentos();
       if (mounted) {
         setState(() {
           _documentosApi = resposta
@@ -176,7 +180,7 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
     }
     try {
       final usuario = ApiService.instance.authUser(
-        await ApiService.instance.me(),
+        ApiService.instance.authData(await _perfilRepository.dados()),
       );
       final motorista = usuario['motorista'] ?? usuario['driver'];
       if (mounted) {
@@ -206,15 +210,36 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
     }
   }
 
-  String _status(String tipo, bool enviado) {
-    final acaoOffline = _acoesOffline
-        .where((acao) => acao.tipo == _tipoAcaoDocumento(tipo))
-        .firstOrNull;
-    if (acaoOffline != null) {
-      return acaoOffline.requerIntervencao
-          ? 'review_required'
-          : 'aguardando_sync';
-    }
+  String _normalizarStatusDocumento(Object? valor) {
+    final status = '${valor ?? ''}'
+        .trim()
+        .toLowerCase()
+        .replaceAll('\u00e1', 'a')
+        .replaceAll('\u00e0', 'a')
+        .replaceAll('\u00e3', 'a')
+        .replaceAll('\u00e2', 'a')
+        .replaceAll('\u00e9', 'e')
+        .replaceAll('\u00ea', 'e')
+        .replaceAll('\u00ed', 'i')
+        .replaceAll('\u00f3', 'o')
+        .replaceAll('\u00f4', 'o')
+        .replaceAll('\u00f5', 'o')
+        .replaceAll('\u00fa', 'u')
+        .replaceAll('\u00e7', 'c')
+        .replaceAll('á', 'a')
+        .replaceAll('ã', 'a')
+        .replaceAll('ç', 'c')
+        .replaceAll('_', ' ')
+        .replaceAll('-', ' ')
+        .replaceAll(RegExp(r'\s+'), ' ');
+    if ({'approved', 'aprovado', 'aprovada', 'valid', 'valido'}.contains(status)) return 'aprovado';
+    if ({'rejected', 'reprovado', 'reprovada', 'recusado', 'rejeitado'}.contains(status)) return 'reprovado';
+    if ({'pending', 'pendente', 'em analise', 'aguardando analise'}.contains(status)) return 'pendente';
+    if ({'expired', 'vencido', 'vencida', 'expirado', 'expirada'}.contains(status)) return 'vencido';
+    return status;
+  }
+
+  String _status(String tipo) {
     Map<String, dynamic>? documento;
     for (final item in _documentosApi) {
       final tipoApi =
@@ -225,28 +250,27 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
         break;
       }
     }
-    final perfilDocumento = _perfilApi[tipo];
     final status =
         documento?['status'] ??
         documento?['situacao'] ??
-        documento?['status_documento'] ??
-        (perfilDocumento is Map
-            ? perfilDocumento['status'] ?? perfilDocumento['situacao']
-            : null) ??
-        _perfilApi['${tipo}_status'] ??
-        _perfilApi['status_$tipo'];
+        documento?['status_documento'];
     final validade = _validade(tipo);
     final dataValidade = DateTime.tryParse(validade) ?? _dataBr(validade);
-    if (dataValidade != null &&
-        DateTime(
-          dataValidade.year,
-          dataValidade.month,
-          dataValidade.day,
-        ).isBefore(DateTime.now())) {
-      return 'expired';
+    if (dataValidade != null) {
+      final hoje = DateTime.now();
+      if (DateTime(dataValidade.year, dataValidade.month, dataValidade.day)
+          .isBefore(DateTime(hoje.year, hoje.month, hoje.day))) {
+        return 'vencido';
+      }
     }
-    if (status != null && '$status'.trim().isNotEmpty) return '$status';
-    return enviado ? 'pendente' : 'não informado';
+    if (status != null && '$status'.trim().isNotEmpty) {
+      final statusNormalizado = _normalizarStatusDocumento(status);
+      if (statusNormalizado == 'aprovado' && validade.isEmpty) {
+        return 'validade pendente';
+      }
+      return statusNormalizado;
+    }
+    return documento == null ? 'não informado' : 'pendente';
   }
 
   String _tipoAcaoDocumento(String tipo) =>
@@ -311,14 +335,12 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
     ];
     if (motivo != null && '$motivo'.trim().isNotEmpty) {
       dados.add('Correção: $motivo');
-    } else if ({'rejected', 'recusado'}.contains(status.toLowerCase())) {
+    } else if (_normalizarStatusDocumento(status) == 'reprovado') {
       dados.add('Envie uma imagem legível e atualizada para nova análise.');
-    } else if ({
-      'expired',
-      'vencido',
-      'expirado',
-    }.contains(status.toLowerCase())) {
+    } else if (_normalizarStatusDocumento(status) == 'vencido') {
       dados.add('Atualize o documento vencido.');
+    } else if (_normalizarStatusDocumento(status) == 'validade pendente') {
+      dados.add('A validade precisa ser informada na análise do documento.');
     }
     return dados.join(' • ');
   }
@@ -338,14 +360,13 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
         return 'Aprovado';
       case 'rejected':
       case 'recusado':
+      case 'reprovado':
         return 'Recusado';
       case 'pending':
       case 'pendente':
         return 'Pendente para an\u00e1lise';
-      case 'aguardando_sync':
-        return 'Aguardando sincroniza\u00e7\u00e3o';
-      case 'review_required':
-        return 'Precisa de revis\u00e3o';
+      case 'validade pendente':
+        return 'Validade pendente';
       case 'expired':
       case 'vencido':
       case 'expirado':
@@ -396,12 +417,6 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
         caminhoArquivo: imagem.path,
       );
       if (!mounted) return;
-      final docs = AppSession.documentosMotorista.value;
-      AppSession.salvarDocumentos(
-        cnh
-            ? docs.copyWith(cnhEnviada: true)
-            : docs.copyWith(crlvEnviado: true),
-      );
       await _carregarDocumentos();
       if (!mounted) return;
       setState(() {});
@@ -510,9 +525,8 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
   );
   @override
   Widget build(BuildContext context) {
-    final docs = AppSession.documentosMotorista.value;
-    final cnhStatus = _status('cnh', docs.cnhEnviada);
-    final crlvStatus = _status('crlv', docs.crlvEnviado);
+    final cnhStatus = _status('cnh');
+    final crlvStatus = _status('crlv');
     String normalizar(String valor) => valor
         .trim()
         .toLowerCase()
@@ -522,18 +536,13 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
     final cnhNormalizada = normalizar(cnhStatus);
     final crlvNormalizada = normalizar(crlvStatus);
     final pendente =
-        {
-          'pendente',
-          'pending',
-          'aguardando_sync',
-          'review_required',
-        }.contains(cnhNormalizada) ||
-        {
-          'pendente',
-          'pending',
-          'aguardando_sync',
-          'review_required',
-        }.contains(crlvNormalizada);
+        {'pendente', 'pending'}.contains(cnhNormalizada) ||
+        {'pendente', 'pending'}.contains(crlvNormalizada);
+    final reprovado =
+        {'reprovado', 'rejected', 'vencido', 'expired', 'validade pendente'}
+            .contains(cnhNormalizada) ||
+        {'reprovado', 'rejected', 'vencido', 'expired', 'validade pendente'}
+            .contains(crlvNormalizada);
     final aprovados = {'aprovado', 'approved', 'valid', 'valido'};
     final regularizada =
         aprovados.contains(cnhNormalizada) &&
@@ -590,10 +599,12 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  pendente
-                                      ? 'Documentos em análise'
-                                      : regularizada
+                                  regularizada
                                       ? 'Documentação regularizada'
+                                      : reprovado
+                                      ? 'Ação necessária'
+                                      : pendente
+                                      ? 'Documentos em análise'
                                       : 'Documentação incompleta',
                                   style: const TextStyle(
                                     color: Colors.white,
@@ -603,11 +614,13 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  pendente
-                                      ? 'Você receberá um aviso após a validação.'
-                                      : regularizada
-                                      ? 'CNH e CRLV aprovados pela API.'
-                                      : 'Confira os status e envie os documentos que faltam.',
+                                  regularizada
+                                      ? 'CNH e CRLV aprovados e dentro da validade.'
+                                      : reprovado
+                                      ? 'Revise o motivo e envie uma nova imagem do documento.'
+                                      : pendente
+                                      ? 'Aguarde a análise dos documentos enviados.'
+                                      : 'Envie CNH e CRLV para iniciar a validação.',
                                   style: const TextStyle(
                                     color: Colors.white70,
                                     fontSize: 11,
@@ -742,10 +755,12 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
     }.contains(normalizado);
     final rejeitado = {
       'rejected',
+      'reprovado',
       'recusado',
       'expired',
       'vencido',
       'expirado',
+      'validade pendente',
     }.contains(normalizado);
     final cor = revisar
         ? Colors.red

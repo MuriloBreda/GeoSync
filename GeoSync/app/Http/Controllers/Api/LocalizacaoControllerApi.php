@@ -59,10 +59,10 @@ class LocalizacaoControllerApi extends Controller
         $remessa = Remessa::with('cliente')->find($remessaId);
 
         if (
-            !$remessa ||
-            !$remessa->cliente ||
-            !$remessa->latitude_destino ||
-            !$remessa->longitude_destino
+            ! $remessa ||
+            ! $remessa->cliente ||
+            ! $remessa->latitude_destino ||
+            ! $remessa->longitude_destino
         ) {
             return ['disponivel' => false];
         }
@@ -78,7 +78,7 @@ class LocalizacaoControllerApi extends Controller
             return [
                 'disponivel' => true,
                 'distancia_metros' => round($distancia, 1),
-                'notificado' => false
+                'notificado' => false,
             ];
         }
 
@@ -86,14 +86,14 @@ class LocalizacaoControllerApi extends Controller
         $marcada = Remessa::whereKey($remessa->id)
             ->whereNull('proximidade_notificada_at')
             ->update([
-                'proximidade_notificada_at' => now()
+                'proximidade_notificada_at' => now(),
             ]);
 
-        if (!$marcada) {
+        if (! $marcada) {
             return [
                 'disponivel' => true,
                 'distancia_metros' => round($distancia, 1),
-                'notificado' => false
+                'notificado' => false,
             ];
         }
 
@@ -106,14 +106,14 @@ class LocalizacaoControllerApi extends Controller
                 'remessa_id' => $remessa->id,
                 'tipo' => 'Proximidade do destino',
                 'mensagem' => 'A remessa está a aproximadamente '
-                    . round($distancia)
-                    . ' metros do destino.',
+                    .round($distancia)
+                    .' metros do destino.',
             ]);
 
             return [
                 'disponivel' => true,
                 'distancia_metros' => round($distancia, 1),
-                'notificado' => true
+                'notificado' => true,
             ];
 
         } catch (\Throwable $e) {
@@ -122,14 +122,14 @@ class LocalizacaoControllerApi extends Controller
             // se o e-mail falhar.
             Remessa::whereKey($remessa->id)
                 ->update([
-                    'proximidade_notificada_at' => null
+                    'proximidade_notificada_at' => null,
                 ]);
 
             Log::warning(
                 'Falha ao enviar alerta de proximidade.',
                 [
                     'remessa_id' => $remessa->id,
-                    'exception' => $e->getMessage()
+                    'exception' => $e->getMessage(),
                 ]
             );
 
@@ -137,7 +137,7 @@ class LocalizacaoControllerApi extends Controller
                 'disponivel' => true,
                 'distancia_metros' => round($distancia, 1),
                 'notificado' => false,
-                'erro_email' => true
+                'erro_email' => true,
             ];
         }
     }
@@ -213,7 +213,7 @@ class LocalizacaoControllerApi extends Controller
         return response()->json([
             'success' => true,
             'data' => $query
-                ->get()
+                ->get(),
         ]);
     }
 
@@ -222,11 +222,33 @@ class LocalizacaoControllerApi extends Controller
      */
     public function porRemessa(int $remessa_id)
     {
-        return $this->index(
-            new Request([
-                'remessa_id' => $remessa_id
-            ])
-        );
+        $localizacoes = DB::table('localizacoes')
+            ->join(
+                'remessas',
+                'localizacoes.remessa_id',
+                '=',
+                'remessas.id'
+            )
+            ->where('localizacoes.remessa_id', $remessa_id)
+            ->select(
+                'localizacoes.id',
+                'localizacoes.latitude',
+                'localizacoes.longitude',
+                'localizacoes.remessa_id',
+                'localizacoes.created_at',
+                'remessas.codigo_rastreio',
+                'remessas.origem',
+                'remessas.destino',
+                'remessas.status'
+            )
+            ->orderBy('localizacoes.created_at')
+            ->orderBy('localizacoes.id')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $localizacoes,
+        ]);
     }
 
     /**
@@ -242,7 +264,7 @@ class LocalizacaoControllerApi extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $localizacao
+            'data' => $localizacao,
         ]);
     }
 }
