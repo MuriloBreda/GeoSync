@@ -9,18 +9,110 @@ class EtaResultado {
     required this.distanciaRestanteKm,
     required this.tempoRestanteMin,
     required this.margemMinutos,
+    this.aproximada = false,
+    this.motivo = '',
   });
 
   final String texto;
   final bool possivelAtraso;
-  final double distanciaRestanteKm;
+  final double? distanciaRestanteKm;
   final int tempoRestanteMin;
   final int margemMinutos;
+  final bool aproximada;
+  final String motivo;
 }
 
 class EtaService {
   static const double _distanciaPadraoKm = 12.0;
   static const double _velocidadePadraoKmh = 18.0;
+  static const double _raioTerraKm = 6371.0;
+
+  static double distanciaKm({
+    required double latitudeInicial,
+    required double longitudeInicial,
+    required double latitudeFinal,
+    required double longitudeFinal,
+  }) {
+    final lat1 = _toRadians(latitudeInicial);
+    final lat2 = _toRadians(latitudeFinal);
+    final deltaLat = _toRadians(latitudeFinal - latitudeInicial);
+    final deltaLon = _toRadians(longitudeFinal - longitudeInicial);
+
+    final a = math.sin(deltaLat / 2) * math.sin(deltaLat / 2) +
+        math.cos(lat1) *
+            math.cos(lat2) *
+            math.sin(deltaLon / 2) *
+            math.sin(deltaLon / 2);
+
+    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    return _raioTerraKm * c;
+  }
+
+  static EtaResultado semCoordenadas(String etaReferencia) {
+    final tempoPlanejadoMin = _parseTempoMin(etaReferencia);
+    return EtaResultado(
+      texto: 'Destino sem coordenadas; ETA indisponível',
+      possivelAtraso: false,
+      distanciaRestanteKm: null,
+      tempoRestanteMin: 0,
+      margemMinutos: math.max(8, (tempoPlanejadoMin * 0.25).round()),
+      aproximada: true,
+      motivo: 'Destino sem coordenadas válidas para estimar linha reta.',
+    );
+  }
+
+  static EtaResultado semPosicao(String etaReferencia) {
+    final tempoPlanejadoMin = _parseTempoMin(etaReferencia);
+    return EtaResultado(
+      texto: 'Posição indisponível; ETA não disponível',
+      possivelAtraso: false,
+      distanciaRestanteKm: null,
+      tempoRestanteMin: 0,
+      margemMinutos: math.max(8, (tempoPlanejadoMin * 0.25).round()),
+      aproximada: true,
+      motivo: 'Posição indisponível para calcular a ETA atual.',
+    );
+  }
+
+  static EtaResultado calcularComDistancia({
+    required double distanciaRestanteKm,
+    required String etaReferencia,
+    List<LocationPoint> pontos = const <LocationPoint>[],
+    DateTime? posicaoEm,
+    required DateTime agora,
+  }) {
+    final tempoPlanejadoMin = _parseTempoMin(etaReferencia);
+    final velocidadeKmh = _velocidadeMediaKmh(pontos);
+    final tempoRestanteMin = distanciaRestanteKm <= 0
+        ? 0
+        : (distanciaRestanteKm / velocidadeKmh * 60).round();
+    final margemMinutos = math.max(8, (tempoPlanejadoMin * 0.25).round());
+    final posicaoAntiga = posicaoEm != null &&
+        agora.difference(posicaoEm).inMinutes > 30;
+    final possivelAtraso = tempoRestanteMin > 0 &&
+        tempoPlanejadoMin > 0 &&
+        tempoRestanteMin > tempoPlanejadoMin + margemMinutos;
+
+    final motivo = posicaoAntiga
+        ? 'Posição desatualizada; ETA baseada no último ponto conhecido.'
+        : 'Estimativa baseada em linha reta e velocidade recente.';
+
+    final texto = possivelAtraso
+        ? '⚠️ Possível atraso • estimativa de $tempoRestanteMin min até a entrega'
+        : distanciaRestanteKm > 0
+            ? 'ETA de $tempoRestanteMin min para atingir o destino'
+            : 'Entrega em andamento';
+
+    return EtaResultado(
+      texto: texto,
+      possivelAtraso: possivelAtraso,
+      distanciaRestanteKm: distanciaRestanteKm,
+      tempoRestanteMin: tempoRestanteMin,
+      margemMinutos: margemMinutos,
+      aproximada: true,
+      motivo: motivo,
+    );
+  }
 
   /// Calcula uma ETA local e detecta atraso provável sem depender de rota
   /// externa. O algoritmo usa a posição atual, a velocidade média recente e o
@@ -42,7 +134,7 @@ class EtaService {
     final velocidadeKmh = _velocidadeMediaKmh(pontos);
     final tempoRestanteMin = distanciaRestanteKm <= 0
         ? 0
-        : ((distanciaRestanteKm / (velocidadeKmh / 3.6)) / 60.0).round();
+        : (distanciaRestanteKm / velocidadeKmh * 60).round();
 
     final tempoPlanejadoMin = _parseTempoMin(etaReferencia);
     final margemMinutos = math.max(8, (tempoPlanejadoMin * 0.25).round());
@@ -50,6 +142,7 @@ class EtaService {
         tempoPlanejadoMin > 0 &&
         tempoRestanteMin > tempoPlanejadoMin + margemMinutos;
 
+    final motivo = 'Estimativa baseada em linha reta e velocidade recente.';
     final texto = _montarTexto(
       distanciaRestanteKm: distanciaRestanteKm,
       tempoRestanteMin: tempoRestanteMin,
@@ -63,6 +156,8 @@ class EtaService {
       distanciaRestanteKm: distanciaRestanteKm,
       tempoRestanteMin: tempoRestanteMin,
       margemMinutos: margemMinutos,
+      aproximada: true,
+      motivo: motivo,
     );
   }
 
@@ -131,7 +226,8 @@ class EtaService {
       return base.round();
     }
 
-    if (base > 23) return base.round();
     return base.round();
   }
+
+  static double _toRadians(double graus) => graus * (math.pi / 180.0);
 }
