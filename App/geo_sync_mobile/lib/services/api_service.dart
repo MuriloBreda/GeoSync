@@ -803,11 +803,22 @@ class ApiService
   @override
   Future<Map<String, dynamic>> ultimaLocalizacaoPorRemessa(
     Object remessaId,
-  ) async => _map(
+  ) async => _unwrapMapEnvelope(
     await _request(
       'GET',
       'localizacao/remessa/$remessaId/ultima',
       authenticated: true,
     ),
   );
+
+  Map<String, dynamic> _unwrapMapEnvelope(dynamic response) {
+    if (response is Map && response['data'] is Map) {
+      return Map<String, dynamic>.from(response['data'] as Map);
+    }
+    return _map(response);
+  }
+
+  @visibleForTesting
+  Map<String, dynamic> unwrapMapEnvelopeForTesting(dynamic response) =>
+      _unwrapMapEnvelope(response);
 }

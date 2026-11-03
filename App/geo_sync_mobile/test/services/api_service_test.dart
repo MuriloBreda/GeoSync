@@ -86,6 +86,28 @@ void main() {
       expect(espera!.inSeconds, inInclusiveRange(0, 45));
     });
   });
+
+  group('Localização IoT response parsing', () {
+    test('unwraps the Laravel data envelope for the latest point', () {
+      expect(
+        api.unwrapMapEnvelopeForTesting({
+          'success': true,
+          'data': {'latitude': -23.5, 'longitude': -46.6},
+        }),
+        {'latitude': -23.5, 'longitude': -46.6},
+      );
+    });
+
+    test('accepts a direct location map for backward compatibility', () {
+      expect(
+        api.unwrapMapEnvelopeForTesting({
+          'latitude': -23.5,
+          'longitude': -46.6,
+        }),
+        {'latitude': -23.5, 'longitude': -46.6},
+      );
+    });
+  });
 }
 
 const _dias = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];

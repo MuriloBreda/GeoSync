@@ -234,6 +234,8 @@ O login OAuth Google e os passos para configurar os IDs de cliente estão descri
 | Motorista | `GET motorista/avisos`, `PATCH motorista/avisos/{id}/lido`, `PATCH motorista/avisos/lidos`, `GET motorista/documentos` |
 | Outros | `alertas`, `avaliacoes`, `contatos` |
 
+`GET localizacao/remessa/{id}` retorna os pontos do histórico em ordem cronológica; `GET localizacao/remessa/{id}/ultima` retorna somente o ponto mais recente dentro de `data`. O cliente Flutter aceita o envelope Laravel e também respostas diretas para manter compatibilidade.
+
 Para a sincronização funcionar bem, recomenda-se que o backend:
 
 - devolva `updated_at` em cada remessa e, se possível, `meta.server_time`, que o app usa como cursor da sincronização incremental;
