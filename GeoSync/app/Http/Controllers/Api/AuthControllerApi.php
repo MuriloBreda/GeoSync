@@ -25,27 +25,7 @@ class AuthControllerApi extends Controller
             'password' => 'required|string|min:6|confirmed',
         ]);
 
-        $user = DB::transaction(function () use ($data) {
-            $payment = null;
-            if ($data['tipo'] === 'cliente') {
-                $payment = Pagamento::whereRaw('LOWER(email) = ?', [$data['email']])
-                    ->where('status', 'Aprovado')->whereNull('user_id')->lockForUpdate()->first();
-
-                if (!$payment) {
-                    throw ValidationException::withMessages([
-                        'email' => 'É necessário ter um pagamento aprovado com este e-mail antes de criar a conta de cliente.',
-                    ]);
-                }
-            }
-
-            $user = User::create([...$data, 'password' => Hash::make($data['password'])]);
-            if ($payment) {
-                $payment->user_id = $user->id;
-                $payment->save();
-            }
-
-            return $user;
-        });
+        $user = User::create([...$data, 'password' => Hash::make($data['password'])]);
 
         return $this->authenticated($user, 201);
     }

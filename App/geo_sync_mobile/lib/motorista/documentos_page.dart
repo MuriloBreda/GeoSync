@@ -1,11 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:mobile/app_session.dart';
 import 'package:mobile/core/motorista_repository.dart';
 import 'package:mobile/core/perfil_repository.dart';
 import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/services/api_service.dart';
+import 'package:mobile/sync/location_point.dart' show gerarIdLocal;
+import 'package:mobile/sync/pending_queue.dart';
+import 'package:mobile/sync/sync_engine.dart';
 import 'package:mobile/widgets/app_gradient_header.dart';
 import 'package:mobile/widgets/responsive_content.dart';
 
@@ -24,12 +31,128 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
   bool _carregando = true;
   List<Map<String, dynamic>> _documentosApi = [];
   Map<String, dynamic> _perfilApi = {};
+  List<PendingAction> _acoesOffline = [];
+  final Map<String, int> _tamanhosPendentes = {};
+  String? _removendoId;
   String? _erro;
 
   @override
   void initState() {
     super.initState();
+    SyncEngine.instance.estado.addListener(_atualizarPendencias);
+    _atualizarPendencias();
     _carregarDocumentos();
+  }
+
+  @override
+  void dispose() {
+    SyncEngine.instance.estado.removeListener(_atualizarPendencias);
+    super.dispose();
+  }
+
+  Future<void> _atualizarPendencias() async {
+    final anteriores = _acoesOffline;
+    final atuais = (await PendingQueue.instance.listar())
+        .where(
+          (acao) =>
+              acao.tipo == TipoAcao.documentoCnh ||
+              acao.tipo == TipoAcao.documentoCrlv,
+        )
+        .toList();
+    final tamanhos = <String, int>{};
+    for (final acao in atuais) {
+      final arquivo = acao.corpo?['caminho_arquivo'];
+      if (arquivo is! String) continue;
+      try {
+        tamanhos[acao.id] = await File(arquivo).length();
+      } on FileSystemException {
+        // Um arquivo ausente fica visível como erro abaixo, sem ocultar a ação.
+      }
+    }
+    if (!mounted) return;
+    setState(() {
+      _acoesOffline = atuais;
+      _tamanhosPendentes
+        ..clear()
+        ..addAll(tamanhos);
+    });
+    final removida = anteriores.any(
+      (anterior) => !atuais.any((atual) => atual.id == anterior.id),
+    );
+    if (removida) await _carregarDocumentos();
+  }
+
+  Future<void> _removerDocumentoPendente(PendingAction acao) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remover envio pendente?'),
+        content: const Text(
+          'A foto salva neste aparelho e a tentativa de envio serão removidas.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Manter'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Remover'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar != true || !mounted) return;
+    setState(() => _removendoId = acao.id);
+    try {
+      final arquivo = acao.corpo?['caminho_arquivo'];
+      await SyncEngine.instance.removerAcaoPendente(acao.id);
+      if (arquivo is String) {
+        try {
+          await File(arquivo).delete();
+        } on FileSystemException {
+          // A fila foi removida; arquivo já ausente não precisa de ação adicional.
+        }
+      }
+      final documentos = AppSession.documentosMotorista.value;
+      AppSession.salvarDocumentos(
+        acao.tipo == TipoAcao.documentoCnh
+            ? documentos.copyWith(cnhEnviada: false)
+            : documentos.copyWith(crlvEnviado: false),
+      );
+      await _atualizarPendencias();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Envio pendente removido do aparelho.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _removendoId = null);
+    }
+  }
+
+  String _formatarTamanho(int? bytes) {
+    if (bytes == null) return 'Arquivo não encontrado';
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
+  }
+
+  Future<void> _tentarDocumento(String tipo) async {
+    final acao = _acoesOffline
+        .where((item) => item.tipo == _tipoAcaoDocumento(tipo))
+        .firstOrNull;
+    if (acao == null) return;
+    try {
+      await SyncEngine.instance.tentarAcaoNovamente(acao.id);
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    }
+    await _atualizarPendencias();
   }
 
   Future<void> _carregarDocumentos() async {
@@ -149,6 +272,9 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
     }
     return documento == null ? 'não informado' : 'pendente';
   }
+
+  String _tipoAcaoDocumento(String tipo) =>
+      tipo == 'cnh' ? TipoAcao.documentoCnh : TipoAcao.documentoCrlv;
 
   DateTime? _dataBr(String valor) {
     final partes = valor.split(RegExp(r'[/.-]'));
@@ -276,12 +402,15 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
   }
 
   Future<void> _enviar(bool cnh) async {
+    String? caminhoImagem;
     try {
       final imagem = await ImagePicker().pickImage(
         source: ImageSource.gallery,
+        maxWidth: 1600,
         imageQuality: 80,
       );
       if (imagem == null || !mounted) return;
+      caminhoImagem = imagem.path;
       setState(() => _enviando = true);
       await ApiService.instance.enviarDocumentoMotorista(
         tipo: cnh ? 'cnh' : 'crlv',
@@ -298,6 +427,63 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
         ),
       );
     } on ApiException catch (error) {
+      if ((error.statusCode == null ||
+              error.statusCode == 429 ||
+              error.statusCode! >= 500) &&
+          mounted &&
+          caminhoImagem != null) {
+        final tipo = cnh ? 'cnh' : 'crlv';
+        final diretorio = await getApplicationDocumentsDirectory();
+        final pasta = Directory(
+          path.join(diretorio.path, 'documentos_pendentes'),
+        );
+        await pasta.create(recursive: true);
+        final id = gerarIdLocal();
+        final extensao = path.extension(caminhoImagem).isEmpty
+            ? '.jpg'
+            : path.extension(caminhoImagem);
+        final copia = await File(
+          caminhoImagem,
+        ).copy(path.join(pasta.path, '$id$extensao'));
+        final tipoAcao = _tipoAcaoDocumento(tipo);
+        final substituidas = (await PendingQueue.instance.listar())
+            .where((acao) => acao.tipo == tipoAcao)
+            .toList();
+        await SyncEngine.instance.registrarRequisicaoOffline(
+          tipo: tipoAcao,
+          metodo: 'POST',
+          caminho: 'motorista/documentos/$tipo',
+          corpo: {'caminho_arquivo': copia.path},
+        );
+        for (final antiga in substituidas) {
+          final caminhoAntigo = antiga.corpo?['caminho_arquivo'];
+          if (caminhoAntigo is String && caminhoAntigo != copia.path) {
+            try {
+              await File(caminhoAntigo).delete();
+            } catch (_) {
+              // A pendência nova já está salva; limpeza é apenas auxiliar.
+            }
+          }
+        }
+        AppSession.salvarDocumentos(
+          cnh
+              ? AppSession.documentosMotorista.value.copyWith(cnhEnviada: true)
+              : AppSession.documentosMotorista.value.copyWith(
+                  crlvEnviado: true,
+                ),
+        );
+        await _atualizarPendencias();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${tipo.toUpperCase()} guardado no aparelho. O envio ser\u00e1 tentado quando a conex\u00e3o voltar.',
+              ),
+            ),
+          );
+        }
+        return;
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -466,6 +652,7 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
                       ),
                     ],
                     _documento(
+                      'cnh',
                       LucideIcons.idCard,
                       'CNH',
                       AppSession.nome.isEmpty ? 'Motorista' : AppSession.nome,
@@ -474,6 +661,7 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
                       () => _enviar(true),
                     ),
                     _documento(
+                      'crlv',
                       LucideIcons.fileText,
                       'Documento do veículo',
                       'CRLV',
@@ -481,6 +669,10 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
                       crlvStatus,
                       () => _enviar(false),
                     ),
+                    if (_acoesOffline.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      _cartaoPendencias(),
+                    ],
                     const SizedBox(height: 24),
                     const Text(
                       'Dados da habilitação',
@@ -539,6 +731,7 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
   }
 
   Widget _documento(
+    String tipo,
     IconData icon,
     String titulo,
     String subtitulo,
@@ -547,13 +740,19 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
     VoidCallback tap,
   ) {
     final normalizado = status.toLowerCase();
+    final revisar = normalizado == 'review_required';
     final aprovado = {
       'approved',
       'aprovado',
       'valid',
       'válido',
     }.contains(normalizado);
-    final pendente = {'pending', 'pendente'}.contains(normalizado);
+    final pendente = {
+      'pending',
+      'pendente',
+      'aguardando_sync',
+      'review_required',
+    }.contains(normalizado);
     final rejeitado = {
       'rejected',
       'reprovado',
@@ -563,14 +762,18 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
       'expirado',
       'validade pendente',
     }.contains(normalizado);
-    final cor = aprovado
+    final cor = revisar
+        ? Colors.red
+        : aprovado
         ? Colors.green
         : pendente
         ? Colors.orange
         : rejeitado
         ? Colors.red
         : Colors.grey;
-    final statusIcone = aprovado
+    final statusIcone = revisar
+        ? LucideIcons.circleAlert
+        : aprovado
         ? LucideIcons.circleCheckBig
         : pendente
         ? LucideIcons.hourglass
@@ -587,7 +790,74 @@ class _DocumentosMotoristaPageState extends State<DocumentosMotoristaPage> {
         ),
         subtitle: Text('$subtitulo\n$detalhe'),
         isThreeLine: true,
-        trailing: Icon(statusIcone, color: cor),
+        trailing:
+            _acoesOffline.any((acao) => acao.tipo == _tipoAcaoDocumento(tipo))
+            ? IconButton(
+                tooltip: 'Tentar sincronizar $tipo novamente',
+                onPressed: () => _tentarDocumento(tipo),
+                icon: Icon(statusIcone, color: cor),
+              )
+            : Icon(statusIcone, color: cor),
+      ),
+    );
+  }
+
+  Widget _cartaoPendencias() {
+    final sincronizando = SyncEngine.instance.estado.value.sincronizando;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 8, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Arquivos aguardando envio',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 4),
+            const Text('Os arquivos ficam no armazenamento privado do app.'),
+            for (final acao in _acoesOffline)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  acao.requerIntervencao
+                      ? LucideIcons.circleAlert
+                      : sincronizando &&
+                            SyncEngine.instance.estado.value.acaoAtualId ==
+                                acao.id
+                      ? LucideIcons.loaderCircle
+                      : LucideIcons.clock3,
+                  color: acao.requerIntervencao ? Colors.deepOrange : primary,
+                ),
+                title: Text(
+                  acao.tipo == TipoAcao.documentoCnh ? 'CNH' : 'CRLV',
+                ),
+                subtitle: Text(
+                  '${_formatarTamanho(_tamanhosPendentes[acao.id])} • '
+                  '${acao.requerIntervencao
+                      ? 'Requer revisão'
+                      : sincronizando
+                      ? 'Sincronizando ou na fila'
+                      : 'Pendente de sincronização'}'
+                  '${acao.ultimoErro == null ? '' : '\n${acao.ultimoErro}'}',
+                ),
+                isThreeLine: acao.ultimoErro != null,
+                trailing: IconButton(
+                  tooltip:
+                      'Remover ${acao.tipo == TipoAcao.documentoCnh ? 'CNH' : 'CRLV'} pendente',
+                  onPressed: sincronizando || _removendoId != null
+                      ? null
+                      : () => _removerDocumentoPendente(acao),
+                  icon: _removendoId == acao.id
+                      ? const SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(LucideIcons.trash2),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

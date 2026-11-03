@@ -22,6 +22,12 @@ Future<void> main() async {
     ApiService.restoreBaseUrl(),
     DataRetentionPolicy.restaurar(),
   ]);
+  // A retenção é aplicada ao iniciar; falhas de limpeza não impedem a abertura.
+  try {
+    await DataRetentionPolicy.aplicar();
+  } catch (_) {
+    // Os dados permanecem preservados e a aplicação segue disponível.
+  }
   runApp(const ProviderScope(child: MyApp()));
   unawaited(validarSessao());
   // Sincroniza dados pendentes em segundo plano.

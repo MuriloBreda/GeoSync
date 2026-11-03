@@ -1,56 +1,39 @@
 (() => {
     'use strict';
+
     const video = document.getElementById('hero-background-video');
-    const button = document.querySelector('.hero-video-toggle');
-    if (!video || !button) return;
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-    const connection = navigator.connection;
-    let userPaused = false;
-    let userStarted = false;
+    if (!video) return;
+
     let visible = true;
     let failed = false;
-    button.hidden = false;
-    const label = () => {
-        button.textContent = video.paused ? 'Reproduzir vídeo de fundo' : 'Pausar vídeo de fundo';
-    };
-    async function sync() {
-        const allowed = userStarted || (!reduced.matches && !connection?.saveData);
-        if (failed || !allowed || userPaused || !visible || document.hidden) {
+
+    async function playWhenReady() {
+        if (failed || !visible || document.hidden) {
             video.pause();
-            label();
             return;
         }
+
         if (!video.getAttribute('src')) video.src = video.dataset.src;
         video.muted = true;
-        try { await video.play(); } catch { /* Keep the poster and the manual play control. */ }
-        label();
-    }
-    button.addEventListener('click', () => {
-        if (!video.paused) {
-            userPaused = true;
-            video.pause();
-        } else {
-            userPaused = false;
-            userStarted = true;
-            sync();
+        try {
+            await video.play();
+        } catch {
+            // Browsers may block autoplay; the muted inline video retries when visible.
         }
-        label();
-    });
-    video.addEventListener('play', label);
-    video.addEventListener('pause', label);
+    }
+
     video.addEventListener('error', () => {
         failed = true;
         video.pause();
-        video.hidden = true;
-        button.hidden = true;
     });
-    reduced.addEventListener('change', () => { userStarted = false; sync(); });
-    connection?.addEventListener('change', sync);
-    document.addEventListener('visibilitychange', sync);
+    document.addEventListener('visibilitychange', playWhenReady);
+
     if ('IntersectionObserver' in window) {
         new IntersectionObserver(entries => {
             visible = entries[0].isIntersecting;
-            sync();
+            playWhenReady();
         }, { threshold: 0 }).observe(video.closest('.hero'));
-    } else sync();
+    } else {
+        playWhenReady();
+    }
 })();

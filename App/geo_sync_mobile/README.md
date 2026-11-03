@@ -88,7 +88,8 @@ As etapas de evolução do app foram concluídas mantendo a arquitetura existent
 
 ### Fase 4 — Otimização de rotas
 - Sugestão offline de ordem por coordenadas geográficas, vizinho mais próximo e refinamento 2-opt; marcada como aproximada quando faltam coordenadas. Distância em linha reta não substitui uma rota por ruas.
-- A estimativa usa a posição atual e coordenadas `latitude`/`longitude` (ou `lat`/`lng`) nas remessas. Para distância e tempo realistas, o backend precisa fornecer matriz de rotas considerando ruas, trânsito e restrições.
+- A ETA por ruas usa a posição IoT recente e o proxy autenticado `POST /api/rotas/estimativa`; o fallback em linha reta continua disponível quando o serviço falha.
+- A otimização de ordem das entregas segue heurística geográfica aproximada e não substitui uma matriz viária completa para múltiplos destinos.
 - Exibição de ordem, distância total, tempo estimado, destino atual e próximo destino.
 - Melhor experiência para o motorista sem trocar a arquitetura atual.
 
@@ -98,7 +99,7 @@ As etapas de evolução do app foram concluídas mantendo a arquitetura existent
 - Gráfico de tendência simples e responsivo, funcionando com dados locais em offline.
 
 ### Observações importantes
-- O backend Laravel real não está presente neste checkout; então qualquer integração com endpoint novo foi tratada com compatibilidade local e sem inventar contratos inexistentes.
+- O backend Laravel está no diretório irmão `GeoSync/`; a estimativa viária usa `POST /api/rotas/estimativa` autenticado.
 - O app continua funcionando de maneira offline-first, com sincronização e fila local preservadas.
 - As mudanças foram feitas de forma incremental, sem reescrever a arquitetura principal do produto.
 
@@ -217,10 +218,10 @@ flutter run --dart-define=API_BASE_URL=http://192.168.0.10:8000/api
 
 ## API esperada (backend)
 
-O arquivo [`openapi.yaml`](openapi.yaml) registra um rascunho do contrato esperado
-para sincronização e autenticação. O teste `test/api_contract_test.dart` confere
-as operações principais do arquivo. O backend Laravel não está neste checkout;
-por isso, compatibilidade real precisa ser validada ao conectar o servidor.
+O arquivo [`openapi.yaml`](openapi.yaml) descreve operações usadas pelo app,
+incluindo a consulta de rota via proxy Laravel. Os testes de integração do app
+exercitam o contrato HTTP local; os testes Laravel do proxy ficam no projeto
+irmão `GeoSync/`.
 
 Principais rotas usadas pelo app (prefixo `/api`, autenticação por `Authorization: Bearer <token>`):
 
@@ -232,6 +233,7 @@ O login OAuth Google e os passos para configurar os IDs de cliente estão descri
 | Remessas | `GET remessas/minhas?updated_since=<ISO-8601>`, `GET remessas/disponiveis`, `POST remessas/{id}/aceitar`, `PATCH remessas/{id}/status`, `GET remessas/{id}/historico` |
 | Localização IoT | `POST localizacao` (módulo IoT), `GET localizacao/remessa/{id}`, `GET localizacao/remessa/{id}/ultima` |
 | Motorista | `GET motorista/avisos`, `PATCH motorista/avisos/{id}/lido`, `PATCH motorista/avisos/lidos`, `GET motorista/documentos` |
+| ETA viária | `POST rotas/estimativa` (Sanctum; chave Google somente no Laravel) |
 | Outros | `alertas`, `avaliacoes`, `contatos` |
 
 `GET localizacao/remessa/{id}` retorna os pontos do histórico em ordem cronológica; `GET localizacao/remessa/{id}/ultima` retorna somente o ponto mais recente dentro de `data`. O cliente Flutter aceita o envelope Laravel e também respostas diretas para manter compatibilidade.
@@ -248,7 +250,7 @@ Para a sincronização funcionar bem, recomenda-se que o backend:
 | Plataforma | Arquivo | Permissões |
 |---|---|---|
 | Android | `android/app/src/main/AndroidManifest.xml` | `INTERNET`, `POST_NOTIFICATIONS` |
-| iOS | `ios/Runner/Info.plist` | Sem permissao de localizacao |
+| iOS | `ios/Runner/Info.plist` | Câmera e biblioteca de fotos; sem permissão de localização do aparelho |
 
 O aplicativo nao solicita permissao de localizacao ao celular; as coordenadas sao fornecidas pelo modulo IoT.
 

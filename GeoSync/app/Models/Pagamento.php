@@ -13,6 +13,10 @@ class Pagamento extends Model
     protected $fillable = [
         'user_id',
         'email',
+        'telefone',
+        'cnpj',
+        'plano',
+        'metodo',
         'valor',
         'status'
     ];

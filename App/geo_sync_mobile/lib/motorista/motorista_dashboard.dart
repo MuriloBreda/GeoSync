@@ -248,6 +248,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _currentIndex = widget.initialIndex.clamp(0, 2).toInt();
     unawaited(SyncEngine.instance.atualizarContadores());
@@ -270,6 +271,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     AppNotificationCenter.instance.detach();
     _novasEntregasTimer?.cancel();
     super.dispose();

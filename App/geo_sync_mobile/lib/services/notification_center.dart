@@ -17,6 +17,8 @@ class AppNotificationCenter with WidgetsBindingObserver {
   final ValueNotifier<int> unreadCount = ValueNotifier<int>(0);
 
   Timer? _timer;
+  Duration _interval = const Duration(seconds: 45);
+  bool _observandoCicloVida = false;
   Future<List<dynamic>> Function()? _fetcher;
   OverlayState? _overlay;
   final Set<String> _seenIds = {};
@@ -38,6 +40,7 @@ class AppNotificationCenter with WidgetsBindingObserver {
     _foreground =
         lifecycleState == null || lifecycleState == AppLifecycleState.resumed;
     _fetcher = fetch;
+    _interval = interval;
     _overlay = Overlay.maybeOf(context, rootOverlay: true);
     _seenIds.clear();
     _primed = false;

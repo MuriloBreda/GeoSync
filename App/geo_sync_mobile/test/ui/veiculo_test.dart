@@ -67,8 +67,9 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('Salvar alterações'));
     await tester.pumpAndSettle();
+    expect(find.textContaining('Dados salvos neste aparelho'), findsOneWidget);
     expect(
-      find.textContaining('Dados salvos neste dispositivo'),
+      find.textContaining('aguardando sincroniza\u00e7\u00e3o'),
       findsOneWidget,
     );
 

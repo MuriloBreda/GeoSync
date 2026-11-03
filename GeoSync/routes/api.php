@@ -65,3 +65,7 @@ Route::get('/localizacao/remessa/{remessa_id}/ultima', [
     'ultimaPorRemessa'
 ]);
 
+
+// A chave Google permanece no servidor; limite por usuário autenticado.
+Route::post('/rotas/estimativa', [RotaControllerApi::class, 'estimar'])
+    ->middleware(['auth:sanctum', 'throttle:20,1']);

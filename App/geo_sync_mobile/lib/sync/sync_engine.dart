@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:mobile/app_session.dart';
@@ -8,6 +10,7 @@ import 'package:mobile/sync/conflict_resolver.dart';
 import 'package:mobile/sync/local_store.dart';
 import 'package:mobile/sync/location_point.dart' show gerarIdLocal;
 import 'package:mobile/sync/pending_queue.dart';
+import 'package:mobile/sync/performance_metrics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Estado observável da sincronização, exibido nas telas.
@@ -19,6 +22,7 @@ class SyncState {
     this.acoesPendentes = 0,
     this.conflitos = 0,
     this.acoesPrecisamIntervencao = 0,
+    this.acaoAtualId,
     this.erro,
   });
 
@@ -27,6 +31,7 @@ class SyncState {
   final int acoesPendentes;
   final int conflitos;
   final int acoesPrecisamIntervencao;
+  final String? acaoAtualId;
   final String? erro;
 
   int get totalPendente => acoesPendentes;
@@ -37,8 +42,10 @@ class SyncState {
     int? acoesPendentes,
     int? conflitos,
     int? acoesPrecisamIntervencao,
+    String? acaoAtualId,
     String? erro,
     bool limparErro = false,
+    bool limparAcaoAtual = false,
   }) => SyncState(
     sincronizando: sincronizando ?? this.sincronizando,
     ultimaSincronizacao: ultimaSincronizacao ?? this.ultimaSincronizacao,
@@ -46,6 +53,7 @@ class SyncState {
     conflitos: conflitos ?? this.conflitos,
     acoesPrecisamIntervencao:
         acoesPrecisamIntervencao ?? this.acoesPrecisamIntervencao,
+    acaoAtualId: limparAcaoAtual ? null : (acaoAtualId ?? this.acaoAtualId),
     erro: limparErro ? null : (erro ?? this.erro),
   );
 }
@@ -58,6 +66,9 @@ class SyncReport {
   int acoesDescartadas = 0;
   int acoesPrecisamIntervencao = 0;
   int conflitos = 0;
+  int duracaoMs = 0;
+  int bytesEnviadosEstimados = 0;
+  int bytesRecebidos = 0;
 
   @override
   String toString() =>
@@ -127,26 +138,65 @@ class SyncEngine {
 
   Future<SyncReport> _sincronizar({required bool forcarCompleta}) async {
     final relatorio = SyncReport();
+    final cronometro = Stopwatch()..start();
+    var sucesso = false;
+    String? erro;
     estado.value = estado.value.copyWith(sincronizando: true, limparErro: true);
     try {
       await _garantirDono();
       final servidor = await _baixar(relatorio, forcarCompleta: forcarCompleta);
       final enviadas = await _enviarPendentes(servidor, relatorio);
+      // Limpa apenas GPS antigo já confirmado pelo servidor; a fila offline
+      // continua intacta para não perder trabalho ainda não enviado.
+      try {
+        await DataRetentionPolicy.aplicar(agora: _relogio(), store: _pontos);
+      } catch (_) {
+        // Retenção é auxiliar e não pode invalidar uma sincronização bem-sucedida.
+      }
       // Busca o resultado das ações enviadas para atualizar o cache.
-      if (enviadas > 0) await _baixar(SyncReport());
+      if (enviadas > 0) await _baixar(relatorio);
 
       final agora = _relogio().toUtc();
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_ultimaKey, agora.toIso8601String());
       estado.value = estado.value.copyWith(ultimaSincronizacao: agora);
+      sucesso = true;
       debugPrint('[Sync] $relatorio');
       return relatorio;
     } on ApiException catch (error) {
+      erro = error.message;
       estado.value = estado.value.copyWith(erro: error.message);
       rethrow;
+    } catch (error) {
+      erro = '$error';
+      estado.value = estado.value.copyWith(
+        erro: 'Falha inesperada na sincronização.',
+      );
+      rethrow;
     } finally {
+      cronometro.stop();
+      relatorio.duracaoMs = cronometro.elapsedMilliseconds;
+      try {
+        await SyncPerformanceStore.instance.registrar(
+          SyncPerformanceMetric(
+            registradaEm: _relogio().toUtc(),
+            duracaoMs: relatorio.duracaoMs,
+            sucesso: sucesso,
+            remessasRecebidas: relatorio.remessasRecebidas,
+            acoesEnviadas: relatorio.acoesEnviadas,
+            bytesEnviadosEstimados: relatorio.bytesEnviadosEstimados,
+            bytesRecebidos: relatorio.bytesRecebidos,
+            erro: erro,
+          ),
+        );
+      } catch (_) {
+        // Uma falha ao registrar métricas não pode interromper a sincronização.
+      }
       await atualizarContadores();
-      estado.value = estado.value.copyWith(sincronizando: false);
+      estado.value = estado.value.copyWith(
+        sincronizando: false,
+        limparAcaoAtual: true,
+      );
     }
   }
 
@@ -238,7 +288,7 @@ class SyncEngine {
     await _cache.gravar(servidor.values.toList());
 
     rel
-      ..remessasRecebidas = recebidas.length
+      ..remessasRecebidas += recebidas.length
       ..incremental = incremental;
     return servidor;
   }
@@ -253,6 +303,7 @@ class SyncEngine {
     final removidas = <String>{};
     final atualizadas = <String, PendingAction>{};
     final remessasRejeitadas = <String>{};
+    final sincronizadas = <PendingAction>[];
     var enviadas = 0;
 
     for (final acao in acoes) {
@@ -275,6 +326,7 @@ class SyncEngine {
       if (acao.tipo == TipoAcao.aceitar && servidor.containsKey(remessa)) {
         // A remessa já aparece como sua: o aceite já foi processado.
         removidas.add(acao.id);
+        sincronizadas.add(acao);
         continue;
       }
 
@@ -300,14 +352,67 @@ class SyncEngine {
       }
 
       try {
-        await _api.requisicao(acao.metodo, acao.caminho, body: acao.corpo);
+        estado.value = estado.value.copyWith(acaoAtualId: acao.id);
+        if ({
+          TipoAcao.documentoCnh,
+          TipoAcao.documentoCrlv,
+        }.contains(acao.tipo)) {
+          final caminhoArquivo = acao.corpo?['caminho_arquivo'];
+          if (caminhoArquivo is! String || caminhoArquivo.isEmpty) {
+            throw const ApiException(
+              'O arquivo do documento não está mais disponível neste aparelho.',
+              statusCode: 422,
+            );
+          }
+          if (!await File(caminhoArquivo).exists()) {
+            throw const ApiException(
+              'O arquivo do documento não está mais disponível neste aparelho.',
+              statusCode: 422,
+            );
+          }
+          rel.bytesEnviadosEstimados += await File(caminhoArquivo).length();
+          final resposta = await _api.enviarDocumentoMotorista(
+            tipo: acao.tipo == TipoAcao.documentoCnh ? 'cnh' : 'crlv',
+            caminhoArquivo: caminhoArquivo,
+          );
+          rel.bytesRecebidos += utf8.encode(jsonEncode(resposta)).length;
+          try {
+            await File(caminhoArquivo).delete();
+          } catch (_) {
+            // O envio foi confirmado; falha ao limpar o arquivo não o repete.
+          }
+        } else {
+          rel.bytesEnviadosEstimados += utf8
+              .encode(jsonEncode(acao.corpo ?? const {}))
+              .length;
+          final resposta = await _api.requisicao(
+            acao.metodo,
+            acao.caminho,
+            body: acao.corpo,
+          );
+          rel.bytesRecebidos += utf8.encode(jsonEncode(resposta)).length;
+        }
         removidas.add(acao.id);
+        sincronizadas.add(acao);
         enviadas++;
-      } on ApiConnectionException {
-        break; // Sem conexão: mantém o restante na fila, na mesma ordem.
+      } on ApiConnectionException catch (error) {
+        atualizadas[acao.id] = acao.comNovaTentativa(
+          agora: agora,
+          erro: error.message,
+        );
+        estado.value = estado.value.copyWith(erro: error.message);
+        break; // Mantém as próximas ações na fila e preserva a ordem.
       } on ApiException catch (error) {
         final codigo = error.statusCode;
-        if (codigo == 401) break;
+        if (codigo == 401) {
+          atualizadas[acao.id] = acao.comNovaTentativa(
+            agora: agora,
+            erro: error.message,
+            espera: const Duration(minutes: 5),
+          );
+          estado.value = estado.value.copyWith(erro: error.message);
+          break;
+        }
         if (codigo != null && codigo >= 400 && codigo < 500 && codigo != 429) {
           // O servidor rejeitou a alteração (ex.: 409 conflito, 404, 422):
           // o estado do servidor prevalece.
@@ -324,6 +429,9 @@ class SyncEngine {
     }
 
     await _fila.concluir(removidas: removidas, atualizadas: atualizadas);
+    if (sincronizadas.isNotEmpty) {
+      await _fila.registrarSincronizadas(sincronizadas, _relogio().toUtc());
+    }
     rel.acoesEnviadas += enviadas;
     return enviadas;
   }
@@ -366,6 +474,36 @@ class SyncEngine {
     await atualizarContadores();
   }
 
+  /// Enfileira chamadas autenticadas sem associação a uma remessa, como o
+  /// salvamento do perfil do veículo. O motor existente cuida das tentativas.
+  Future<void> registrarRequisicaoOffline({
+    required String tipo,
+    required String metodo,
+    required String caminho,
+    required Map<String, dynamic> corpo,
+  }) async {
+    await _garantirDono();
+    await _fila.adicionar(
+      PendingAction(
+        id: gerarIdLocal(),
+        tipo: tipo,
+        metodo: metodo,
+        caminho: caminho,
+        corpo: corpo,
+        criadoEm: _relogio().toUtc(),
+      ),
+    );
+    await atualizarContadores();
+  }
+
+  Future<void> removerAcoesDoTipo(String tipo) async {
+    final acoes = await _fila.listar();
+    for (final acao in acoes.where((item) => item.tipo == tipo)) {
+      await _fila.remover(acao.id);
+    }
+    await atualizarContadores();
+  }
+
   List<Map<String, dynamic>> _aplicarPendentes(
     List<Map<String, dynamic>> servidor,
     List<PendingAction> acoes,
@@ -402,11 +540,29 @@ class SyncEngine {
 
   /// Sincroniza periodicamente e sempre que o app volta ao primeiro plano.
   void iniciarAutomatico() {
+    _ciclo?.dispose();
+    _ciclo = AppLifecycleListener(onStateChange: _aoMudarCicloVida);
+    if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+      _iniciarTimerAutomatico();
+    }
+    unawaited(_carregarEstado().then((_) => _tentar()));
+  }
+
+  void _aoMudarCicloVida(AppLifecycleState estado) {
+    if (estado == AppLifecycleState.resumed) {
+      _iniciarTimerAutomatico();
+      unawaited(_tentar());
+    } else {
+      // O polling de rede para quando a interface fica em segundo plano.
+      // A fila local permanece intacta e será enviada ao retomar o app.
+      _timer?.cancel();
+      _timer = null;
+    }
+  }
+
+  void _iniciarTimerAutomatico() {
     _timer?.cancel();
     _timer = Timer.periodic(intervaloAutomatico, (_) => _tentar());
-    _ciclo?.dispose();
-    _ciclo = AppLifecycleListener(onResume: _tentar);
-    unawaited(_carregarEstado().then((_) => _tentar()));
   }
 
   void pararAutomatico() {
@@ -468,6 +624,17 @@ class SyncEngine {
 
   Future<void> limparDadosLocais() async {
     final prefs = await SharedPreferences.getInstance();
+    for (final acao in await _fila.listar()) {
+      final caminho = acao.corpo?['caminho_arquivo'];
+      if ({TipoAcao.documentoCnh, TipoAcao.documentoCrlv}.contains(acao.tipo) &&
+          caminho is String) {
+        try {
+          await File(caminho).delete();
+        } catch (_) {
+          // A limpeza do perfil local continua mesmo se o arquivo já sumiu.
+        }
+      }
+    }
     for (final chave in [_cursorKey, _completaKey, _ultimaKey, _donoKey]) {
       await prefs.remove(chave);
     }

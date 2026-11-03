@@ -13,6 +13,7 @@ void main() {
     expect(paths['/remessas/{id}/status'], isA<YamlMap>());
     expect(paths['/remessas/{id}/aceitar'], isA<YamlMap>());
     expect(paths['/localizacao'], isA<YamlMap>());
+    expect(paths['/rotas/estimativa'], isA<YamlMap>());
 
     final localizacao = (paths['/localizacao'] as YamlMap)['post'] as YamlMap;
     final responses = localizacao['responses'] as YamlMap;

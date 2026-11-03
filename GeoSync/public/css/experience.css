@@ -17,7 +17,7 @@ body.gs-experience { background: #f7f9fc; }
 .gs-experience .team-card { overflow: hidden; }
 .gs-experience .team-card:hover img { transform: scale(1.035); }
 .gs-experience :focus-visible { outline: 3px solid #3787f5; outline-offset: 5px; }
-.gs-experience #loader { display: none; }
+.gs-experience #loader { display: flex; }
 .gs-experience .hero-anim,.gs-experience .hero-mockup { animation-delay: .1s; }
 .gs-experience .scan-line,.gs-experience .hero-orb,.gs-experience .mockup-chip { animation: none; }
 .gs-experience .scroll-reveal { opacity: 1; translate: none; scale: 1; filter: none; }
@@ -82,7 +82,7 @@ body.gs-experience { background: #f7f9fc; }
 .gs-experience.dark-mode .gs-story--about p { color: #b6c6dd; }
 .gs-experience.alto-contraste .gs-story { background: #000; }
 .gs-experience.alto-contraste .gs-story :is(h2,h3,p,span) { color: #fff; }
-@media (min-width: 900px) and (min-height: 700px) and (prefers-reduced-motion: no-preference) {
+@media (min-width: 900px) and (min-height: 550px) and (prefers-reduced-motion: no-preference) {
     .gs-motion .gs-story { height: 240vh; padding-block: 0; }
     .gs-motion .gs-story-sticky { position: sticky; top: 85px; padding-block: 22px; }
     .gs-motion .gs-story-heading { margin-bottom: 20px; }

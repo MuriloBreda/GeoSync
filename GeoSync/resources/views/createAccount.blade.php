@@ -624,7 +624,7 @@
             <div class="form-header">
                 <div class="mini-title">Cadastro de Usuário</div>
                 <h2>Crie sua conta</h2>
-                <p>{{ $paymentRequired ? 'Para criar sua conta, conclua um pagamento e use o mesmo e-mail informado no checkout.' : 'Pagamento aprovado! Use o mesmo e-mail do checkout para concluir seu cadastro.' }}</p>
+                <p>Crie sua conta gratuitamente para acessar o dashboard e acompanhar suas encomendas.</p>
             </div>
 
             <form action="/register" method="POST" id="registerForm" class="form-grid">
@@ -664,21 +664,12 @@
                             type="email"
                             id="email"
                             name="email"
-                            value="{{ old('email', $paymentEmail) }}"
+                            value="{{ old('email') }}"
                             placeholder="seu.email@empresa.com"
-                            {{ $paymentEmail ? 'readonly' : '' }}
                             required
                         >
                     </div>
                 </div>
-
-                @if($paymentRequired)
-                    <div class="field full" style="color:#b45309;font-size:13px;">
-                        <i class="fas fa-circle-info"></i>
-                        Ainda não encontramos um pagamento aprovado para este e-mail.
-                        <a href="{{ route('pagamento') }}">Ir para pagamento</a>
-                    </div>
-                @endif
 
                 <div class="field full">
                     <label for="tipo">Tipo de Conta</label>
