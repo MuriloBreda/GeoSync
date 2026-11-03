@@ -4,6 +4,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as latlong2;
 import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/services/api_service.dart';
+import 'package:mobile/sync/local_store.dart';
+import 'package:mobile/sync/sync_engine.dart';
 import 'package:mobile/widgets/responsive_content.dart';
 
 class MapaMotoristaPage extends StatefulWidget {
@@ -19,6 +21,8 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
   List<_Remessa> _remessas = [];
   bool _carregandoRemessas = true;
   bool _falhaRemessas = false;
+  bool _dadosDesatualizados = false;
+  DateTime? _ultimaPosicaoEm;
   List<latlong2.LatLng> _pontosIoT = [];
   bool _carregandoRota = false;
   String? _erroRotaIoT;
@@ -48,23 +52,76 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
           .where((r) => r.ativa)
           .toList();
       if (!mounted) return;
-      final codigoSelecionado = remessas.any((r) => r.codigo == _selecionada)
-          ? _selecionada
-          : remessas.isEmpty
-          ? ''
-          : remessas.first.codigo;
+      final solicitada = remessas
+          .where(
+            (r) =>
+                r.codigo == widget.remessaInicial ||
+                r.id?.toString() == widget.remessaInicial,
+          )
+          .firstOrNull;
+      final atual = remessas
+          .where(
+            (r) => r.codigo == _selecionada || r.id?.toString() == _selecionada,
+          )
+          .firstOrNull;
+      final codigoSelecionado =
+          solicitada?.codigo ??
+          atual?.codigo ??
+          (remessas.isEmpty ? '' : remessas.first.codigo);
       setState(() {
         _remessas = remessas;
         _carregandoRemessas = false;
+        _dadosDesatualizados = SyncEngine.instance.estado.value.erro != null;
         _selecionada = codigoSelecionado;
       });
       final selecionada = _remessa;
       if (selecionada != null) await _carregarRotaIoT(selecionada);
     } on ApiException {
+      await _carregarRemessasDoCache();
+    } catch (_) {
+      await _carregarRemessasDoCache();
+    }
+  }
+
+  Future<void> _carregarRemessasDoCache() async {
+    try {
+      final dados = await SyncEngine.instance.remessasLocais();
+      final remessas = dados
+          .map(_Remessa.fromApi)
+          .where((r) => r.ativa)
+          .toList();
+      if (!mounted) return;
+      final solicitada = remessas
+          .where(
+            (r) =>
+                r.codigo == widget.remessaInicial ||
+                r.id?.toString() == widget.remessaInicial,
+          )
+          .firstOrNull;
+      final selecionada = remessas
+          .where(
+            (r) => r.codigo == _selecionada || r.id?.toString() == _selecionada,
+          )
+          .firstOrNull;
+      final codigo =
+          solicitada?.codigo ??
+          selecionada?.codigo ??
+          (remessas.isEmpty ? '' : remessas.first.codigo);
+      setState(() {
+        _remessas = remessas;
+        _selecionada = codigo;
+        _carregandoRemessas = false;
+        _falhaRemessas = remessas.isEmpty;
+        _dadosDesatualizados = remessas.isNotEmpty;
+      });
+      final atual = _remessa;
+      if (atual != null) await _carregarRotaIoT(atual);
+    } catch (_) {
       if (mounted) {
         setState(() {
           _carregandoRemessas = false;
           _falhaRemessas = true;
+          _dadosDesatualizados = true;
         });
       }
     }
@@ -112,20 +169,92 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
           .whereType<latlong2.LatLng>()
           .toList();
       if (!mounted || _remessa?.id?.toString() != remessa.id.toString()) return;
+      final datas = registros
+          .map(
+            (item) => DateTime.tryParse(
+              '${item['registrado_em'] ?? item['created_at'] ?? item['updated_at'] ?? ''}',
+            ),
+          )
+          .whereType<DateTime>()
+          .toList();
       setState(() {
         _pontosIoT = pontos;
+        _ultimaPosicaoEm = datas.isEmpty ? null : datas.last.toLocal();
         _carregandoRota = false;
+        _erroRotaIoT = pontos.isEmpty
+            ? 'Sem posi\u00e7\u00f5es de rastreamento recebidas.'
+            : null;
       });
       if (pontos.isNotEmpty) _mapController.move(pontos.last, 13);
     } on ApiException catch (error) {
-      if (mounted && _remessa?.id?.toString() == remessa.id.toString()) {
+      await _carregarPontosDoCache(remessa, error.message);
+    } catch (error) {
+      await _carregarPontosDoCache(remessa, '$error');
+    }
+  }
+
+  Future<void> _carregarPontosDoCache(_Remessa remessa, String motivo) async {
+    try {
+      final todos = await LocationStore.instance.todos();
+      final pontosLocais = todos
+          .where(
+            (p) =>
+                p.remessaId == remessa.id?.toString() ||
+                p.remessaId == remessa.codigo,
+          )
+          .toList();
+      if (!mounted || _remessa?.codigo != remessa.codigo) return;
+      setState(() {
+        _pontosIoT = pontosLocais
+            .map((p) => latlong2.LatLng(p.latitude, p.longitude))
+            .toList();
+        _ultimaPosicaoEm = pontosLocais.isEmpty
+            ? null
+            : pontosLocais.last.registradoEm.toLocal();
+        _carregandoRota = false;
+        _dadosDesatualizados = true;
+        _erroRotaIoT = pontosLocais.isEmpty
+            ? 'Sem conex\u00e3o: n\u00e3o h\u00e1 posi\u00e7\u00f5es guardadas para esta remessa. $motivo'
+            : 'Sem conex\u00e3o: exibindo a \u00faltima posi\u00e7\u00e3o guardada. $motivo';
+      });
+      if (pontosLocais.isNotEmpty) _mapController.move(_pontosIoT.last, 13);
+    } catch (_) {
+      if (mounted) {
         setState(() {
           _carregandoRota = false;
-          _erroRotaIoT = error.message;
+          _dadosDesatualizados = true;
+          _erroRotaIoT =
+              'Sem conex\u00e3o: n\u00e3o foi poss\u00edvel carregar a \u00faltima posi\u00e7\u00e3o guardada. $motivo';
         });
       }
     }
   }
+
+  String? get _avisoDeAtualidade {
+    if (_dadosDesatualizados) {
+      final ultimaSincronizacao =
+          SyncEngine.instance.estado.value.ultimaSincronizacao;
+      final quando = ultimaSincronizacao == null
+          ? 'A atualiza\u00e7\u00e3o mais recente n\u00e3o est\u00e1 dispon\u00edvel.'
+          : '\u00daltima sincroniza\u00e7\u00e3o: ${_formatarData(ultimaSincronizacao.toLocal())}.';
+      return 'N\u00e3o foi poss\u00edvel atualizar agora. Voc\u00ea pode continuar usando as remessas guardadas. $quando Os tiles do mapa precisam de internet.';
+    }
+    final data = _ultimaPosicaoEm;
+    if (data == null) {
+      if (_pontosIoT.isNotEmpty) {
+        return 'N\u00e3o foi poss\u00edvel confirmar quando a posi\u00e7\u00e3o foi atualizada.';
+      }
+      return null;
+    }
+    if (DateTime.now().difference(data).abs() > const Duration(minutes: 20)) {
+      return 'Posi\u00e7\u00e3o desatualizada. \u00faltima atualiza\u00e7\u00e3o: ${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')} ${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}.';
+    }
+    return null;
+  }
+
+  String _formatarData(DateTime data) =>
+      '${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')} '
+      '${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}';
 
   _Remessa? get _remessa {
     for (final item in _remessas) {
@@ -140,6 +269,114 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
       _pontosIoT = [];
     });
     _carregarRotaIoT(remessa);
+  }
+
+  void _abrirDetalhes(_Remessa item) {
+    showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Entrega ${item.codigo}',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 14),
+            Text('Destino: ${item.destino}'),
+            const SizedBox(height: 8),
+            Text('Status: ${item.status}'),
+            const SizedBox(height: 8),
+            Text('Distância: ${item.distancia}'),
+            const SizedBox(height: 8),
+            Text('Previsão: ${item.previsao}'),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: FilledButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Fechar'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _resumoParadas(_Remessa atual) {
+    final ativas = _remessas.where((item) => item.ativa).toList();
+    final indice = ativas.indexWhere((item) => item.codigo == atual.codigo);
+    final proxima = indice >= 0 && indice + 1 < ativas.length
+        ? ativas[indice + 1]
+        : null;
+    final scheme = Theme.of(context).colorScheme;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Row(
+          children: [
+            Icon(LucideIcons.navigation, color: scheme.primary, size: 20),
+            const SizedBox(width: 9),
+            Expanded(
+              child: Semantics(
+                liveRegion: true,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Destino atual • ${atual.destino}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      proxima == null
+                          ? 'Não há outra parada ativa'
+                          : 'Próximo: ${proxima.destino}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: scheme.onSurfaceVariant,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Ver detalhes da entrega ${atual.codigo}',
+              onPressed: () => _abrirDetalhes(atual),
+              constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+              icon: const Icon(LucideIcons.info),
+            ),
+            if (proxima != null)
+              IconButton(
+                tooltip: 'Ir para a próxima parada: ${proxima.destino}',
+                onPressed: () => _selecionar(proxima),
+                constraints: const BoxConstraints.tightFor(
+                  width: 48,
+                  height: 48,
+                ),
+                icon: const Icon(LucideIcons.arrowRight),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -233,7 +470,7 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: _Mapa(
                 remessa: remessa,
                 controller: _mapController,
@@ -241,6 +478,44 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage> {
                 carregando: _carregandoRota,
                 erro: _erroRotaIoT,
               ),
+            ),
+            if (_avisoDeAtualidade != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Semantics(
+                  container: true,
+                  liveRegion: true,
+                  child: Material(
+                    color: scheme.tertiaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Row(
+                        children: [
+                          Icon(
+                            LucideIcons.cloudOff,
+                            size: 18,
+                            color: scheme.onTertiaryContainer,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _avisoDeAtualidade!,
+                              style: TextStyle(
+                                color: scheme.onTertiaryContainer,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: _resumoParadas(remessa),
             ),
             Expanded(
               child: Container(
@@ -594,9 +869,20 @@ class _Remessa {
           value['codigo'] ??
           value['code'] ??
           value['tracking_code'],
-      latitude: _coordenada(value['latitude'] ?? value['lat']),
+      latitude: _coordenada(
+        value['destino_latitude'] ??
+            value['delivery_latitude'] ??
+            value['latitude_destino'] ??
+            value['latitude'] ??
+            value['lat'],
+      ),
       longitude: _coordenada(
-        value['longitude'] ?? value['lng'] ?? value['lon'],
+        value['destino_longitude'] ??
+            value['delivery_longitude'] ??
+            value['longitude_destino'] ??
+            value['longitude'] ??
+            value['lng'] ??
+            value['lon'],
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/app_session.dart';
 import 'package:mobile/app_theme.dart';
 import 'package:mobile/motorista/configuracoes_page.dart';
+import 'package:mobile/motorista/entrega_page.dart';
 import 'package:mobile/services/api_service.dart';
 import 'package:mobile/sync/pending_queue.dart';
 import 'package:mobile/sync/sync_engine.dart';
@@ -111,6 +112,64 @@ void main() {
     expect(find.text('1 pendente'), findsNothing);
     expect(servidor.remessas['1']!['status'], 'Em rota');
     expect(await tester.runAsync(PendingQueue.instance.contar), 0);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('detail exposes retry and a failed action can be resent', (
+    tester,
+  ) async {
+    await preparar(tester);
+    servidor.respostasForcadas['PATCH remessas/1/status'] = 500;
+    await alterarOffline(tester, 'Em rota');
+    await tester.runAsync(SyncEngine.instance.sincronizar);
+    final falha = (await tester.runAsync(PendingQueue.instance.listar))!.single;
+    expect(falha.ultimoErro, isNotNull);
+    expect(falha.proximaTentativa, isNotNull);
+
+    servidor.respostasForcadas.remove('PATCH remessas/1/status');
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: DetalhesRemessa(
+              remessa: Remessa(
+                codigo: 'GS-1',
+                status: 'Aguardando coleta',
+                origem: 'Centro',
+                destino: 'Rua A',
+                tipo: 'Caixa',
+                peso: '2 kg',
+                eta: '18:00',
+                progresso: 0,
+                id: 1,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    for (var i = 0; i < 20; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.textContaining('Nova tentativa'), findsOneWidget);
+    final retry = find.byTooltip('Tentar novamente: Status: Em rota');
+    await tester.ensureVisible(retry);
+    expect(retry, findsOneWidget);
+    await tester.runAsync(
+      () => SyncEngine.instance.tentarAcaoNovamente(falha.id),
+    );
+    await tester.pump();
+
+    expect(servidor.remessas['1']!['status'], 'Em rota');
+    expect(await tester.runAsync(PendingQueue.instance.contar), 0);
+    final confirmadas = await tester.runAsync(
+      () => PendingQueue.instance.sincronizadasDaRemessa('1'),
+    );
+    expect(confirmadas, isNotEmpty);
     expect(tester.takeException(), isNull);
   });
 

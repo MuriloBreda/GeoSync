@@ -7,6 +7,9 @@ class TipoAcao {
 
   static const status = 'status';
   static const aceitar = 'aceitar';
+  static const perfilVeiculo = 'perfil_veiculo';
+  static const documentoCnh = 'documento_cnh';
+  static const documentoCrlv = 'documento_crlv';
 
   /// Ações gravadas por versões antigas do app, sem metadados.
   static const generica = 'generica';
@@ -140,11 +143,73 @@ class PendingQueue {
   static final instance = PendingQueue();
 
   final JsonListStore _store;
+  final JsonListStore _concluidas = JsonListStore(
+    'motorista_acoes_sincronizadas',
+  );
 
   Future<List<PendingAction>> listar() async =>
       (await _store.ler()).map(PendingAction.fromJson).nonNulls.toList();
 
   Future<int> contar() async => (await _store.ler()).length;
+
+  /// A??es recentes j? aceitas pelo servidor, usadas para mostrar confirma??o
+  /// por tipo de a??o no detalhe da remessa.
+  Future<List<Map<String, dynamic>>> sincronizadasDaRemessa(
+    String remessaId,
+  ) async {
+    final salvas = await _concluidas.ler();
+    final resumo = [for (final item in salvas) _resumoConcluido(item)];
+    if (!_mesmaLista(salvas, resumo)) await _concluidas.gravar(resumo);
+    return resumo
+        .where((item) => item['remessa_id']?.toString() == remessaId)
+        .toList();
+  }
+
+  Map<String, dynamic> _resumoConcluido(Map<String, dynamic> item) {
+    final tipo = item['tipo'];
+    final corpo = item['body'];
+    return {
+      'id': item['id'],
+      'tipo': tipo,
+      'remessa_id': item['remessa_id'],
+      'body': tipo == TipoAcao.status && corpo is Map
+          ? {'status': corpo['status']}
+          : null,
+      'criado_em': item['criado_em'],
+      'sincronizada_em': item['sincronizada_em'],
+    };
+  }
+
+  bool _mesmaLista(
+    List<Map<String, dynamic>> antiga,
+    List<Map<String, dynamic>> nova,
+  ) =>
+      antiga.length == nova.length &&
+      List.generate(antiga.length, (i) {
+        final corpoAntigo = antiga[i]['body'];
+        return antiga[i].keys
+                .toSet()
+                .difference(nova[i].keys.toSet())
+                .isEmpty &&
+            (corpoAntigo == null ||
+                (antiga[i]['tipo'] == TipoAcao.status &&
+                    corpoAntigo is Map &&
+                    corpoAntigo.keys.toSet().difference({'status'}).isEmpty));
+      }).every((igual) => igual);
+
+  Future<void> registrarSincronizadas(
+    Iterable<PendingAction> acoes,
+    DateTime sincronizadaEm,
+  ) => _concluidas.atualizar((itens) {
+    for (final acao in acoes) {
+      itens.removeWhere((item) => item['id'] == acao.id);
+      itens.insert(0, {
+        ..._resumoConcluido(acao.toJson()),
+        'sincronizada_em': sincronizadaEm.toIso8601String(),
+      });
+    }
+    if (itens.length > 100) itens.removeRange(100, itens.length);
+  });
 
   Future<List<PendingAction>> quePrecisamIntervencao() async =>
       (await listar()).where((acao) => acao.requerIntervencao).toList();
@@ -197,6 +262,14 @@ class PendingQueue {
         return;
       }
     }
+    if ({
+      TipoAcao.perfilVeiculo,
+      TipoAcao.documentoCnh,
+      TipoAcao.documentoCrlv,
+    }.contains(acao.tipo)) {
+      // Conserva apenas a versão mais recente do perfil ou documento enviado.
+      itens.removeWhere((item) => item['tipo'] == acao.tipo);
+    }
     itens.add(acao.toJson());
   });
 
@@ -217,7 +290,10 @@ class PendingQueue {
     }
   });
 
-  Future<void> limpar() => _store.gravar([]);
+  Future<void> limpar() async {
+    await _store.gravar([]);
+    await _concluidas.gravar([]);
+  }
 }
 
 /// Registro de um conflito resolvido, exibido ao motorista.

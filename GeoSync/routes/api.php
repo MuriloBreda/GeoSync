@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\ContatoControllerApi;
 use App\Http\Controllers\Api\PagamentoControllerApi;
 use App\Http\Controllers\Api\RemessaControllerApi;
 use App\Http\Controllers\Api\LocalizacaoControllerApi;
+use App\Http\Controllers\Api\RotaControllerApi;
 
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthControllerApi::class, 'register']);
@@ -56,3 +57,7 @@ Route::get('/localizacao/remessa/{remessa_id}/ultima', [
     'ultimaPorRemessa'
 ]);
 
+
+// A chave Google permanece no servidor; limite por usuário autenticado.
+Route::post('/rotas/estimativa', [RotaControllerApi::class, 'estimar'])
+    ->middleware(['auth:sanctum', 'throttle:20,1']);
