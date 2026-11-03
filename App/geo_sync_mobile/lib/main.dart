@@ -6,12 +6,13 @@ import 'package:mobile/app_providers.dart';
 import 'package:mobile/app_theme.dart';
 import 'package:mobile/login_screen.dart';
 import 'package:mobile/app_session.dart';
+import 'package:mobile/core/session_repository.dart';
+import 'package:mobile/core/sync_repository.dart';
 import 'package:mobile/tela_dashboard.dart';
 import 'package:mobile/motorista/motorista_dashboard.dart';
 import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/services/api_service.dart';
 import 'package:mobile/sync/local_store.dart';
-import 'package:mobile/sync/sync_engine.dart';
 import 'package:mobile/widgets/responsive_content.dart';
 
 Future<void> main() async {
@@ -21,16 +22,10 @@ Future<void> main() async {
     ApiService.restoreBaseUrl(),
     DataRetentionPolicy.restaurar(),
   ]);
-  // A retenção é aplicada ao iniciar; falhas de limpeza não impedem a abertura.
-  try {
-    await DataRetentionPolicy.aplicar();
-  } catch (_) {
-    // Os dados permanecem preservados e a aplicação segue disponível.
-  }
   runApp(const ProviderScope(child: MyApp()));
   unawaited(validarSessao());
   // Sincroniza dados pendentes em segundo plano.
-  SyncEngine.instance.iniciarAutomatico();
+  SyncRepository().iniciarAutomatico();
 }
 
 /// Confirma com o servidor que o token salvo ainda é válido e atualiza nome
@@ -42,13 +37,8 @@ Future<void> validarSessao() async {
     final usuario = ApiService.instance.authUser(
       await ApiService.instance.me(),
     );
-    final email = '${usuario['email'] ?? ''}'.trim();
-    final nome = '${usuario['name'] ?? usuario['nome'] ?? ''}'.trim();
-    if (email.isNotEmpty && AppSession.autenticada) {
-      await AppSession.atualizarDadosUsuario(
-        nome: nome.isEmpty ? AppSession.nome : nome,
-        email: email,
-      );
+    if (AppSession.autenticada) {
+      await const SessionRepository().sincronizarDadosLocais({'user': usuario});
     }
   } on ApiException {
     // Sem conexão ou servidor indisponível: mantém a sessão offline.

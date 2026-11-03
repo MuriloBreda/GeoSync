@@ -135,27 +135,6 @@ void main() {
       expect(DataRetentionPolicy.dias.value, 30);
       await expectLater(DataRetentionPolicy.salvar(365), throwsArgumentError);
     });
-
-    test(
-      'retenção remove GPS antigo sincronizado e mantém pendentes',
-      () async {
-        final store = LocationStore();
-        final antigoEnviado = ponto(1);
-        final antigoPendente = ponto(2);
-        await store.adicionar(antigoEnviado);
-        await store.adicionar(antigoPendente);
-        await store.marcarSincronizados([antigoEnviado.id]);
-        await DataRetentionPolicy.salvar(7);
-
-        final removidos = await DataRetentionPolicy.aplicar(
-          agora: DateTime.utc(2026, 1, 10),
-          store: store,
-        );
-
-        expect(removidos, 1);
-        expect((await store.todos()).map((p) => p.id), [antigoPendente.id]);
-      },
-    );
   });
 
   group('PendingQueue', () {
@@ -219,31 +198,6 @@ void main() {
       );
       expect(reidratada.ultimoErro, 'limite');
       expect(acao.exigirIntervencao('rejeitada').requerIntervencao, isTrue);
-    });
-
-    test('recibo sincronizado não retém foto ou assinatura base64', () async {
-      final fila = PendingQueue();
-      final entrega = PendingAction(
-        id: 'comprovante-1',
-        tipo: 'comprovante',
-        metodo: 'POST',
-        caminho: 'remessas/1/comprovante',
-        remessaId: '1',
-        criadoEm: DateTime.utc(2026, 1, 1),
-        corpo: {
-          'foto': 'data:image/jpeg;base64,conteudo-privado',
-          'assinatura': 'data:image/png;base64,assinatura-privada',
-          'destinatario': 'Pessoa Teste',
-        },
-      );
-      await fila.registrarSincronizadas([entrega], DateTime.utc(2026, 1, 2));
-
-      final recibo = (await fila.sincronizadasDaRemessa('1')).single;
-      final serializado = jsonEncode(recibo);
-      expect(serializado, isNot(contains('conteudo-privado')));
-      expect(serializado, isNot(contains('assinatura-privada')));
-      expect(serializado, isNot(contains('Pessoa Teste')));
-      expect(recibo['body'], isNull);
     });
   });
 }

@@ -5,6 +5,9 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mobile/app_session.dart';
+import 'package:mobile/core/api_contracts.dart';
+import 'package:mobile/core/api_error_formatter.dart';
+import 'package:mobile/core/auth_response_parser.dart';
 import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/sync/location_point.dart';
 import 'package:mobile/sync/pending_queue.dart';
@@ -15,7 +18,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 ///
 /// Em celular físico, defina a URL com o IP do computador, por exemplo:
 /// `flutter run --dart-define=API_BASE_URL=http://IP-DO-SERVIDOR:PORTA/api`
-class ApiService {
+class ApiService
+    implements
+        RemessaApiClient,
+        PagamentoApiClient,
+        AvaliacaoApiClient,
+        AlertaApiClient,
+        PerfilApiClient,
+        MotoristaApiClient {
   ApiService._();
 
   static final ApiService instance = ApiService._();
@@ -58,6 +68,7 @@ class ApiService {
     if (uri == null ||
         !uri.hasScheme ||
         uri.host.isEmpty ||
+        uri.userInfo.isNotEmpty ||
         (uri.scheme != 'http' && uri.scheme != 'https') ||
         uri.hasQuery ||
         uri.hasFragment) {
@@ -97,7 +108,6 @@ class ApiService {
         .toList();
     return Uri(
       scheme: base.scheme,
-      userInfo: base.userInfo,
       host: base.host,
       port: base.port,
       pathSegments: [...base.pathSegments, ...endpointSegments],
@@ -121,7 +131,7 @@ class ApiService {
   }) async {
     try {
       final uri = _uri(path, query);
-      debugPrint('[API] $method $uri');
+      debugPrint('[API] $method ${_safeUriForLog(uri)}');
       final request = http.Request(method, uri);
       request.headers.addAll(_headers(authenticated: authenticated));
       if (body != null) request.body = jsonEncode(body);
@@ -145,12 +155,14 @@ class ApiService {
         );
       }
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        debugPrint('[API] $method $uri -> ${response.statusCode}');
+        debugPrint(
+          '[API] $method ${_safeUriForLog(uri)} -> ${response.statusCode}',
+        );
         if (response.statusCode == 401 && authenticated) {
           await AppSession.encerrarSessao();
         }
         throw ApiException(
-          _messageFrom(data, response.statusCode),
+          ApiErrorFormatter.messageFrom(data, response.statusCode),
           statusCode: response.statusCode,
           retryAfter: _retryAfter(response.headers['retry-after']),
         );
@@ -158,8 +170,8 @@ class ApiService {
       return data;
     } on ApiException {
       rethrow;
-    } on http.ClientException catch (error) {
-      debugPrint('[API] connection error: $error');
+    } on http.ClientException {
+      debugPrint('[API] connection error');
       throw ApiConnectionException(
         'Não foi possível acessar $baseUrl. Confirme que o Laravel está em execução e a URL está correta.',
       );
@@ -167,41 +179,20 @@ class ApiService {
       throw ApiConnectionException(
         'O servidor $baseUrl demorou para responder. Verifique a rede e o Laravel.',
       );
-    } catch (error) {
-      debugPrint('[API] unexpected error: $error');
+    } catch (_) {
+      debugPrint('[API] unexpected error');
       throw const ApiException(
         'Não foi possível conectar ao servidor. Verifique a URL da API e sua rede.',
       );
     }
   }
 
-  String _messageFrom(dynamic data, [int? statusCode]) {
-    // Erros internos do servidor (ex.: SQL do Laravel) não devem aparecer
-    // para o usuário: são técnicos e expõem a estrutura do banco. O detalhe
-    // fica no log para depuração.
-    if (statusCode != null && statusCode >= 500) {
-      final detalhe = data is Map ? data['message'] : data;
-      debugPrint('[API] erro $statusCode do servidor: $detalhe');
-      return 'O servidor encontrou um erro ao processar a solicitação. '
-          'Tente novamente mais tarde.';
-    }
-    if (data is Map<String, dynamic>) {
-      if (data['message'] is String) return data['message'] as String;
-      final errors = data['errors'];
-      if (errors is Map) {
-        for (final entry in errors.entries) {
-          final value = entry.value;
-          if (value is List && value.isNotEmpty) {
-            return '${entry.key}: ${value.first}';
-          }
-          if (value is String && value.isNotEmpty) {
-            return '${entry.key}: $value';
-          }
-        }
-      }
-    }
-    return 'Não foi possível concluir a solicitação.';
-  }
+  String _safeUriForLog(Uri uri) => Uri(
+    scheme: uri.scheme,
+    host: uri.host,
+    port: uri.hasPort ? uri.port : null,
+    pathSegments: uri.pathSegments,
+  ).toString();
 
   Duration? _retryAfter(String? value) {
     if (value == null) return null;
@@ -230,58 +221,14 @@ class ApiService {
       response is Map<String, dynamic> ? response : <String, dynamic>{};
 
   /// Normaliza respostas como `{token: ...}` e `{data: {token: ...}}`.
-  Map<String, dynamic> authData(Map<String, dynamic> response) {
-    final data = response['data'];
-    if (data is Map) return Map<String, dynamic>.from(data);
-    return response;
-  }
+  Map<String, dynamic> authData(Map<String, dynamic> response) =>
+      AuthResponseParser.data(response);
 
-  String? authToken(Map<String, dynamic> response) {
-    const tokenKeys = {'token', 'access_token', 'accessToken', 'jwt'};
+  String? authToken(Map<String, dynamic> response) =>
+      AuthResponseParser.token(response);
 
-    String? findToken(dynamic value) {
-      if (value is Map) {
-        for (final key in tokenKeys) {
-          final candidate = value[key];
-          if (candidate is String && candidate.trim().isNotEmpty) {
-            return candidate.trim();
-          }
-        }
-        for (final nested in value.values) {
-          final token = findToken(nested);
-          if (token != null) return token;
-        }
-      }
-      return null;
-    }
-
-    return findToken(response);
-  }
-
-  Map<String, dynamic> authUser(Map<String, dynamic> response) {
-    Map<String, dynamic>? findUser(dynamic value) {
-      if (value is Map) {
-        for (final key in ['user', 'usuario', 'account']) {
-          final candidate = value[key];
-          if (candidate is Map) {
-            return Map<String, dynamic>.from(candidate);
-          }
-        }
-        for (final nested in value.values) {
-          final user = findUser(nested);
-          if (user != null) return user;
-        }
-        if (value.containsKey('email') ||
-            value.containsKey('name') ||
-            value.containsKey('nome')) {
-          return Map<String, dynamic>.from(value);
-        }
-      }
-      return null;
-    }
-
-    return findUser(response) ?? <String, dynamic>{};
-  }
+  Map<String, dynamic> authUser(Map<String, dynamic> response) =>
+      AuthResponseParser.user(response);
 
   List<dynamic> _list(dynamic response) {
     if (response is List) return response;
@@ -373,15 +320,97 @@ class ApiService {
     );
   }
 
+  @override
   Future<Map<String, dynamic>> me() async =>
       _map(await _request('GET', 'auth/me', authenticated: true));
 
+  @override
+  Future<Map<String, dynamic>> atualizarPerfil(
+    Map<String, dynamic> data,
+  ) async =>
+      _map(await _request('PUT', 'perfil', body: data, authenticated: true));
+
+  Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) async =>
+      atualizarPerfil(data);
+
+  @override
   Future<void> logout() async {
     await _request('POST', 'auth/logout', authenticated: true);
   }
 
-  Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) async =>
-      _map(await _request('PUT', 'perfil', body: data, authenticated: true));
+  @override
+  Future<Map<String, dynamic>> uploadFotoPerfil(
+    Uint8List bytes, {
+    String filename = 'perfil.jpg',
+  }) async => await uploadProfilePhoto(bytes, filename: filename);
+
+  Future<Map<String, dynamic>> uploadProfilePhoto(
+    Uint8List bytes, {
+    String filename = 'perfil.jpg',
+  }) async {
+    final request = http.MultipartRequest('POST', _uri('perfil/foto'))
+      ..headers['Accept'] = 'application/json';
+    if (AppSession.token.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer ${AppSession.token}';
+    }
+    request.files.add(
+      http.MultipartFile.fromBytes('foto', bytes, filename: filename),
+    );
+
+    try {
+      final streamed = await request.send().timeout(
+        const Duration(seconds: 30),
+      );
+      final response = await http.Response.fromStream(streamed);
+      dynamic data;
+      if (response.body.isNotEmpty) {
+        try {
+          data = jsonDecode(response.body);
+        } on FormatException {
+          data = response.body;
+        }
+      }
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        if (response.statusCode == 401) await AppSession.encerrarSessao();
+        throw ApiException(
+          ApiErrorFormatter.messageFrom(data, response.statusCode),
+          statusCode: response.statusCode,
+        );
+      }
+      return _map(data);
+    } on ApiException {
+      rethrow;
+    } on http.ClientException {
+      throw ApiConnectionException(
+        'Não foi possível enviar a foto. Verifique sua conexão.',
+      );
+    } on TimeoutException {
+      throw ApiConnectionException(
+        'O envio da foto demorou para responder. Tente novamente.',
+      );
+    }
+  }
+
+  @override
+  Future<void> removerFotoPerfil() async => deleteProfilePhoto();
+
+  Future<void> deleteProfilePhoto() async {
+    await _request('DELETE', 'perfil/foto', authenticated: true);
+  }
+
+  String fotoUrl(String? caminho) {
+    final valor = caminho?.trim() ?? '';
+    if (valor.isEmpty) return '';
+    final recebido = Uri.tryParse(valor);
+    if (recebido != null && recebido.hasScheme) return valor;
+    final base = Uri.parse(_normalizeBaseUrl(baseUrl));
+    final segmentos = [...base.pathSegments];
+    if (segmentos.isNotEmpty && segmentos.last.toLowerCase() == 'api') {
+      segmentos.removeLast();
+    }
+    segmentos.addAll(valor.split('/').where((segmento) => segmento.isNotEmpty));
+    return base.replace(pathSegments: segmentos).toString();
+  }
 
   /// Requisição autenticada genérica, usada pelo motor de sincronização.
   Future<dynamic> requisicao(
@@ -396,6 +425,7 @@ class ApiService {
 
   /// Remessas do motorista. Usa sincronização incremental e, sem internet,
   /// devolve o cache local com as alterações offline já aplicadas.
+  @override
   Future<List<dynamic>> minhasRemessas({bool forceRefresh = false}) async {
     if (!forceRefresh && _cacheValido(_remessasCacheAt, _remessasCache)) {
       return List<dynamic>.from(_remessasCache!);
@@ -409,7 +439,7 @@ class ApiService {
       if ({401, 403}.contains(error.statusCode) || !await sync.possuiCache()) {
         rethrow;
       }
-      debugPrint('[API] usando cache de remessas após falha: ${error.message}');
+      debugPrint('[API] usando cache local de remessas após falha de sync');
     }
     final List<dynamic> remessas = await sync.remessasLocais();
     _remessasCache = List<dynamic>.from(remessas);
@@ -417,8 +447,10 @@ class ApiService {
     return remessas;
   }
 
+  @override
   Future<List<dynamic>> remessasDisponiveis() async =>
       _list(await _request('GET', 'remessas/disponiveis', authenticated: true));
+  @override
   Future<Map<String, dynamic>> aceitarRemessa(Object id) async {
     Map<String, dynamic> resposta;
     try {
@@ -439,6 +471,7 @@ class ApiService {
     return resposta;
   }
 
+  @override
   Future<Map<String, dynamic>> atualizarStatusRemessa(
     Object id,
     String status,
@@ -468,10 +501,12 @@ class ApiService {
     return resposta;
   }
 
+  @override
   Future<List<dynamic>> historicoRemessa(Object id) async => _list(
     await _request('GET', 'remessas/$id/historico', authenticated: true),
   );
 
+  @override
   Future<Map<String, dynamic>> registrarOcorrenciaRemessa(
     Object id, {
     required String descricao,
@@ -517,6 +552,7 @@ class ApiService {
     }
   }
 
+  @override
   Future<Map<String, dynamic>> registrarComprovanteEntrega(
     Object id, {
     required String destinatario,
@@ -571,6 +607,7 @@ class ApiService {
 
   /// Alias compatível com telas legadas; continua usando a rota escopada.
   Future<List<dynamic>> remessas() => remessasAutorizadas();
+  @override
   Future<Map<String, dynamic>> remessa(Object id) async =>
       _map(await _request('GET', 'remessas/$id', authenticated: true));
   Future<Map<String, dynamic>> criarRemessa(Map<String, dynamic> data) async {
@@ -600,6 +637,7 @@ class ApiService {
     _remessasCacheAt = null;
   }
 
+  @override
   Future<List<dynamic>> alertas({bool forceRefresh = false}) async {
     if (!forceRefresh && _cacheValido(_alertasCacheAt, _alertasCache)) {
       return List<dynamic>.from(_alertasCache!);
@@ -627,6 +665,7 @@ class ApiService {
     return resposta;
   }
 
+  @override
   Future<Map<String, dynamic>> atualizarAlerta(
     Object id,
     Map<String, dynamic> data,
@@ -647,31 +686,23 @@ class ApiService {
 
   /// Avisos específicos do motorista. O backend deve retornar uma lista em
   /// `data` ou diretamente, com id, titulo, descricao, lido e created_at.
-  Future<List<dynamic>> avisosMotorista({bool forceRefresh = false}) async {
-    if (!forceRefresh && _cacheValido(_alertasCacheAt, _alertasCache)) {
-      return List<dynamic>.from(_alertasCache!);
-    }
-    final avisos = _list(
-      await _request('GET', 'motorista/avisos', authenticated: true),
-    );
-    _alertasCache = List<dynamic>.from(avisos);
-    _alertasCacheAt = DateTime.now();
-    return avisos;
-  }
+  /// Lista alertas associados Ã s remessas do motorista autenticado.
+  Future<List<dynamic>> avisosMotorista({bool forceRefresh = false}) async =>
+      alertas(forceRefresh: forceRefresh);
 
-  Future<void> marcarAvisoComoLido(Object id) async {
-    await _request('PATCH', 'motorista/avisos/$id/lido', authenticated: true);
-    _alertasCache = null;
-    _alertasCacheAt = null;
-  }
-
-  Future<void> marcarTodosAvisosComoLidos() async {
-    await _request('PATCH', 'motorista/avisos/lidos', authenticated: true);
-    _alertasCache = null;
-    _alertasCacheAt = null;
-  }
+  @override
+  Future<Map<String, dynamic>> atualizarVeiculo(
+    Map<String, dynamic> veiculo,
+  ) async => atualizarPerfil({'veiculo': veiculo});
 
   /// Envia CNH ou CRLV em multipart/form-data.
+  @override
+  Future<Map<String, dynamic>> enviarDocumento({
+    required String tipo,
+    required String caminhoArquivo,
+  }) async =>
+      enviarDocumentoMotorista(tipo: tipo, caminhoArquivo: caminhoArquivo);
+
   Future<Map<String, dynamic>> enviarDocumentoMotorista({
     required String tipo,
     required String caminhoArquivo,
@@ -698,7 +729,7 @@ class ApiService {
           : jsonDecode(response.body);
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw ApiException(
-          _messageFrom(data, response.statusCode),
+          ApiErrorFormatter.messageFrom(data, response.statusCode),
           statusCode: response.statusCode,
           retryAfter: _retryAfter(response.headers['retry-after']),
         );
@@ -706,17 +737,21 @@ class ApiService {
       return _map(data);
     } on ApiException {
       rethrow;
-    } catch (error) {
-      debugPrint('[API] document upload error: $error');
+    } catch (_) {
+      debugPrint('[API] falha no envio de documento');
       throw const ApiConnectionException(
         'Não foi possível enviar o documento.',
       );
     }
   }
 
+  @override
+  Future<List<dynamic>> documentos() async => documentosMotorista();
+
   Future<List<dynamic>> documentosMotorista() async =>
       _list(await _request('GET', 'motorista/documentos', authenticated: true));
 
+  @override
   Future<List<dynamic>> pagamentos({bool forceRefresh = false}) async {
     final cacheAt = _pagamentosCacheAt;
     if (!forceRefresh &&
@@ -745,8 +780,10 @@ class ApiService {
   Future<Map<String, dynamic>> pagamento(Object id) async =>
       _map(await _request('GET', 'pagamentos/$id', authenticated: true));
 
+  @override
   Future<List<dynamic>> avaliacoes() async =>
       _list(await _request('GET', 'avaliacoes', authenticated: true));
+  @override
   Future<Map<String, dynamic>> resumoAvaliacoes() async =>
       _map(await _request('GET', 'avaliacoes/resumo', authenticated: true));
   Future<Map<String, dynamic>> criarAvaliacao(
@@ -755,6 +792,7 @@ class ApiService {
     await _request('POST', 'avaliacoes', body: data, authenticated: true),
   );
 
+  @override
   Future<List<dynamic>> localizacoesPorRemessa(Object remessaId) async => _list(
     await _request(
       'GET',
@@ -762,13 +800,25 @@ class ApiService {
       authenticated: true,
     ),
   );
+  @override
   Future<Map<String, dynamic>> ultimaLocalizacaoPorRemessa(
     Object remessaId,
-  ) async => _map(
+  ) async => _unwrapMapEnvelope(
     await _request(
       'GET',
       'localizacao/remessa/$remessaId/ultima',
       authenticated: true,
     ),
   );
+
+  Map<String, dynamic> _unwrapMapEnvelope(dynamic response) {
+    if (response is Map && response['data'] is Map) {
+      return Map<String, dynamic>.from(response['data'] as Map);
+    }
+    return _map(response);
+  }
+
+  @visibleForTesting
+  Map<String, dynamic> unwrapMapEnvelopeForTesting(dynamic response) =>
+      _unwrapMapEnvelope(response);
 }

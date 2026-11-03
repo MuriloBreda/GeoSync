@@ -6,14 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:latlong2/latlong.dart' as latlong2;
 import 'package:image_picker/image_picker.dart';
+import 'package:mobile/core/remessa_repository.dart';
 import 'package:mobile/services/api_exception.dart';
-import 'package:mobile/services/api_service.dart';
 import 'package:mobile/services/eta_service.dart';
-import 'package:mobile/services/google_routes_service.dart';
-import 'package:mobile/services/offline_position_service.dart';
+import 'package:mobile/services/shipment_progress.dart';
 import 'package:mobile/app_session.dart';
 import 'package:mobile/sync/location_point.dart';
-import 'package:mobile/sync/local_store.dart';
 import 'package:mobile/sync/pending_queue.dart';
 import 'package:mobile/sync/sync_engine.dart';
 import 'package:mobile/widgets/signature_pad.dart';
@@ -36,6 +34,7 @@ class RemessasPage extends StatefulWidget {
 }
 
 class _RemessasPageState extends State<RemessasPage> {
+  final RemessaRepository _remessaRepository = RemessaRepository();
   final TextEditingController _searchController = TextEditingController();
 
   String filtroSelecionado = "Todas";
@@ -81,16 +80,6 @@ class _RemessasPageState extends State<RemessasPage> {
     'out for delivery',
   }.contains(_normalizarStatus(status));
 
-  bool _statusPendente(Object? status) => {
-    'aguardando coleta',
-    'aguardando retirada',
-    'pending',
-    'pending pickup',
-    'assigned',
-    'pendente',
-    'pendentes',
-  }.contains(_normalizarStatus(status));
-
   bool _statusEntregue(Object? status) => {
     'entregue',
     'delivered',
@@ -114,9 +103,6 @@ class _RemessasPageState extends State<RemessasPage> {
       case 'transito':
       case 'em transito':
         return _statusTransito(remessa.status);
-      case 'pendente':
-      case 'pendentes':
-        return _statusPendente(remessa.status);
       case 'entregue':
         return _statusEntregue(remessa.status);
       case 'alerta':
@@ -139,6 +125,8 @@ class _RemessasPageState extends State<RemessasPage> {
   String? _erroDisponiveis;
   bool _apiDisponivel = false;
   bool _dadosDesatualizados = false;
+  Timer? _timerAtualizacao;
+  bool _atualizandoPeriodicamente = false;
   String? get _erroAtual => _modoDisponiveis ? _erroDisponiveis : _erroRemessas;
   List<Remessa> get _listaAtual => _modoDisponiveis ? disponiveis : remessas;
 
@@ -205,6 +193,13 @@ class _RemessasPageState extends State<RemessasPage> {
       setState(() {});
     });
     _carregarRemessas(forceRefresh: true);
+    _timerAtualizacao = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_atualizandoPeriodicamente || !mounted) return;
+      _atualizandoPeriodicamente = true;
+      _carregarRemessas(forceRefresh: true).whenComplete(() {
+        _atualizandoPeriodicamente = false;
+      });
+    });
   }
 
   Future<void> _carregarRemessas({bool forceRefresh = true}) async {
@@ -217,7 +212,7 @@ class _RemessasPageState extends State<RemessasPage> {
     String? erroDisponiveis;
 
     try {
-      dados = (await ApiService.instance.minhasRemessas(
+      dados = (await _remessaRepository.minhas(
         forceRefresh: forceRefresh,
       )).whereType<Map>().map(_remessaFromApi).toList();
     } on ApiException catch (error) {
@@ -227,7 +222,7 @@ class _RemessasPageState extends State<RemessasPage> {
     }
 
     try {
-      vagas = (await ApiService.instance.remessasDisponiveis())
+      vagas = (await _remessaRepository.disponiveis())
           .whereType<Map>()
           .map((item) => _remessaFromApi(item, disponivel: true))
           .toList();
@@ -284,17 +279,12 @@ class _RemessasPageState extends State<RemessasPage> {
     }
 
     final rawProgress = campo(['progresso', 'progress', 'percentual']) ?? 0;
-    final progress = rawProgress is num
-        ? rawProgress.toDouble()
-        : double.tryParse(
-                '$rawProgress'.replaceAll('%', '').replaceAll(',', '.'),
-              ) ??
-              0;
-    final normalizedProgress = progress > 1 ? progress / 100 : progress;
+    final status =
+        '${campo(['status', 'situacao', 'status_name']) ?? 'Status não informado'}';
     return Remessa(
-      codigo: '${campo(['codigo', 'code', 'tracking_code', 'id']) ?? '-'}',
-      status:
-          '${campo(['status', 'situacao', 'status_name']) ?? 'Status não informado'}',
+      codigo:
+          '${campo(['codigo', 'codigo_rastreio', 'code', 'tracking_code', 'id']) ?? '-'}',
+      status: status,
       origem:
           '${campo(['origem', 'origin', 'remetente_endereco', 'pickup_address']) ?? '-'}',
       destino:
@@ -315,26 +305,7 @@ class _RemessasPageState extends State<RemessasPage> {
           'delivery_date',
         ]),
       ),
-      progresso: normalizedProgress.clamp(0.0, 1.0).toDouble(),
-      destinoLatitude: _parseCoordenada(
-        campo([
-          'destino_latitude',
-          'delivery_latitude',
-          'latitude_destino',
-          'latitude',
-          'lat',
-        ]),
-      ),
-      destinoLongitude: _parseCoordenada(
-        campo([
-          'destino_longitude',
-          'delivery_longitude',
-          'longitude_destino',
-          'longitude',
-          'lng',
-          'lon',
-        ]),
-      ),
+      progresso: shipmentProgress(status: status, apiProgress: rawProgress),
       id: campo([
         'id',
         'remessa_id',
@@ -368,13 +339,6 @@ class _RemessasPageState extends State<RemessasPage> {
     );
   }
 
-  double? _parseCoordenada(Object? value) {
-    final numero = value is num
-        ? value.toDouble()
-        : double.tryParse('${value ?? ''}');
-    return numero != null && numero.isFinite ? numero : null;
-  }
-
   DateTime? _parsePrazo(Object? value) {
     if (value == null) return null;
     final texto = '$value'.trim();
@@ -391,6 +355,7 @@ class _RemessasPageState extends State<RemessasPage> {
 
   @override
   void dispose() {
+    _timerAtualizacao?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -437,7 +402,7 @@ class _RemessasPageState extends State<RemessasPage> {
     }
     setState(() {
       remessa.status = novoStatus;
-      remessa.progresso = novoStatus == 'Entregue' ? 1 : remessa.progresso;
+      remessa.progresso = shipmentProgress(status: novoStatus);
     });
   }
 
@@ -620,18 +585,6 @@ class _RemessasPageState extends State<RemessasPage> {
           const SizedBox(height: 16),
 
           _buildResumoRapido(),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: OutlinedButton.icon(
-              onPressed: () => Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const QrRemessaPage())),
-              icon: const Icon(LucideIcons.qrCode),
-              label: const Text('Escanear QR ou abrir código da remessa'),
-            ),
-          ),
         ],
       ),
     );
@@ -1006,11 +959,6 @@ class _RemessasPageState extends State<RemessasPage> {
             quantidade: quantidadePorStatus("Todas"),
           ),
           _filtro(
-            texto: "Pendentes",
-            filtro: "Pendentes",
-            quantidade: quantidadePorStatus("Pendentes"),
-          ),
-          _filtro(
             texto: "Em rota",
             filtro: "Trânsito",
             quantidade: quantidadePorStatus("Trânsito"),
@@ -1216,8 +1164,6 @@ class Remessa {
   final String prioridade;
   final DateTime? prazoEntrega;
   double progresso;
-  final double? destinoLatitude;
-  final double? destinoLongitude;
   final Object? id;
   final bool comOcorrencia;
   bool? comprovanteEnviado;
@@ -1234,8 +1180,6 @@ class Remessa {
     required this.peso,
     required this.eta,
     required this.progresso,
-    this.destinoLatitude,
-    this.destinoLongitude,
     this.distancia = 'Não informado',
     this.id,
     this.prioridade = 'Normal',
@@ -1299,35 +1243,13 @@ class _ComprovanteEntregaDialogState extends State<_ComprovanteEntregaDialog> {
   }
 
   Future<void> _tirarFoto() async {
-    final origem = await showModalBottomSheet<ImageSource>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(LucideIcons.camera),
-              title: const Text('Tirar foto'),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
-            ),
-            ListTile(
-              leading: const Icon(LucideIcons.images),
-              title: const Text('Escolher da galeria'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (origem == null || !mounted) return;
     setState(() => _carregandoFoto = true);
     try {
       final file = await _picker.pickImage(
-        source: origem,
+        source: ImageSource.camera,
         preferredCameraDevice: CameraDevice.rear,
-        maxWidth: 1440,
-        imageQuality: 72,
+        maxWidth: 1600,
+        imageQuality: 80,
       );
       if (file == null) return;
       final bytes = await File(file.path).readAsBytes();
@@ -1337,9 +1259,7 @@ class _ComprovanteEntregaDialogState extends State<_ComprovanteEntregaDialog> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Não foi possível abrir a câmera. Confira a permissão do app; a foto é opcional e você pode tentar novamente.',
-          ),
+          content: Text('Não foi possível capturar a foto do comprovante.'),
         ),
       );
     } finally {
@@ -1392,7 +1312,7 @@ class _ComprovanteEntregaDialogState extends State<_ComprovanteEntregaDialog> {
               TextField(
                 controller: _destinatarioController,
                 decoration: const InputDecoration(
-                  labelText: 'Nome do destinatário (obrigatório)',
+                  labelText: 'Nome do destinatário',
                   hintText: 'Ex.: Maria da Silva',
                 ),
               ),
@@ -1419,13 +1339,7 @@ class _ComprovanteEntregaDialogState extends State<_ComprovanteEntregaDialog> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(LucideIcons.camera),
-                      label: Text(
-                        _carregandoFoto
-                            ? 'Capturando...'
-                            : _fotoBase64 == null
-                            ? 'Foto (opcional)'
-                            : 'Refazer foto',
-                      ),
+                      label: Text(_carregandoFoto ? 'Capturando...' : 'Foto'),
                     ),
                   ),
                 ],
@@ -1466,12 +1380,7 @@ class _ComprovanteEntregaDialogState extends State<_ComprovanteEntregaDialog> {
               ],
               const SizedBox(height: 12),
               const Text(
-                'Campos obrigatórios: nome do destinatário, assinatura e localização IoT. A foto é opcional.',
-                style: TextStyle(fontSize: 12, height: 1.35),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Assinatura do destinatário (obrigatória)',
+                'Assinatura do destinatário',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
@@ -1482,7 +1391,7 @@ class _ComprovanteEntregaDialogState extends State<_ComprovanteEntregaDialog> {
                 child: TextButton.icon(
                   onPressed: () => _signatureController.clear(),
                   icon: const Icon(LucideIcons.trash2),
-                  label: const Text('Limpar assinatura'),
+                  label: const Text('Limpar'),
                 ),
               ),
             ],
@@ -1773,7 +1682,7 @@ class _RemessaCardState extends State<_RemessaCard> {
                   Row(
                     children: [
                       const Text(
-                        "Progresso da entrega",
+                        "Progresso pela etapa",
                         style: TextStyle(
                           color: Color(0xFF94A3B8),
                           fontSize: 9,
@@ -1959,33 +1868,16 @@ class DetalhesRemessa extends StatefulWidget {
 
 class _SincronizacaoDaEntrega extends StatefulWidget {
   const _SincronizacaoDaEntrega({required this.remessaId});
+
   final Object remessaId;
+
   @override
   State<_SincronizacaoDaEntrega> createState() =>
       _SincronizacaoDaEntregaState();
 }
 
 class _SincronizacaoDaEntregaState extends State<_SincronizacaoDaEntrega> {
-  late Future<
-    ({List<PendingAction> pendentes, List<Map<String, dynamic>> concluidas})
-  >
-  _dados = _carregar();
-
-  Future<
-    ({List<PendingAction> pendentes, List<Map<String, dynamic>> concluidas})
-  >
-  _carregar() async {
-    final fila = PendingQueue.instance;
-    final id = widget.remessaId.toString();
-    final pendentes = await fila.listar();
-    final concluidas = await fila.sincronizadasDaRemessa(id);
-    return (
-      pendentes: pendentes
-          .where((a) => a.remessaId == id || a.caminho.contains('/$id/'))
-          .toList(),
-      concluidas: concluidas,
-    );
-  }
+  late Future<List<PendingAction>> _acoes = PendingQueue.instance.listar();
 
   @override
   void initState() {
@@ -2000,89 +1892,55 @@ class _SincronizacaoDaEntregaState extends State<_SincronizacaoDaEntrega> {
   }
 
   void _atualizar() {
-    if (!mounted) return;
-    setState(() {
-      _dados = _carregar();
-    });
+    if (mounted) setState(() => _acoes = PendingQueue.instance.listar());
   }
 
-  Future<void> _tentarNovamente(String id) async {
+  Future<void> _tentarNovamente() async {
     try {
-      await SyncEngine.instance.tentarAcaoNovamente(id);
+      await SyncEngine.instance.sincronizar();
     } catch (_) {
-      // A mensagem detalhada fica persistida na a??o da fila.
+      // O estado detalhado do SyncEngine é exibido no próprio cartão.
     }
     _atualizar();
   }
 
-  String _rotulo(String tipo, Map<String, dynamic>? corpo) {
-    switch (tipo) {
-      case 'comprovante_entrega':
-        return 'Comprovante de entrega';
-      case 'ocorrencia':
-        return 'Ocorr\u00eancia';
-      case 'status':
-        return 'Status: ${corpo?['status'] ?? 'atualizado'}';
-      case 'aceitar':
-        return 'Aceite da entrega';
-      default:
-        return 'Atualiza\u00e7\u00e3o da entrega';
-    }
-  }
-
-  String _hora(Object? valor) {
-    final data = DateTime.tryParse('$valor')?.toLocal();
-    if (data == null) return '';
-    return '${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}';
-  }
-
   @override
-  Widget build(
-    BuildContext context,
-  ) => FutureBuilder<({List<PendingAction> pendentes, List<Map<String, dynamic>> concluidas})>(
-    future: _dados,
+  Widget build(BuildContext context) => FutureBuilder<List<PendingAction>>(
+    future: _acoes,
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return const LinearProgressIndicator(minHeight: 3);
+        return const LinearProgressIndicator();
       }
-      final dados = snapshot.data;
-      final acoes = dados?.pendentes ?? const <PendingAction>[];
-      final concluidas =
-          dados?.concluidas.take(4).toList() ?? const <Map<String, dynamic>>[];
+      final id = widget.remessaId.toString();
+      final acao = snapshot.data
+          ?.where(
+            (item) => item.remessaId == id || item.caminho.contains('/$id/'),
+          )
+          .firstOrNull;
       final sync = SyncEngine.instance.estado.value;
-      final precisaRevisao = acoes.any((a) => a.requerIntervencao);
-      final temErro =
-          acoes.any((a) => a.ultimoErro != null) || sync.erro != null;
-      final pendente = acoes.isNotEmpty;
-      final cor = precisaRevisao || temErro
-          ? Theme.of(context).colorScheme.error
-          : sync.sincronizando || pendente
-          ? const Color(0xFF9A6700)
+      final pendente = acao != null;
+      final precisaIntervencao = acao?.requerIntervencao ?? false;
+      final cor = precisaIntervencao
+          ? const Color(0xFFB42318)
+          : pendente
+          ? const Color(0xFFB7791F)
           : const Color(0xFF15803D);
-      final titulo = precisaRevisao
-          ? 'A\u00e7\u00e3o precisa de revis\u00e3o'
-          : sync.sincronizando
-          ? 'Sincronizando entrega'
-          : temErro
-          ? 'Falha na sincroniza\u00e7\u00e3o'
+      final titulo = precisaIntervencao
+          ? 'Alteração precisa de atenção'
           : pendente
-          ? 'Aguardando sincroniza\u00e7\u00e3o'
-          : concluidas.isNotEmpty
-          ? 'A\u00e7\u00f5es sincronizadas'
-          : 'Sem a\u00e7\u00f5es pendentes';
-      final descricao = precisaRevisao
-          ? 'O servidor recusou uma altera\u00e7\u00e3o. Confira o motivo abaixo; revise os dados antes de tentar novamente.'
-          : sync.sincronizando
-          ? 'As a\u00e7\u00f5es s\u00e3o enviadas em ordem. A que est\u00e1 sendo transmitida aparece marcada abaixo.'
-          : temErro
-          ? sync.erro ??
-                'Uma a\u00e7\u00e3o falhou. Veja o motivo e tente novamente.'
+          ? 'Alteração pendente de sincronização'
+          : 'Sem alterações pendentes';
+      final descricao = precisaIntervencao
+          ? (acao?.ultimoErro ?? 'Revise o conflito antes de sincronizar.')
           : pendente
-          ? '${acoes.length} a\u00e7\u00e3o(\u00f5es) guardada(s) neste aparelho.'
-          : concluidas.isNotEmpty
-          ? 'O servidor confirmou as a\u00e7\u00f5es recentes desta remessa.'
-          : 'As altera\u00e7\u00f5es desta remessa est\u00e3o em dia.';
-
+          ? acao.tentativas == 0
+                ? 'Salva neste aparelho • aguardando conexão para o primeiro envio.'
+                : 'Salva neste aparelho • ${acao.tentativas} tentativa(s) • será reenviada quando houver conexão.'
+          : sync.erro != null
+          ? 'Esta remessa não tem ações pendentes na fila. Última sincronização: ${sync.erro}'
+          : sync.ultimaSincronizacao != null
+          ? 'Sincronizada em ${sync.ultimaSincronizacao!.toLocal().toString().substring(0, 16)}.'
+          : 'Nenhuma alteração desta remessa está aguardando envio.';
       return Container(
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
@@ -2090,285 +1948,107 @@ class _SincronizacaoDaEntregaState extends State<_SincronizacaoDaEntrega> {
           borderRadius: BorderRadius.circular(15),
           border: Border.all(color: cor.withValues(alpha: .25)),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Row(
-              children: [
-                Icon(
-                  precisaRevisao || temErro
-                      ? LucideIcons.triangleAlert
-                      : sync.sincronizando
-                      ? LucideIcons.refreshCw
-                      : pendente
-                      ? LucideIcons.cloudOff
-                      : LucideIcons.cloudCheck,
-                  color: cor,
-                  size: 20,
-                  semanticLabel: titulo,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        titulo,
-                        style: TextStyle(
-                          color: cor,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        descricao,
-                        style: const TextStyle(fontSize: 11, height: 1.3),
-                      ),
-                    ],
-                  ),
-                ),
-                if (sync.sincronizando)
-                  const Padding(
-                    padding: EdgeInsets.all(12),
-                    child: SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+            Icon(
+              precisaIntervencao
+                  ? LucideIcons.triangleAlert
+                  : pendente
+                  ? LucideIcons.cloudOff
+                  : LucideIcons.cloudCheck,
+              color: cor,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    titulo,
+                    style: TextStyle(
+                      color: cor,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12,
                     ),
                   ),
-              ],
+                  const SizedBox(height: 3),
+                  Text(
+                    descricao,
+                    style: const TextStyle(fontSize: 11, height: 1.3),
+                  ),
+                ],
+              ),
             ),
-            for (final acao in acoes) ...[
-              const SizedBox(height: 8),
-              _linhaAcao(
-                titulo: _rotulo(acao.tipo, acao.corpo),
-                icone: acao.requerIntervencao
-                    ? LucideIcons.circleAlert
-                    : sync.acaoAtualId == acao.id
-                    ? LucideIcons.refreshCw
-                    : LucideIcons.clock3,
-                cor: acao.requerIntervencao || acao.ultimoErro != null
-                    ? Theme.of(context).colorScheme.error
-                    : cor,
-                detalhe: acao.requerIntervencao
-                    ? 'Precisa de revis\u00e3o: ${acao.ultimoErro ?? 'verifique os dados'}'
-                    : sync.acaoAtualId == acao.id
-                    ? 'Sincronizando agora'
-                    : acao.proximaTentativa != null &&
-                          acao.proximaTentativa!.isAfter(DateTime.now())
-                    ? 'Nova tentativa autom\u00e1tica \u00e0s ${_hora(acao.proximaTentativa)}. Motivo: ${acao.ultimoErro ?? 'falha tempor\u00e1ria'}'
-                    : acao.ultimoErro != null
-                    ? 'Falha; nova tentativa autom\u00e1tica ser\u00e1 feita. Motivo: ${acao.ultimoErro}'
-                    : acao.tentativas > 0
-                    ? 'Na fila \u2022 ${acao.tentativas} tentativa(s) realizada(s)'
-                    : 'Na fila para envio quando houver conex\u00e3o',
-                acaoId: acao.id,
-                sincronizando: sync.sincronizando,
-                aoTentar: _tentarNovamente,
+            if (pendente)
+              IconButton(
+                tooltip: 'Tentar sincronizar agora',
+                onPressed: sync.sincronizando ? null : _tentarNovamente,
+                icon: sync.sincronizando
+                    ? const SizedBox.square(
+                        dimension: 17,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(LucideIcons.refreshCw, color: cor, size: 18),
               ),
-            ],
-            for (final acao in concluidas) ...[
-              const SizedBox(height: 8),
-              _linhaAcao(
-                titulo: _rotulo(
-                  '${acao['tipo'] ?? ''}',
-                  acao['body'] is Map
-                      ? Map<String, dynamic>.from(acao['body'] as Map)
-                      : null,
-                ),
-                icone: LucideIcons.cloudCheck,
-                cor: const Color(0xFF15803D),
-                detalhe:
-                    'Sincronizada \u00e0s ${_hora(acao['sincronizada_em'])}',
-              ),
-            ],
           ],
         ),
       );
     },
   );
-
-  Widget _linhaAcao({
-    required String titulo,
-    required IconData icone,
-    required Color cor,
-    required String detalhe,
-    String? acaoId,
-    bool sincronizando = false,
-    Future<void> Function(String id)? aoTentar,
-  }) => Row(
-    children: [
-      Icon(icone, size: 16, color: cor, semanticLabel: detalhe),
-      const SizedBox(width: 8),
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              titulo,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-            ),
-            Text(detalhe, style: TextStyle(color: cor, fontSize: 11)),
-          ],
-        ),
-      ),
-      if (acaoId != null)
-        IconButton(
-          tooltip: 'Tentar novamente: $titulo',
-          onPressed: sincronizando ? null : () => aoTentar?.call(acaoId),
-          constraints: const BoxConstraints.tightFor(width: 48, height: 48),
-          icon: sincronizando
-              ? const SizedBox.square(
-                  dimension: 17,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Icon(LucideIcons.refreshCw, color: cor, size: 18),
-        ),
-    ],
-  );
 }
 
 class _DetalhesRemessaState extends State<DetalhesRemessa> {
-  static final _rotasGoogle = GoogleRoutesService();
-  static const _intervaloAtualizacaoEta = Duration(minutes: 5);
+  final RemessaRepository _remessaRepository = RemessaRepository();
   Remessa get remessa => widget.remessa;
   bool _atualizandoStatus = false;
-  Future<EtaResultado>? _etaFuture;
-  Timer? _etaTimer;
-  AppLifecycleListener? _cicloVidaEta;
+  Timer? _timerProgresso;
 
   @override
   void initState() {
     super.initState();
-    _cicloVidaEta = AppLifecycleListener(onStateChange: _aoMudarCicloVida);
-    _agendarAtualizacaoEta();
-  }
-
-  @override
-  void didUpdateWidget(covariant DetalhesRemessa oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.remessa.id != remessa.id ||
-        oldWidget.remessa.destinoLatitude != remessa.destinoLatitude ||
-        oldWidget.remessa.destinoLongitude != remessa.destinoLongitude) {
-      _etaFuture = null;
-    }
+    _timerProgresso = Timer.periodic(const Duration(seconds: 30), (_) {
+      _atualizarProgresso();
+    });
   }
 
   @override
   void dispose() {
-    _etaTimer?.cancel();
-    _cicloVidaEta?.dispose();
+    _timerProgresso?.cancel();
     super.dispose();
   }
 
-  void _aoMudarCicloVida(AppLifecycleState estado) {
-    if (estado == AppLifecycleState.resumed) {
-      _etaAtualizadaAoRetomar();
-    } else {
-      _etaTimer?.cancel();
-      _etaTimer = null;
+  Future<void> _atualizarProgresso() async {
+    try {
+      final itens = await RemessaRepository().minhas(forceRefresh: true);
+      final id = '${remessa.id ?? remessa.codigo}';
+      Map? atual;
+      for (final item in itens.whereType<Map>()) {
+        final itemId =
+            '${item['id'] ?? item['remessa_id'] ?? item['shipment_id'] ?? item['uuid'] ?? item['codigo'] ?? item['codigo_rastreio'] ?? item['code'] ?? item['tracking_code']}';
+        if (itemId == id || itemId == remessa.codigo) {
+          atual = item;
+          break;
+        }
+      }
+      if (!mounted || atual == null) return;
+      final rawStatus =
+          atual['status'] ?? atual['situacao'] ?? atual['status_name'];
+      final status = rawStatus is Map
+          ? rawStatus['nome'] ?? rawStatus['name'] ?? rawStatus['status']
+          : rawStatus;
+      final progress =
+          atual['progresso'] ?? atual['progress'] ?? atual['percentual'];
+      setState(() {
+        if (status != null) remessa.status = '$status';
+        remessa.progresso = shipmentProgress(
+          status: status ?? remessa.status,
+          apiProgress: progress,
+        );
+      });
+    } catch (_) {
+      // Mantém o último progresso recebido quando não há conexão.
     }
-  }
-
-  void _agendarAtualizacaoEta() {
-    _etaTimer?.cancel();
-    if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
-      return;
-    }
-    _etaTimer = Timer.periodic(_intervaloAtualizacaoEta, (_) {
-      if (mounted) setState(() => _etaFuture = null);
-    });
-  }
-
-  void _etaAtualizadaAoRetomar() {
-    if (mounted && _etaFuture != null) {
-      setState(() => _etaFuture = null);
-    }
-    _agendarAtualizacaoEta();
-  }
-
-  Widget _buildAcoesRapidas() {
-    final status = _normalizarStatusMotorista(remessa.status);
-    final aguardando = {
-      'aguardando coleta',
-      'aguardando retirada',
-      'pending',
-      'pending pickup',
-      'assigned',
-    }.contains(status);
-    final emTransito = _statusTransitoMotorista(status);
-    final podeAtualizar = remessa.disponivel || aguardando || emTransito;
-    final rotuloPrincipal = remessa.disponivel
-        ? 'Aceitar entrega'
-        : emTransito
-        ? 'Concluir entrega'
-        : 'Iniciar entrega';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'A\u00e7\u00f5es r\u00e1pidas',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(minimumSize: const Size(0, 52)),
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => MapaMotoristaPage(
-                      remessaInicial: '${remessa.id ?? remessa.codigo}',
-                    ),
-                  ),
-                ),
-                icon: const Icon(LucideIcons.navigation),
-                label: const Text('Abrir rota'),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(minimumSize: const Size(0, 52)),
-                onPressed: _registrarOcorrencia,
-                icon: const Icon(LucideIcons.octagonAlert),
-                label: const Text('Ocorr\u00eancia'),
-              ),
-            ),
-          ],
-        ),
-        if (podeAtualizar) ...[
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: FilledButton.icon(
-              onPressed: _atualizandoStatus
-                  ? null
-                  : remessa.disponivel
-                  ? _aceitarEntrega
-                  : _avancarStatus,
-              icon: _atualizandoStatus
-                  ? const SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(
-                      remessa.disponivel
-                          ? LucideIcons.circleCheckBig
-                          : emTransito
-                          ? LucideIcons.packageCheck
-                          : LucideIcons.play,
-                    ),
-              label: Text(
-                _atualizandoStatus ? 'Atualizando entrega...' : rotuloPrincipal,
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
   }
 
   Future<void> _ligarSuporte() async {
@@ -2435,7 +2115,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
 
   Future<latlong2.LatLng?> _obterLocalizacaoAtual() async {
     try {
-      final dados = await ApiService.instance.ultimaLocalizacaoPorRemessa(
+      final dados = await _remessaRepository.ultimaLocalizacao(
         remessa.id ?? remessa.codigo,
       );
       final latitude = double.tryParse('${dados['latitude'] ?? dados['lat']}');
@@ -2452,11 +2132,6 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
       }
       return latlong2.LatLng(latitude, longitude);
     } on ApiException catch (error) {
-      final ponto = await _ultimaPosicaoLocal();
-      if (ponto != null) {
-        _avisarPosicaoEmCache(ponto);
-        return latlong2.LatLng(ponto.latitude, ponto.longitude);
-      }
       if (!mounted) return null;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -2467,46 +2142,16 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
       );
       return null;
     } on FormatException {
-      final ponto = await _ultimaPosicaoLocal();
-      if (ponto != null) {
-        _avisarPosicaoEmCache(ponto);
-        return latlong2.LatLng(ponto.latitude, ponto.longitude);
-      }
       if (!mounted) return null;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'O módulo IoT ainda não enviou uma localização válida. Confira se ele está ligado, aguarde uma nova posição e tente novamente.',
+            'O módulo IoT ainda não enviou uma localização válida para esta remessa.',
           ),
         ),
       );
       return null;
     }
-  }
-
-  Future<LocationPoint?> _ultimaPosicaoLocal() async {
-    try {
-      final remessaId = (remessa.id ?? remessa.codigo).toString();
-      final pontos = await LocationStore.instance.todos();
-      return OfflinePositionService.maisRecente(
-        pontos: pontos,
-        remessaId: remessaId,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-
-  void _avisarPosicaoEmCache(LocationPoint ponto) {
-    if (!mounted) return;
-    final hora = ponto.registradoEm.toLocal();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'API indisponivel. Usando posicao guardada de ${hora.hour.toString().padLeft(2, '0')}:${hora.minute.toString().padLeft(2, '0')}; ela pode nao ser a posicao atual.',
-        ),
-      ),
-    );
   }
 
   Future<void> _registrarOcorrencia() async {
@@ -2622,7 +2267,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
     if (localizacao == null) return;
 
     try {
-      final resposta = await ApiService.instance.registrarOcorrenciaRemessa(
+      final resposta = await _remessaRepository.registrarOcorrencia(
         remessa.id ?? remessa.codigo,
         descricao: descricao,
         categoria: '${resultado['categoria']}',
@@ -2664,17 +2309,16 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
 
     setState(() => _atualizandoStatus = true);
     try {
-      final respostaComprovante = await ApiService.instance
-          .registrarComprovanteEntrega(
-            remessa.id ?? remessa.codigo,
-            destinatario: prova.destinatario,
-            assinaturaBase64: prova.assinaturaBase64,
-            fotoBase64: prova.fotoBase64,
-            observacao: prova.observacao,
-            latitude: localizacao.latitude,
-            longitude: localizacao.longitude,
-          );
-      final respostaStatus = await ApiService.instance.atualizarStatusRemessa(
+      final respostaComprovante = await _remessaRepository.registrarComprovante(
+        remessa.id ?? remessa.codigo,
+        destinatario: prova.destinatario,
+        assinaturaBase64: prova.assinaturaBase64,
+        fotoBase64: prova.fotoBase64,
+        observacao: prova.observacao,
+        latitude: localizacao.latitude,
+        longitude: localizacao.longitude,
+      );
+      final respostaStatus = await _remessaRepository.atualizarStatus(
         remessa.id ?? remessa.codigo,
         'Entregue',
       );
@@ -2719,7 +2363,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
     if (_atualizandoStatus) return;
     setState(() => _atualizandoStatus = true);
     try {
-      final resposta = await ApiService.instance.aceitarRemessa(
+      final resposta = await _remessaRepository.aceitar(
         remessa.id ?? remessa.codigo,
       );
       if (!mounted) return;
@@ -2797,7 +2441,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
     }
     setState(() => _atualizandoStatus = true);
     try {
-      final resposta = await ApiService.instance.atualizarStatusRemessa(
+      final resposta = await _remessaRepository.atualizarStatus(
         remessa.id ?? remessa.codigo,
         proximo,
       );
@@ -2913,8 +2557,6 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
               const SizedBox(height: 25),
 
               _SincronizacaoDaEntrega(remessaId: remessa.id ?? remessa.codigo),
-              const SizedBox(height: 16),
-              _buildAcoesRapidas(),
 
               if (remessa.comprovanteEnviado != null) ...[
                 const SizedBox(height: 8),
@@ -2949,14 +2591,26 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
 
               const SizedBox(height: 22),
 
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _ligarSuporte,
-                  icon: const Icon(LucideIcons.headset),
-                  label: const Text('Falar com o suporte'),
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _ligarSuporte,
+                      icon: const Icon(LucideIcons.headset),
+                      label: const Text('Suporte'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _registrarOcorrencia,
+                      icon: const Icon(LucideIcons.octagonAlert),
+                      label: const Text('Ocorrência'),
+                    ),
+                  ),
+                ],
               ),
+
               const SizedBox(height: 22),
 
               _historicoEntrega(),
@@ -3046,7 +2700,62 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
 
               const SizedBox(height: 18),
 
-              const SizedBox(height: 8),
+              if (remessa.disponivel) ...[
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: FilledButton.icon(
+                    onPressed: _atualizandoStatus ? null : _aceitarEntrega,
+                    icon: _atualizandoStatus
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(LucideIcons.circleCheckBig),
+                    label: const Text('Aceitar entrega'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ] else if ({
+                'aguardando coleta',
+                'aguardando retirada',
+                'pending',
+                'pending pickup',
+                'assigned',
+                'em rota',
+                'em transito',
+                'em deslocamento',
+                'saiu para entrega',
+                'in transit',
+                'in progress',
+                'out for delivery',
+              }.contains(_normalizarStatusMotorista(remessa.status))) ...[
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: FilledButton.icon(
+                    onPressed: _atualizandoStatus ? null : _avancarStatus,
+                    icon: _atualizandoStatus
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            _statusTransitoMotorista(remessa.status)
+                                ? LucideIcons.circleCheckBig
+                                : LucideIcons.play,
+                          ),
+                    label: Text(
+                      _statusTransitoMotorista(remessa.status)
+                          ? 'Marcar como entregue'
+                          : 'Iniciar entrega',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
 
               SizedBox(
                 width: double.infinity,
@@ -3067,6 +2776,36 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
                 ),
               ),
               const SizedBox(height: 12),
+
+              // BOTÃO MAPA
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MapaMotoristaPage(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(LucideIcons.map, size: 20),
+                  label: const Text(
+                    "Acompanhar no mapa",
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0B2A4A),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -3074,217 +2813,83 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
     );
   }
 
-  Future<EtaResultado> _calcularEta() async {
-    final destinoLat = remessa.destinoLatitude;
-    final destinoLon = remessa.destinoLongitude;
-    if (destinoLat == null ||
-        destinoLon == null ||
-        destinoLat < -90 ||
-        destinoLat > 90 ||
-        destinoLon < -180 ||
-        destinoLon > 180) {
-      return EtaService.semCoordenadas(remessa.eta);
-    }
-
-    final id = '${remessa.id ?? remessa.codigo}';
-    Map<String, dynamic>? atual;
-    try {
-      atual = await ApiService.instance.ultimaLocalizacaoPorRemessa(id);
-    } on ApiException {
-      // Usa a ?ltima posi??o local da mesma remessa se estiver dispon?vel.
-    } catch (_) {
-      // O cart?o informa que a estimativa ? aproximada quando a rede falha.
-    }
-
-    final locais = (await LocationStore.instance.todos())
-        .where((p) => p.remessaId == id)
-        .toList();
-    double? latitude;
-    double? longitude;
-    DateTime? posicaoEm;
-    double? velocidade;
-    if (atual != null) {
-      latitude = _numeroCoordenada(atual['latitude'] ?? atual['lat']);
-      longitude = _numeroCoordenada(
-        atual['longitude'] ?? atual['lng'] ?? atual['lon'],
-      );
-      posicaoEm = DateTime.tryParse(
-        '${atual['registrado_em'] ?? atual['updated_at'] ?? atual['created_at'] ?? atual['timestamp'] ?? ''}',
-      )?.toLocal();
-      velocidade = _numeroCoordenada(atual['velocidade'] ?? atual['speed']);
-    }
-    final ultimaLocal = locais.isEmpty ? null : locais.last;
-    final localMaisRecente =
-        ultimaLocal != null &&
-        (posicaoEm == null ||
-            ultimaLocal.registradoEm.isAfter(posicaoEm.toUtc()));
-    if (ultimaLocal != null &&
-        (!_coordenadasValidas(latitude, longitude) || localMaisRecente)) {
-      final ultimo = ultimaLocal;
-      latitude = ultimo.latitude;
-      longitude = ultimo.longitude;
-      posicaoEm = ultimo.registradoEm.toLocal();
-      velocidade = ultimo.velocidade;
-    }
-    if (!_coordenadasValidas(latitude, longitude)) {
-      return EtaService.semPosicao(remessa.eta);
-    }
-
-    final instante = DateTime.now();
-    final recentes = locais
-        .where(
-          (p) =>
-              instante.difference(p.registradoEm.toLocal()).abs() <=
-              const Duration(minutes: 30),
-        )
-        .toList();
-    if (velocidade != null && posicaoEm != null) {
-      recentes.add(
-        LocationPoint.capturado(
-          remessaId: id,
-          latitude: latitude!,
-          longitude: longitude!,
-          registradoEm: posicaoEm,
-          velocidade: velocidade,
-        ),
-      );
-    }
-    final distancia = EtaService.distanciaKm(
-      latitudeInicial: latitude!,
-      longitudeInicial: longitude!,
-      latitudeFinal: destinoLat,
-      longitudeFinal: destinoLon,
-    );
-    String? motivoRota;
-    if (posicaoEm == null ||
-        instante.difference(posicaoEm).abs() > EtaService.idadeMaximaPosicao) {
-      motivoRota =
-          'A posição está antiga; o trajeto por ruas exige uma leitura recente.';
-    } else {
-      try {
-        final rota = await _rotasGoogle.calcular(
-          origem: latlong2.LatLng(latitude, longitude),
-          destino: latlong2.LatLng(destinoLat, destinoLon),
-        );
-        if (rota != null) {
-          return EtaService.calcularComRotaViaria(
-            distanciaRotaKm: rota.distanceKm,
-            duracaoRotaMin: rota.durationMin,
-            etaReferencia: remessa.eta,
-            agora: instante,
-            motivoAdicional:
-                'A origem e o destino desta remessa são enviados ao Google Maps para calcular a rota.',
-          );
-        }
-        motivoRota = 'O Google Maps não encontrou uma rota para este destino.';
-      } catch (_) {
-        motivoRota =
-            'A rota viária está indisponível; foi usada distância aproximada.';
-      }
-    }
-    return EtaService.calcularComDistancia(
-      distanciaRestanteKm: distancia,
+  Widget _buildEtaCard() {
+    const pontos = <LocationPoint>[];
+    final resultado = EtaService.calcular(
+      progresso: remessa.progresso,
       etaReferencia: remessa.eta,
-      pontos: recentes,
-      posicaoEm: posicaoEm,
-      agora: instante,
-      motivoAdicional: motivoRota,
+      pontos: pontos,
+      distanciaKm: remessa.progresso > 0
+          ? 14.0 * (1 - remessa.progresso) + 4.0
+          : 14.0,
+    );
+
+    final corAlerta = resultado.possivelAtraso
+        ? const Color(0xFFF59E0B)
+        : const Color(0xFF16A34A);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: resultado.possivelAtraso
+            ? const Color(0xFFFFF7ED)
+            : const Color(0xFFEAFBF1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: resultado.possivelAtraso
+              ? const Color(0xFFFCD34D)
+              : const Color(0xFFBBF7D0),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: corAlerta.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              resultado.possivelAtraso
+                  ? LucideIcons.alertTriangle
+                  : LucideIcons.route,
+              color: corAlerta,
+              size: 17,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  resultado.possivelAtraso
+                      ? 'Possível atraso'
+                      : 'ETA atualizada',
+                  style: TextStyle(
+                    color: corAlerta,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  resultado.texto,
+                  style: const TextStyle(
+                    color: Color(0xFF172033),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
-
-  double? _numeroCoordenada(Object? valor) =>
-      valor is num ? valor.toDouble() : double.tryParse('${valor ?? ''}');
-
-  bool _coordenadasValidas(double? latitude, double? longitude) =>
-      latitude != null &&
-      longitude != null &&
-      latitude.isFinite &&
-      longitude.isFinite &&
-      latitude >= -90 &&
-      latitude <= 90 &&
-      longitude >= -180 &&
-      longitude <= 180;
-
-  Widget _buildEtaCard() => FutureBuilder<EtaResultado>(
-    future: _etaFuture ??= _calcularEta(),
-    builder: (context, snapshot) {
-      final resultado = snapshot.data;
-      final alerta = resultado?.possivelAtraso ?? false;
-      final cor = alerta ? const Color(0xFFF59E0B) : const Color(0xFF16A34A);
-      final texto = snapshot.connectionState == ConnectionState.waiting
-          ? 'Calculando com a \u00faltima posi\u00e7\u00e3o dispon\u00edvel...'
-          : resultado?.texto ?? 'ETA indispon\u00edvel no momento.';
-      return Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: alerta ? const Color(0xFFFFF7ED) : const Color(0xFFEAFBF1),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: alerta ? const Color(0xFFFCD34D) : const Color(0xFFBBF7D0),
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              alerta ? LucideIcons.alertTriangle : LucideIcons.route,
-              color: cor,
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    alerta
-                        ? 'Poss\u00edvel atraso'
-                        : 'Previs\u00e3o de chegada',
-                    style: TextStyle(
-                      color: cor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    texto,
-                    style: const TextStyle(
-                      color: Color(0xFF172033),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  if (resultado?.motivo != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      resultado!.rotaViaria
-                          ? 'Google Maps: ${resultado.motivo}'
-                          : 'Estimativa aproximada: ${resultado.motivo}',
-                      style: const TextStyle(
-                        color: Color(0xFF64748B),
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
-                  if (resultado?.distanciaRestanteKm != null) ...[
-                    const SizedBox(height: 3),
-                    Text(
-                      '${resultado!.rotaViaria ? 'Dist\u00e2ncia pela rota' : 'Dist\u00e2ncia em linha reta'}: ${resultado.distanciaRestanteKm!.toStringAsFixed(1)} km',
-                      style: const TextStyle(
-                        color: Color(0xFF64748B),
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
 
   Widget _buildRota() {
     return Container(
@@ -3322,7 +2927,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
   }
 
   Widget _historicoEntrega() => FutureBuilder<List<dynamic>>(
-    future: ApiService.instance.historicoRemessa(remessa.id ?? remessa.codigo),
+    future: _remessaRepository.historico(remessa.id ?? remessa.codigo),
     builder: (context, snapshot) {
       final eventos = snapshot.data?.whereType<Map>().toList() ?? const <Map>[];
       return Column(

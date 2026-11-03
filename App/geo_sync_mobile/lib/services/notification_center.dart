@@ -17,12 +17,14 @@ class AppNotificationCenter with WidgetsBindingObserver {
   final ValueNotifier<int> unreadCount = ValueNotifier<int>(0);
 
   Timer? _timer;
-  Duration _interval = const Duration(seconds: 45);
-  bool _observandoCicloVida = false;
   Future<List<dynamic>> Function()? _fetcher;
   OverlayState? _overlay;
   final Set<String> _seenIds = {};
   bool _primed = false;
+  bool _polling = false;
+  bool _foreground = true;
+  bool _observingLifecycle = false;
+  int _generation = 0;
 
   /// Começa a monitorar [fetch] (ex.: alertas ou avisos) em [interval].
   /// Deve ser chamado a partir de uma tela sempre visível (dashboard).
@@ -31,47 +33,41 @@ class AppNotificationCenter with WidgetsBindingObserver {
     required Future<List<dynamic>> Function() fetch,
     Duration interval = const Duration(seconds: 45),
   }) {
+    _generation++;
+    final lifecycleState = WidgetsBinding.instance.lifecycleState;
+    _foreground =
+        lifecycleState == null || lifecycleState == AppLifecycleState.resumed;
     _fetcher = fetch;
-    _interval = interval;
     _overlay = Overlay.maybeOf(context, rootOverlay: true);
     _seenIds.clear();
     _primed = false;
+    if (!_observingLifecycle) {
+      WidgetsBinding.instance.addObserver(this);
+      _observingLifecycle = true;
+    }
     _timer?.cancel();
     unawaited(_poll());
-    if (!_observandoCicloVida) {
-      WidgetsBinding.instance.addObserver(this);
-      _observandoCicloVida = true;
-    }
-    if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
-      _iniciarPolling();
-    }
-  }
-
-  void detach() {
-    _timer?.cancel();
-    _timer = null;
-    _fetcher = null;
-    _overlay = null;
-    if (_observandoCicloVida) {
-      WidgetsBinding.instance.removeObserver(this);
-      _observandoCicloVida = false;
-    }
+    _timer = Timer.periodic(interval, (_) {
+      if (_foreground) unawaited(_poll());
+    });
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && _fetcher != null) {
-      _iniciarPolling();
-      unawaited(_poll());
-    } else {
-      _timer?.cancel();
-      _timer = null;
-    }
+    _foreground = state == AppLifecycleState.resumed;
+    if (_foreground) unawaited(_poll());
   }
 
-  void _iniciarPolling() {
+  void detach() {
+    _generation++;
     _timer?.cancel();
-    _timer = Timer.periodic(_interval, (_) => _poll());
+    _timer = null;
+    _fetcher = null;
+    _overlay = null;
+    if (_observingLifecycle) {
+      WidgetsBinding.instance.removeObserver(this);
+      _observingLifecycle = false;
+    }
   }
 
   Future<void> refreshNow() => _poll();
@@ -86,12 +82,16 @@ class AppNotificationCenter with WidgetsBindingObserver {
 
   Future<void> _poll() async {
     final fetch = _fetcher;
-    if (fetch == null) return;
+    if (fetch == null || _polling || !_foreground) return;
+    final generation = _generation;
+    _polling = true;
     try {
       final items = await fetch();
-      _handle(items);
+      if (generation == _generation && _fetcher != null) _handle(items);
     } catch (_) {
       // Mantém a última contagem conhecida em caso de falha de rede.
+    } finally {
+      _polling = false;
     }
   }
 

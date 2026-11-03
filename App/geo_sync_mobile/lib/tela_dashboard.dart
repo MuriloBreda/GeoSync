@@ -4,11 +4,16 @@ import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:flutter/material.dart';
 import 'package:mobile/widgets/adaptive_grid.dart';
 import 'package:mobile/app_session.dart';
+import 'package:mobile/core/avaliacao_repository.dart';
+import 'package:mobile/core/alerta_repository.dart';
+import 'package:mobile/core/pagamento_repository.dart';
+import 'package:mobile/core/remessa_repository.dart';
 
 import 'package:mobile/perfil_page.dart';
 import 'package:mobile/remessa_page.dart' hide RemessaCard;
 import 'package:mobile/mapa_page.dart';
 import 'package:mobile/services/api_service.dart';
+import 'package:mobile/services/shipment_progress.dart';
 import 'package:mobile/services/notification_center.dart';
 import 'package:mobile/widgets/data_state_widgets.dart';
 import 'alerta_page.dart';
@@ -22,7 +27,12 @@ class TelaDashboard extends StatefulWidget {
   State<TelaDashboard> createState() => _TelaDashboardState();
 }
 
-class _TelaDashboardState extends State<TelaDashboard> {
+class _TelaDashboardState extends State<TelaDashboard>
+    with WidgetsBindingObserver {
+  final AlertaRepository _alertaRepository = AlertaRepository();
+  final RemessaRepository _remessaRepository = RemessaRepository();
+  final PagamentoRepository _pagamentoRepository = PagamentoRepository();
+  final AvaliacaoRepository _avaliacaoRepository = AvaliacaoRepository();
   int _currentIndex = 0;
 
   static const Color primary = Color(0xFF0C46FF);
@@ -45,6 +55,9 @@ class _TelaDashboardState extends State<TelaDashboard> {
   List<Alerta> _alertas = [];
   double? _saldoMovimentado;
   double? _avaliacaoMedia;
+  Timer? _timerRemessas;
+  bool _appAtivo = true;
+  bool _carregandoRemessas = false;
 
   String _normalizarStatus(String status) => status
       .trim()
@@ -81,20 +94,42 @@ class _TelaDashboardState extends State<TelaDashboard> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _carregarResumo();
+    _timerRemessas = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_appAtivo && _currentIndex == 0 && !_carregandoResumo) {
+        _atualizarRemessasEmTempoReal();
+      }
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       AppNotificationCenter.instance.attach(
         context,
-        fetch: () => ApiService.instance.alertas(),
+        fetch: () => _alertaRepository.listar(),
       );
     });
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appAtivo = state == AppLifecycleState.resumed;
+    if (_appAtivo && _currentIndex == 0 && !_carregandoResumo) {
+      _atualizarRemessasEmTempoReal();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _timerRemessas?.cancel();
     AppNotificationCenter.instance.detach();
     super.dispose();
+  }
+
+  Future<void> _atualizarRemessasEmTempoReal() async {
+    final dados = await _carregarRemessas();
+    if (!mounted) return;
+    setState(() => _remessas = dados);
   }
 
   Future<void> _carregarResumo() async {
@@ -127,36 +162,44 @@ class _TelaDashboardState extends State<TelaDashboard> {
   }
 
   Future<List<Remessa>> _carregarRemessas() async {
+    if (_carregandoRemessas) return _remessas;
+    _carregandoRemessas = true;
     try {
       // A API decide quais remessas pertencem à sessão autenticada.
-      final dados = await ApiService.instance.remessasAutorizadas();
+      final dados = await _remessaRepository.autorizadas();
+      _falhaRemessas = false;
       return dados.whereType<Map>().map((value) {
-        final progresso = value['progresso'] ?? value['progress'] ?? 0;
+        final status =
+            '${value['status'] ?? value['situacao'] ?? 'Aguardando coleta'}';
         return Remessa(
-          codigo: '${value['codigo'] ?? value['code'] ?? value['id'] ?? '-'}',
-          status:
-              '${value['status'] ?? value['situacao'] ?? 'Aguardando coleta'}',
+          id: value['id'] ?? value['remessa_id'],
+          codigo:
+              '${value['codigo_rastreio'] ?? value['codigo'] ?? value['code'] ?? value['id'] ?? '-'}',
+          status: status,
           origem: '${value['origem'] ?? value['origin'] ?? '-'}',
           destino: '${value['destino'] ?? value['destination'] ?? '-'}',
           tipo:
               '${value['tipo'] ?? value['tipo_carga'] ?? value['cargo'] ?? '-'}',
           peso: '${value['peso'] ?? value['weight'] ?? '-'}',
           eta: '${value['eta'] ?? value['previsao_entrega'] ?? '-'}',
-          progresso: progresso is num
-              ? progresso.toDouble().clamp(0.0, 1.0)
-              : 0,
+          progresso: shipmentProgress(
+            status: status,
+            apiProgress: value['progresso'] ?? value['progress'],
+          ),
         );
       }).toList();
     } catch (_) {
       _falhaRemessas = true;
       _falhaCarregamentoResumo = true;
       return _remessas;
+    } finally {
+      _carregandoRemessas = false;
     }
   }
 
   Future<List<Alerta>> _carregarAlertas() async {
     try {
-      final dados = await ApiService.instance.alertas();
+      final dados = await _alertaRepository.listar();
       return dados.whereType<Map>().map((value) {
         return Alerta(
           id: value['id'],
@@ -183,7 +226,7 @@ class _TelaDashboardState extends State<TelaDashboard> {
 
   Future<double?> _carregarSaldo() async {
     try {
-      final pagamentos = await ApiService.instance.pagamentos();
+      final pagamentos = await _pagamentoRepository.listar();
       return pagamentos.whereType<Map>().fold<double>(0, (total, item) {
         final raw = item['valor'] ?? item['amount'];
         if (raw == null) return total;
@@ -202,7 +245,7 @@ class _TelaDashboardState extends State<TelaDashboard> {
 
   Future<double?> _carregarAvaliacao() async {
     try {
-      final resumo = await ApiService.instance.resumoAvaliacoes();
+      final resumo = await _avaliacaoRepository.resumo();
       final media =
           resumo['media'] ??
           resumo['average'] ??
@@ -213,7 +256,7 @@ class _TelaDashboardState extends State<TelaDashboard> {
       if (valor != null) return valor;
     } catch (_) {}
     try {
-      final avaliacoes = await ApiService.instance.avaliacoes();
+      final avaliacoes = await _avaliacaoRepository.listar();
       final notas = avaliacoes
           .whereType<Map>()
           .map((item) {
@@ -443,10 +486,13 @@ class _TelaDashboardState extends State<TelaDashboard> {
       label:
           'Abrir perfil de ${AppSession.nome.isEmpty ? 'usuário' : AppSession.nome}',
       child: GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const PerfilClientePage()),
-        ),
+        onTap: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const PerfilClientePage()),
+          );
+          if (mounted) setState(() {});
+        },
         child: Container(
           width: 48,
           height: 48,
@@ -454,15 +500,34 @@ class _TelaDashboardState extends State<TelaDashboard> {
             color: scheme.primaryContainer,
             borderRadius: BorderRadius.circular(14),
           ),
-          child: Center(
-            child: Text(
-              AppSession.inicialNome,
-              style: TextStyle(
-                color: scheme.onPrimaryContainer,
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: AppSession.fotoPerfil == null
+                ? Center(
+                    child: Text(
+                      AppSession.inicialNome,
+                      style: TextStyle(
+                        color: scheme.onPrimaryContainer,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  )
+                : Image.network(
+                    ApiService.instance.fotoUrl(AppSession.fotoPerfil),
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => Center(
+                      child: Text(
+                        AppSession.inicialNome,
+                        style: TextStyle(
+                          color: scheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
           ),
         ),
       ),
@@ -1686,12 +1751,14 @@ class _TelaDashboardState extends State<TelaDashboard> {
 
           Row(
             children: [
-              Text(
-                "Progresso da entrega",
-                style: TextStyle(color: textLight, fontSize: 9),
+              Expanded(
+                child: Text(
+                  "Progresso pela etapa",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: textLight, fontSize: 9),
+                ),
               ),
-
-              const Spacer(),
 
               Text(
                 "${(progress * 100).round()}%",

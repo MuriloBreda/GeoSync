@@ -8,7 +8,7 @@
 ![Versão](https://img.shields.io/badge/vers%C3%A3o-0.1.0-1976D2?style=flat-square&labelColor=0D47A1)
 ![Plataforma](https://img.shields.io/badge/plataforma-Android%20%7C%20iOS%20%7C%20Windows%20%7C%20Web-1976D2?style=flat-square&labelColor=0D47A1)
 ![Flutter](https://img.shields.io/badge/Flutter-Dart%20%5E3.10-1976D2?style=flat-square&labelColor=0D47A1&logo=flutter&logoColor=white)
-![Testes](https://img.shields.io/badge/testes-92%20passando-2E7D32?style=flat-square&labelColor=0D47A1)
+![Testes](https://img.shields.io/badge/testes-automatizados-2E7D32?style=flat-square&labelColor=0D47A1)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-1976D2?style=flat-square&labelColor=0D47A1)
 
 </div>
@@ -58,6 +58,9 @@ Uma única base de código atende Android e iOS. Também roda em Windows e no na
 | **Meu veículo** | Cartão com prévia ao vivo e placa no padrão Mercosul. Os dados agora **ficam salvos no aparelho** (antes eram perdidos ao reiniciar). |
 | **Área do cliente** | Aba *Carteira* removida. A navegação ficou com Início, Remessas, Mapa e Alertas. |
 | **Área do motorista** | Ícones unificados na família *Rounded* do Material. |
+| **Arquitetura mobile** | Contratos de API e repositórios por domínio isolam as telas do `ApiService`, com testes usando clientes fake. |
+| **Fluxos de remessa** | Listagem autorizada, detalhes, aceite, status, histórico, localização, ocorrência e comprovante passam pelo `RemessaRepository`. |
+| **Painéis** | Pagamentos e avaliações são acessados por `PagamentoRepository` e `AvaliacaoRepository`; alertas, perfil e motorista também têm repositórios próprios. |
 | **Responsividade** | Todas as telas foram auditadas de 320 px até tablet, com fonte ampliada e temas claro e escuro, sem nenhum overflow. Botões têm altura mínima de 48 px. |
 | **Modo escuro** | Corrigidos textos ilegíveis (texto escuro sobre fundo escuro) no login, no cadastro, nas entregas, nos alertas e no mapa, além do SnackBar do tema claro. |
 | **Erros do servidor** | Erros 5xx (ex.: SQL do Laravel) não aparecem mais crus para o usuário. O detalhe técnico vai para o log `[API]`. |
@@ -85,8 +88,7 @@ As etapas de evolução do app foram concluídas mantendo a arquitetura existent
 
 ### Fase 4 — Otimização de rotas
 - Sugestão offline de ordem por coordenadas geográficas, vizinho mais próximo e refinamento 2-opt; marcada como aproximada quando faltam coordenadas. Distância em linha reta não substitui uma rota por ruas.
-- A ETA por ruas usa a posição IoT recente e o proxy autenticado `POST /api/rotas/estimativa`; o fallback em linha reta continua disponível quando o serviço falha.
-- A otimização de ordem das entregas segue heurística geográfica aproximada e não substitui uma matriz viária completa para múltiplos destinos.
+- A estimativa usa a posição atual e coordenadas `latitude`/`longitude` (ou `lat`/`lng`) nas remessas. Para distância e tempo realistas, o backend precisa fornecer matriz de rotas considerando ruas, trânsito e restrições.
 - Exibição de ordem, distância total, tempo estimado, destino atual e próximo destino.
 - Melhor experiência para o motorista sem trocar a arquitetura atual.
 
@@ -96,7 +98,7 @@ As etapas de evolução do app foram concluídas mantendo a arquitetura existent
 - Gráfico de tendência simples e responsivo, funcionando com dados locais em offline.
 
 ### Observações importantes
-- O backend Laravel está no diretório irmão `GeoSync/`; a estimativa viária usa `POST /api/rotas/estimativa` autenticado.
+- O backend Laravel real não está presente neste checkout; então qualquer integração com endpoint novo foi tratada com compatibilidade local e sem inventar contratos inexistentes.
 - O app continua funcionando de maneira offline-first, com sincronização e fila local preservadas.
 - As mudanças foram feitas de forma incremental, sem reescrever a arquitetura principal do produto.
 
@@ -119,8 +121,12 @@ As etapas de evolução do app foram concluídas mantendo a arquitetura existent
 
 ```mermaid
 flowchart LR
-    UI[Telas de cliente e motorista] --> API[ApiService]
-    UI --> SYNC[SyncEngine]
+    UI[Telas de cliente e motorista] --> REPO[Repositórios por domínio]
+    REPO --> CONTRACTS[Contratos de API]
+    CONTRACTS --> API[ApiService]
+    UI --> SESSION[SessionRepository]
+    UI --> SYNC_REPO[SyncRepository]
+    SYNC_REPO --> SYNC[SyncEngine]
     API -- sem internet --> STORE[(Fila offline e cache)]
     SYNC <--> STORE
     SYNC --> CR[ConflictResolver]
@@ -130,13 +136,32 @@ flowchart LR
     STORE --> EXP[ExportService CSV / GeoJSON]
 ```
 
+### Contratos e repositórios
+
+As telas usam repositórios para solicitar operações de domínio. Os repositórios dependem de contratos definidos em `lib/core/api_contracts.dart`; o `ApiService` implementa esses contratos e continua responsável por HTTP, autenticação nas requisições, cache e integração com a fila offline. Isso permite testar a lógica das fronteiras sem fazer chamadas de rede.
+
+| Repositório | Responsabilidade |
+|---|---|
+| `SessionRepository` | Interpreta respostas de autenticação e sincroniza os dados da sessão com `AppSession`. |
+| `SyncRepository` | Expõe sincronização, estado, cache local, fila de ações e início/parada da sincronização automática. |
+| `RemessaRepository` | Lista remessas autorizadas, disponíveis e locais; consulta detalhes e histórico; aceita remessas, atualiza status, registra ocorrência/comprovante e consulta localização IoT. |
+| `AlertaRepository` | Lista alertas e marca alertas como lidos. |
+| `PerfilRepository` | Consulta e atualiza perfil, envia/remove foto e encerra sessão. |
+| `MotoristaRepository` | Consulta e envia documentos e atualiza dados do veículo. |
+| `PagamentoRepository` | Lista pagamentos, preservando a opção de atualização forçada do cache. |
+| `AvaliacaoRepository` | Consulta avaliações e o resumo agregado. |
+
 **Fluxo resumido:**
 
 1. O app carrega somente as remessas autorizadas para o usuario autenticado.
-2. Ao selecionar uma remessa, o mapa consulta os pontos IoT associados a ela.
-3. O modulo IoT do veiculo publica as coordenadas na API; o app nao coleta localizacao do celular ou computador.
-4. O `SyncEngine` baixa alteracoes e envia a fila offline de acoes.
-5. O `ExportService` gera arquivos a partir dos dados locais.
+2. As telas chamam o repositório do domínio; o `ApiService` implementa os contratos e executa as chamadas REST necessárias.
+3. Ao selecionar uma remessa, o `RemessaRepository` consulta os pontos IoT associados a ela.
+4. O modulo IoT do veiculo publica as coordenadas na API; o app nao coleta localizacao do celular ou computador.
+5. O `SyncRepository` coordena o `SyncEngine`, que baixa alteracoes e envia a fila offline de acoes.
+6. O `ExportService` gera arquivos a partir dos dados locais.
+
+Os repositórios e contratos estão em `lib/core/`. A migração das telas para essa camada é incremental; chamadas de apresentação e utilitários do `ApiService` que não representam operações de domínio podem permanecer nas telas enquanto não houver uma fronteira apropriada.
+
 ## Tecnologias
 
 | Finalidade | Tecnologia |
@@ -192,10 +217,10 @@ flutter run --dart-define=API_BASE_URL=http://192.168.0.10:8000/api
 
 ## API esperada (backend)
 
-O arquivo [`openapi.yaml`](openapi.yaml) descreve operações usadas pelo app,
-incluindo a consulta de rota via proxy Laravel. Os testes de integração do app
-exercitam o contrato HTTP local; os testes Laravel do proxy ficam no projeto
-irmão `GeoSync/`.
+O arquivo [`openapi.yaml`](openapi.yaml) registra um rascunho do contrato esperado
+para sincronização e autenticação. O teste `test/api_contract_test.dart` confere
+as operações principais do arquivo. O backend Laravel não está neste checkout;
+por isso, compatibilidade real precisa ser validada ao conectar o servidor.
 
 Principais rotas usadas pelo app (prefixo `/api`, autenticação por `Authorization: Bearer <token>`):
 
@@ -207,8 +232,9 @@ O login OAuth Google e os passos para configurar os IDs de cliente estão descri
 | Remessas | `GET remessas/minhas?updated_since=<ISO-8601>`, `GET remessas/disponiveis`, `POST remessas/{id}/aceitar`, `PATCH remessas/{id}/status`, `GET remessas/{id}/historico` |
 | Localização IoT | `POST localizacao` (módulo IoT), `GET localizacao/remessa/{id}`, `GET localizacao/remessa/{id}/ultima` |
 | Motorista | `GET motorista/avisos`, `PATCH motorista/avisos/{id}/lido`, `PATCH motorista/avisos/lidos`, `GET motorista/documentos` |
-| ETA viária | `POST rotas/estimativa` (Sanctum; chave Google somente no Laravel) |
 | Outros | `alertas`, `avaliacoes`, `contatos` |
+
+`GET localizacao/remessa/{id}` retorna os pontos do histórico em ordem cronológica; `GET localizacao/remessa/{id}/ultima` retorna somente o ponto mais recente dentro de `data`. O cliente Flutter aceita o envelope Laravel e também respostas diretas para manter compatibilidade.
 
 Para a sincronização funcionar bem, recomenda-se que o backend:
 
@@ -222,7 +248,7 @@ Para a sincronização funcionar bem, recomenda-se que o backend:
 | Plataforma | Arquivo | Permissões |
 |---|---|---|
 | Android | `android/app/src/main/AndroidManifest.xml` | `INTERNET`, `POST_NOTIFICATIONS` |
-| iOS | `ios/Runner/Info.plist` | Câmera e biblioteca de fotos; sem permissão de localização do aparelho |
+| iOS | `ios/Runner/Info.plist` | Sem permissao de localizacao |
 
 O aplicativo nao solicita permissao de localizacao ao celular; as coordenadas sao fornecidas pelo modulo IoT.
 
@@ -267,6 +293,7 @@ geo_sync_mobile/
 │   ├── login_screen.dart, cadastro_screen.dart, esqueceu_senha_page.dart
 │   ├── tela_dashboard.dart       # Área do cliente (Início, Remessas, Mapa, Alertas)
 │   ├── editar_perfil_page.dart, alterar_senha_page.dart, perfil_page.dart
+│   ├── core/                     # Contratos, parsers e repositórios por domínio
 │   ├── motorista/                # Área do motorista (dashboard, entregas, mapa,
 │   │                             # veículo, documentos, avisos, configurações)
 │   ├── services/                 # ApiService, exceções e central de notificações
@@ -289,18 +316,27 @@ geo_sync_mobile/
 # Análise estática
 flutter analyze
 
-# Testes unitários, de widget e de integração com servidor HTTP local (92 testes)
+# Testes unitários, de widget e de integração com servidor HTTP local
 flutter test
 
 # Testes em dispositivo ou emulador
 flutter test integration_test
 ```
 
+O workflow [Flutter mobile](../../.github/workflows/flutter-mobile.yml) executa `flutter analyze --fatal-infos`, `flutter test` e o build Android release em alterações do app e em pull requests. Para rodar somente as verificações de acessibilidade localmente:
+
+```bash
+flutter test test/ui/accessibility_test.dart
+```
+
 | Suíte | O que cobre |
 |---|---|
 | `test/integration/sync_integration_test.dart` | Fila offline, sincronizacao incremental, conflitos e exportacao, contra `FakeApiServer` |
 | `test/integration/auth_integration_test.dart` | Login, token expirado, validação da sessão ao abrir, logout, recuperação de senha e troca de conta |
-| `test/ui/screens_layout_test.dart` | Cada tela em 4 tamanhos (320 px até tablet), fonte 1,0x e 1,3x, temas claro e escuro: falha se houver overflow |
+| `test/session_repository_test.dart`, `test/sync_repository_test.dart` | Inicialização/sincronização de sessão e orquestração do sync. |
+| `test/domain_repositories_test.dart`, `test/perfil_motorista_repositories_test.dart` | Encaminhamento de operações por repositório usando clientes fake, sem depender de chamadas HTTP reais. |
+| `test/ui/screens_layout_test.dart` | Cada tela em 4 tamanhos (320 px até tablet), fonte 1,0x, 1,3x e 2,0x, temas claro e escuro: falha se houver overflow |
+| `test/ui/accessibility_test.dart` | Diretrizes Flutter para rótulos semânticos e alvos tocáveis no login |
 | `test/ui/perfil_senha_test.dart`, `veiculo_test.dart`, `exportar_test.dart` | Comportamento das telas redesenhadas e gravação real dos arquivos exportados |
 | `test/services/rota_otimizacao_service_test.dart` | Ordem por coordenadas, indicação de fallback aproximado e rota vazia |
 
@@ -318,6 +354,7 @@ flutter test integration_test
 
 - Localização é dado pessoal. O tratamento deve observar a LGPD (Lei nº 13.709/2018).
 - **HTTPS obrigatório em produção:** no Android, `usesCleartextTraffic="false"` no manifest principal; HTTP só é liberado no build de debug (`android/app/src/debug/AndroidManifest.xml`). No iOS, `NSAllowsLocalNetworking` permite HTTP apenas na rede local. O build release também recusa URLs `http://` ao configurar o servidor.
+- URLs de API com credenciais embutidas são recusadas. Os logs não incluem query strings, tokens ou detalhes brutos de exceções e respostas do servidor.
 - Erros internos do servidor não são exibidos ao usuário, para não expor a estrutura do banco.
 - A recuperação de senha responde da mesma forma para e-mails cadastrados ou não, para não revelar quais contas existem.
 - Os dados locais de um usuário são apagados quando outra conta entra no mesmo aparelho.
@@ -326,7 +363,7 @@ flutter test integration_test
 - Em Android/iOS/macOS, fila, pontos, conflitos e listas locais usam SQLite com cada payload protegido por AES-GCM; a chave aleatória fica no cofre do sistema. Perda da chave bloqueia a leitura e não apaga o banco automaticamente.
 - Web/Windows/Linux mantêm `SharedPreferences` por compatibilidade, com payloads cifrados pela chave no cofre da plataforma. Perfil, configurações e metadados de sessão ainda usam preferências.
 
-- A raiz do app já observa sessão e tema por Riverpod; `AppSession` permanece como ponte de persistência enquanto outras telas migram gradualmente.
+- `AppSession` mantém a persistência local da sessão. `SessionRepository` centraliza a interpretação de respostas de autenticação e a atualização dos dados locais; os repositórios de domínio isolam as operações das telas por meio de contratos injetáveis.
 ## Roadmap
 
 - [x] Estrutura inicial do projeto
@@ -341,6 +378,8 @@ flutter test integration_test
 - [x] Layout responsivo e modo escuro revisados
 - [x] Armazenamento seguro do token (`flutter_secure_storage`)
 - [x] Desativar `usesCleartextTraffic` no build de produção
+- [x] Atualizar localização IoT selecionada a cada 30 segundos enquanto o app está em primeiro plano
+- [x] Validar rótulos e alvos tocáveis no login e executar análise, testes e build Android no CI
 
 ## Contribuição
 

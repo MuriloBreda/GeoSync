@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile/tela_dashboard.dart';
 import 'package:mobile/motorista/motorista_dashboard.dart';
 import 'package:mobile/cadastro_screen.dart';
-import 'package:mobile/app_session.dart';
+import 'package:mobile/core/session_repository.dart';
 import 'package:mobile/esqueceu_senha_page.dart';
 import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/services/api_service.dart';
@@ -54,11 +54,17 @@ class _LoginScreenState extends State<LoginScreen> {
         final tipo = tipoApi.toLowerCase() == 'motorista'
             ? 'Motorista'
             : 'Cliente';
-        await AppSession.iniciarSessao(
-          token: token,
-          tipoUsuario: tipo,
-          email: '${usuario['email'] ?? _emailController.text}',
-          nome: '${usuario['name'] ?? usuario['nome'] ?? ''}',
+        await const SessionRepository().iniciarSessaoFromResponse(
+          <String, dynamic>{
+            ...resposta,
+            'data': {
+              ...(resposta['data'] is Map
+                  ? Map<String, dynamic>.from(resposta['data'])
+                  : <String, dynamic>{}),
+              'token': token,
+              'user': {...Map<String, dynamic>.from(usuario), 'tipo': tipo},
+            },
+          },
         );
         if (!mounted) return;
         final destino = tipo == 'Cliente'
@@ -304,6 +310,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   hintText: '••••••••',
                                   prefixIcon: const Icon(CupertinoIcons.lock),
                                   suffixIcon: IconButton(
+                                    tooltip: _obscurePassword
+                                        ? 'Mostrar senha'
+                                        : 'Ocultar senha',
                                     icon: Icon(
                                       _obscurePassword
                                           ? CupertinoIcons.eye_slash
@@ -372,7 +381,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 4,
                                     ),
-                                    minimumSize: const Size(0, 44),
+                                    minimumSize: const Size(0, 48),
                                   ),
                                   child: Text(
                                     'Esqueceu a senha?',
@@ -507,7 +516,7 @@ class _LoginScreenState extends State<LoginScreen> {
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          constraints: const BoxConstraints(minHeight: 44),
+          constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
           decoration: BoxDecoration(
             color: isSelected ? activeColor : Colors.transparent,

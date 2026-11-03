@@ -377,11 +377,4 @@ class DataRetentionPolicy {
     await prefs.setInt(_chave, valor);
     dias.value = valor;
   }
-
-  /// Aplica a preferência somente aos pontos GPS já enviados ao servidor.
-  /// Pontos pendentes permanecem no aparelho até serem sincronizados.
-  static Future<int> aplicar({DateTime? agora, LocationStore? store}) =>
-      (store ?? LocationStore.instance).limparSincronizados(
-        antesDe: (agora ?? DateTime.now()).subtract(Duration(days: dias.value)),
-      );
 }

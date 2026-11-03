@@ -3,8 +3,9 @@ info:
   title: GeoSync Mobile API (rascunho de contrato)
   version: 0.1.0
   description: >-
-    Contrato das chamadas usadas pelo app Flutter e pelo backend Laravel
-    GeoSync. O endpoint de rota usa credencial privada no servidor.
+    Derivado das chamadas presentes no app. O backend Laravel não está neste
+    repositório; confirme payloads e status HTTP com a equipe da API antes de
+    publicar como contrato oficial.
 servers:
   - url: https://{host}/api
     variables:
@@ -121,43 +122,6 @@ paths:
               description: Segundos ou data HTTP para a próxima tentativa.
               schema: { type: string }
         '422': { $ref: '#/components/responses/ErroValidacao' }
-  /rotas/estimativa:
-    post:
-      operationId: estimarRotaViaria
-      description: >-
-        Requer token Sanctum. O backend encaminha a consulta à Google Routes API;
-        origem e destino são enviados ao Google. Limitado a 20 consultas por
-        minuto por usuário e com cache breve no servidor.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [origin, destination]
-              properties:
-                origin: { $ref: '#/components/schemas/Coordenada' }
-                destination: { $ref: '#/components/schemas/Coordenada' }
-      responses:
-        '200':
-          description: Distância viária e duração estimada em minutos.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    required: [distance_km, duration_minutes]
-                    properties:
-                      distance_km: { type: number, format: double }
-                      duration_minutes: { type: integer }
-                  cached: { type: boolean }
-        '401': { $ref: '#/components/responses/NaoAutorizado' }
-        '422': { $ref: '#/components/responses/ErroValidacao' }
-        '429': { description: Limite de consultas atingido. }
-        '502': { description: Serviço Google indisponível. }
-        '503': { description: Chave Routes API não configurada no servidor. }
 components:
   securitySchemes:
     bearerAuth:
@@ -170,12 +134,6 @@ components:
       required: true
       schema: { type: string }
   schemas:
-    Coordenada:
-      type: object
-      required: [latitude, longitude]
-      properties:
-        latitude: { type: number, minimum: -90, maximum: 90 }
-        longitude: { type: number, minimum: -180, maximum: 180 }
     Usuario:
       type: object
       properties:

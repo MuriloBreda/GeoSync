@@ -7,7 +7,6 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mobile/sync/local_store.dart';
 import 'package:mobile/sync/location_point.dart';
-import 'package:mobile/sync/performance_metrics.dart';
 import 'package:mobile/sync/sync_engine.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -23,7 +22,7 @@ enum FormatoExportacao {
   final String mimeType;
 }
 
-enum ConjuntoExportacao { localizacoes, remessas, sincronizacoes }
+enum ConjuntoExportacao { localizacoes, remessas }
 
 /// Converte os dados do GeoSync para CSV (planilhas) e GeoJSON (mapas/GIS).
 class DataExporter {
@@ -90,30 +89,6 @@ class DataExporter {
       for (final r in remessas) [for (final c in colunas) r[c]],
     ]);
   }
-
-  String sincronizacoesParaCsv(List<SyncPerformanceMetric> metricas) => _csv([
-    [
-      'registrada_em_utc',
-      'duracao_ms',
-      'resultado',
-      'remessas_recebidas',
-      'acoes_enviadas',
-      'bytes_payload_enviados_estimados',
-      'bytes_payload_recebidos',
-      'erro',
-    ],
-    for (final metrica in metricas)
-      [
-        metrica.registradaEm.toUtc().toIso8601String(),
-        metrica.duracaoMs,
-        metrica.sucesso ? 'sucesso' : 'erro',
-        metrica.remessasRecebidas,
-        metrica.acoesEnviadas,
-        metrica.bytesEnviadosEstimados,
-        metrica.bytesRecebidos,
-        metrica.erro,
-      ],
-  ]);
 
   /// Marca de ordem de bytes UTF-8, para o Excel reconhecer os acentos.
   static final _bom = String.fromCharCode(0xFEFF);
@@ -279,7 +254,6 @@ class ExportService {
   final DataExporter _exporter;
   final LocationStore _pontos;
   final SyncEngine _sync;
-  final SyncPerformanceStore _metricas = SyncPerformanceStore.instance;
   final EscolherDestino _escolherDestino;
 
   static bool get _desktop =>
@@ -301,7 +275,6 @@ class ExportService {
   Future<int> contar(ConjuntoExportacao conjunto) async => switch (conjunto) {
     ConjuntoExportacao.localizacoes => (await _pontos.todos()).length,
     ConjuntoExportacao.remessas => (await _sync.remessasLocais()).length,
-    ConjuntoExportacao.sincronizacoes => (await _metricas.listar()).length,
   };
 
   /// Tenta baixar as remessas mais recentes antes de exportar. Sem internet,
@@ -339,12 +312,6 @@ class ExportService {
                   _exporter.remessasParaGeoJson(remessas),
                 ),
           registros: remessas.length,
-        );
-      case ConjuntoExportacao.sincronizacoes:
-        final metricas = await _metricas.listar();
-        return (
-          conteudo: _exporter.sincronizacoesParaCsv(metricas),
-          registros: metricas.length,
         );
     }
   }
@@ -458,9 +425,7 @@ class ExportService {
   }
 
   static String _titulo(ConjuntoExportacao conjunto) =>
-      conjunto == ConjuntoExportacao.sincronizacoes
-      ? 'Metricas de sincronizacao'
-      : conjunto == ConjuntoExportacao.localizacoes
+      conjunto == ConjuntoExportacao.localizacoes
       ? 'Histórico de localização'
       : 'Remessas';
 
@@ -477,9 +442,7 @@ class ExportService {
         '${dois(data.hour)}${dois(data.minute)}';
     final prefixo = conjunto == ConjuntoExportacao.localizacoes
         ? 'localizacoes'
-        : conjunto == ConjuntoExportacao.remessas
-        ? 'remessas'
-        : 'sincronizacoes';
+        : 'remessas';
     return 'geosync_${prefixo}_$carimbo.${formato.extensao}';
   }
 }

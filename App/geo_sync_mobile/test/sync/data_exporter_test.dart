@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/sync/data_exporter.dart';
 import 'package:mobile/sync/location_point.dart';
-import 'package:mobile/sync/performance_metrics.dart';
 
 void main() {
   const exporter = DataExporter();
@@ -26,27 +25,6 @@ void main() {
   );
 
   group('CSV', () {
-    test('exporta métricas de sincronização para gráficos', () {
-      final csv = exporter.sincronizacoesParaCsv([
-        SyncPerformanceMetric(
-          registradaEm: DateTime.utc(2026, 11, 2, 12),
-          duracaoMs: 1250,
-          sucesso: true,
-          remessasRecebidas: 4,
-          acoesEnviadas: 2,
-          bytesEnviadosEstimados: 512,
-          bytesRecebidos: 1024,
-        ),
-      ]);
-
-      expect(csv, contains('duracao_ms'));
-      expect(csv, contains('bytes_payload_enviados_estimados'));
-      expect(
-        csv,
-        contains('2026-11-02T12:00:00.000Z,1250,sucesso,4,2,512,1024'),
-      );
-    });
-
     test('tem BOM, cabeçalho e uma linha por ponto com CRLF', () {
       final csv = exporter.pontosParaCsv([
         ponto('a', -23.5, -46.6, 0),

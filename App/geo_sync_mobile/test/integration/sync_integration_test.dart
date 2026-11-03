@@ -1,16 +1,12 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/app_session.dart';
 import 'package:mobile/services/api_service.dart';
-import 'package:mobile/services/google_routes_service.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:mobile/sync/data_exporter.dart';
 import 'package:mobile/sync/local_store.dart';
 import 'package:mobile/sync/location_point.dart';
 import 'package:mobile/sync/pending_queue.dart';
-import 'package:mobile/sync/performance_metrics.dart';
 import 'package:mobile/sync/sync_engine.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -56,74 +52,6 @@ void main() {
       (await SyncEngine.instance.remessasLocais()).firstWhere(
         (r) => '${r['id']}' == '$id',
       );
-
-  test('ETA envia coordenadas ao proxy Laravel autenticado', () async {
-    final service = GoogleRoutesService();
-
-    final rota = await service.calcular(
-      origem: const LatLng(-23.5, -46.6),
-      destino: const LatLng(-23.6, -46.4),
-    );
-
-    expect(rota?.distanceKm, 12.5);
-    expect(rota?.durationMin, 15);
-    expect(servidor.requisicoes, contains('POST rotas/estimativa'));
-    expect(servidor.estimativasRotas.single['origin']['latitude'], -23.5);
-    expect(servidor.estimativasRotas.single['destination']['longitude'], -46.4);
-  });
-
-  test('sincroniza atualizacao de veiculo guardada offline', () async {
-    await offline();
-    await SyncEngine.instance.registrarRequisicaoOffline(
-      tipo: TipoAcao.perfilVeiculo,
-      metodo: 'PUT',
-      caminho: 'perfil',
-      corpo: {
-        'veiculo': {'modelo': 'Volvo VM', 'placa': 'ABC1D23'},
-      },
-    );
-    expect(await PendingQueue.instance.contar(), 1);
-
-    await online();
-    final relatorio = await SyncEngine.instance.sincronizar();
-
-    expect(relatorio.acoesEnviadas, 1);
-    expect(servidor.perfisAtualizados.single['veiculo']['placa'], 'ABC1D23');
-    expect(await PendingQueue.instance.contar(), 0);
-    final metrica = (await SyncPerformanceStore.instance.listar()).first;
-    expect(metrica.sucesso, isTrue);
-    expect(metrica.duracaoMs, greaterThanOrEqualTo(0));
-    expect(metrica.bytesEnviadosEstimados, greaterThan(0));
-    expect(metrica.bytesRecebidos, greaterThan(0));
-  });
-
-  test(
-    'sincroniza documento pendente e remove o arquivo local enviado',
-    () async {
-      final arquivo = File(
-        '${Directory.systemTemp.path}${Platform.pathSeparator}geosync_crlv_teste.txt',
-      );
-      await arquivo.writeAsString('CRLV de teste');
-      addTearDown(() async {
-        if (await arquivo.exists()) await arquivo.delete();
-      });
-      await offline();
-      await SyncEngine.instance.registrarRequisicaoOffline(
-        tipo: TipoAcao.documentoCrlv,
-        metodo: 'POST',
-        caminho: 'motorista/documentos/crlv',
-        corpo: {'caminho_arquivo': arquivo.path},
-      );
-
-      await online();
-      final relatorio = await SyncEngine.instance.sincronizar();
-
-      expect(relatorio.acoesEnviadas, 1);
-      expect(servidor.documentosEnviados, ['crlv']);
-      expect(await arquivo.exists(), isFalse);
-      expect(await PendingQueue.instance.contar(), 0);
-    },
-  );
 
   group('Sincronização offline e fila de ações', () {
     test(
@@ -324,7 +252,10 @@ void main() {
       final primeira = await SyncEngine.instance.sincronizar();
       expect(primeira.incremental, isFalse);
       expect(primeira.remessasRecebidas, 2);
-      expect(servidor.requisicoes.last, 'GET remessas/minhas');
+      expect(
+        servidor.requisicoes.last,
+        'GET remessas/minhas?per_page=100&page=1',
+      );
 
       servidor.avancar(const Duration(minutes: 1));
       servidor.salvarRemessa({

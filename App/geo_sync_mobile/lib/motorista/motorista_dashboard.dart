@@ -2,12 +2,14 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:mobile/login_screen.dart';
 import 'package:mobile/app_session.dart';
 import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/services/api_service.dart';
+import 'package:mobile/services/shipment_progress.dart';
 import 'package:mobile/services/notification_center.dart';
 import 'package:mobile/sync/sync_engine.dart';
 import 'package:mobile/motorista/avisos_motorista_page.dart';
@@ -15,6 +17,10 @@ import 'package:mobile/motorista/configuracoes_page.dart';
 import 'package:mobile/motorista/documentos_page.dart';
 import 'package:mobile/motorista/entrega_page.dart';
 import 'package:mobile/motorista/mapa_motorista_page.dart';
+import 'package:mobile/core/motorista_repository.dart';
+import 'package:mobile/core/avaliacao_repository.dart';
+import 'package:mobile/core/perfil_repository.dart';
+import 'package:mobile/core/remessa_repository.dart';
 import 'package:mobile/motorista/veiculo_motorista_page.dart';
 import 'package:mobile/widgets/responsive_content.dart';
 
@@ -27,8 +33,12 @@ class MotoristaDashboard extends StatefulWidget {
   State<MotoristaDashboard> createState() => _MotoristaDashboardState();
 }
 
-class _MotoristaDashboardState extends State<MotoristaDashboard>
-    with WidgetsBindingObserver {
+class _MotoristaDashboardState extends State<MotoristaDashboard> {
+  final RemessaRepository _remessaRepository = RemessaRepository();
+  final AvaliacaoRepository _avaliacaoRepository = AvaliacaoRepository();
+  final MotoristaRepository _motoristaRepository = MotoristaRepository();
+  final PerfilRepository _perfilRepository = PerfilRepository();
+
   // ============================================================
   // CORES
   // ============================================================
@@ -238,7 +248,6 @@ class _MotoristaDashboardState extends State<MotoristaDashboard>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
 
     _currentIndex = widget.initialIndex.clamp(0, 2).toInt();
     unawaited(SyncEngine.instance.atualizarContadores());
@@ -252,34 +261,15 @@ class _MotoristaDashboardState extends State<MotoristaDashboard>
         fetch: () => ApiService.instance.avisosMotorista(),
       );
     });
-    if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
-      _iniciarMonitorDeEntregas();
+    _novasEntregasTimer = Timer.periodic(const Duration(seconds: 60), (_) {
       _verificarNovasEntregas();
-    }
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _iniciarMonitorDeEntregas();
-      _verificarNovasEntregas();
-    } else {
-      _novasEntregasTimer?.cancel();
-      _novasEntregasTimer = null;
-    }
-  }
-
-  void _iniciarMonitorDeEntregas() {
-    _novasEntregasTimer?.cancel();
-    _novasEntregasTimer = Timer.periodic(
-      const Duration(seconds: 60),
-      (_) => _verificarNovasEntregas(),
-    );
+      if (_currentIndex == 0) _carregarResumo();
+    });
+    _verificarNovasEntregas();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     AppNotificationCenter.instance.detach();
     _novasEntregasTimer?.cancel();
     super.dispose();
@@ -288,7 +278,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard>
   Future<void> _verificarNovasEntregas() async {
     if (!AppSession.configuracoesMotorista.value.novasEntregas) return;
     try {
-      final disponiveis = await ApiService.instance.remessasDisponiveis();
+      final disponiveis = await _remessaRepository.disponiveis();
       final quantidade = disponiveis.length;
       final anterior = _disponiveisConhecidas;
       _disponiveisConhecidas = quantidade;
@@ -349,9 +339,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard>
       });
     }
     try {
-      final dados = await ApiService.instance.minhasRemessas(
-        forceRefresh: true,
-      );
+      final dados = await _remessaRepository.minhas(forceRefresh: true);
       if (!mounted) return;
       setState(() {
         _remessas = dados.whereType<Map>().map((item) {
@@ -361,21 +349,20 @@ class _MotoristaDashboardState extends State<MotoristaDashboard>
               value['progress'] ??
               value['percentual'] ??
               0;
-          final progress = rawProgress is num
-              ? rawProgress.toDouble()
-              : double.tryParse('$rawProgress'.replaceAll(',', '.')) ?? 0;
-          final progressoNormalizado = progress > 1 ? progress / 100 : progress;
+          final status = _textoApi(
+            _campoApi(value, ['status', 'situacao', 'status_name']),
+          );
           return Remessa(
             codigo: _textoApi(
-              _campoApi(value, ['codigo', 'code', 'tracking_code', 'id']),
-            ),
-            status: _textoApi(
               _campoApi(value, [
-                'status',
-                'situacao',
-                'status_name',
-              ], fallback: 'Status não informado'),
+                'codigo',
+                'codigo_rastreio',
+                'code',
+                'tracking_code',
+                'id',
+              ]),
             ),
+            status: status.isEmpty ? 'Status não informado' : status,
             origem: _textoApi(
               _campoApi(value, [
                 'origem',
@@ -413,7 +400,10 @@ class _MotoristaDashboardState extends State<MotoristaDashboard>
                 'distance_km',
               ]),
             ),
-            progresso: progressoNormalizado.clamp(0, 1).toDouble(),
+            progresso: shipmentProgress(
+              status: status,
+              apiProgress: rawProgress,
+            ),
             comOcorrencia: _temOcorrencia(value),
             id:
                 value['id'] ??
@@ -454,7 +444,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard>
   Future<void> _carregarAvaliacao() async {
     double? media;
     try {
-      final resumo = await ApiService.instance.resumoAvaliacoes();
+      final resumo = await _avaliacaoRepository.resumo();
       final dados = resumo['data'] is Map
           ? _mapaApi(resumo['data'] as Map)
           : resumo;
@@ -469,7 +459,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard>
           : double.tryParse('$valor'.replaceAll(',', '.'));
     } catch (_) {
       try {
-        final avaliacoes = await ApiService.instance.avaliacoes();
+        final avaliacoes = await _avaliacaoRepository.listar();
         final notas = avaliacoes
             .whereType<Map>()
             .map((item) {
@@ -507,7 +497,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard>
     final erros = <String>[];
     try {
       usuario = ApiService.instance.authUser(
-        ApiService.instance.authData(await ApiService.instance.me()),
+        ApiService.instance.authData(await _perfilRepository.dados()),
       );
     } on ApiException catch (error) {
       erros.add('Perfil: ${error.message}');
@@ -515,7 +505,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard>
       erros.add('Perfil: $error');
     }
     try {
-      documentos = (await ApiService.instance.documentosMotorista())
+      documentos = (await _motoristaRepository.documentos())
           .whereType<Map>()
           .map(_mapaApi)
           .toList();
@@ -538,6 +528,13 @@ class _MotoristaDashboardState extends State<MotoristaDashboard>
       _falhaCarregamentoPerfil = erros.isNotEmpty;
       _erroCarregamentoPerfil = erros.isEmpty ? null : erros.join('\n');
     });
+    final temCampoFoto =
+        usuario.containsKey('foto') || usuario.containsKey('profile_photo');
+    final foto = usuario['foto'] ?? usuario['profile_photo'];
+    if (temCampoFoto) {
+      await AppSession.definirFotoPerfil(foto is String ? foto : null);
+      if (mounted) setState(() {});
+    }
     final veiculo = _veiculoDaApi(usuario);
     if (veiculo != null) await AppSession.salvarVeiculo(veiculo);
     final motorista = usuario['motorista'] ?? usuario['driver'];
@@ -685,11 +682,48 @@ class _MotoristaDashboardState extends State<MotoristaDashboard>
             documento['document_type'],
       );
       if (tipoDocumento == tipo || tipoDocumento.contains(tipo)) {
+        final validade = _campoApi(documento, [
+          'validade',
+          'validade_$tipo',
+          '${tipo}_validade',
+          'data_validade_$tipo',
+        ]);
+        var dataValidade = DateTime.tryParse(validade);
+        if (dataValidade == null) {
+          final partes = validade.split(RegExp(r'[/.-]'));
+          if (partes.length == 3) {
+            final dia = int.tryParse(partes[0]);
+            final mes = int.tryParse(partes[1]);
+            final ano = int.tryParse(partes[2]);
+            if (dia != null && mes != null && ano != null && ano >= 1000) {
+              dataValidade = DateTime(ano, mes, dia);
+            }
+          }
+        }
+        if (dataValidade != null) {
+          final hoje = DateTime.now();
+          if (DateTime(
+            dataValidade.year,
+            dataValidade.month,
+            dataValidade.day,
+          ).isBefore(DateTime(hoje.year, hoje.month, hoje.day))) {
+            return 'Vencido';
+          }
+        }
         final status = _campoApi(documento, [
           'status',
           'situacao',
           'status_documento',
         ]);
+        if ({
+              'aprovado',
+              'approved',
+              'valid',
+              'valido',
+            }.contains(_normalizarStatus(status)) &&
+            validade.isEmpty) {
+          return 'Validade pendente';
+        }
         if (status.isNotEmpty) return status;
       }
     }
@@ -939,15 +973,34 @@ class _MotoristaDashboardState extends State<MotoristaDashboard>
           ),
           borderRadius: BorderRadius.circular(14),
         ),
-        child: Center(
-          child: Text(
-            AppSession.inicialNome,
-            style: const TextStyle(
-              color: primary,
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: AppSession.fotoPerfil == null
+              ? Center(
+                  child: Text(
+                    AppSession.inicialNome,
+                    style: const TextStyle(
+                      color: primary,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                )
+              : Image.network(
+                  ApiService.instance.fotoUrl(AppSession.fotoPerfil),
+                  width: 43,
+                  height: 43,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => Center(
+                    child: Text(
+                      AppSession.inicialNome,
+                      style: const TextStyle(
+                        color: primary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
         ),
       ),
     );
@@ -2338,6 +2391,71 @@ class _MotoristaDashboardState extends State<MotoristaDashboard>
   // PERFIL
   // ============================================================
 
+  Future<void> _selecionarFotoPerfil(ImageSource origem) async {
+    try {
+      final arquivo = await ImagePicker().pickImage(
+        source: origem,
+        imageQuality: 80,
+        maxWidth: 1024,
+      );
+      if (arquivo == null) return;
+      final resposta = await _perfilRepository.subirFoto(
+        await arquivo.readAsBytes(),
+        filename: arquivo.name,
+      );
+      final data = resposta['data'];
+      final foto = data is Map ? data['foto'] : resposta['foto'];
+      if (foto is! String || foto.isEmpty) {
+        throw const ApiException('O servidor não retornou a foto salva.');
+      }
+      await AppSession.definirFotoPerfil(foto);
+      if (!mounted) return;
+      setState(() => _usuario = {..._usuario, 'foto': foto});
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto do perfil atualizada.')),
+      );
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível carregar a foto.')),
+      );
+    }
+  }
+
+  void _abrirOpcoesFotoPerfil() {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(LucideIcons.camera),
+              title: const Text('Tirar foto'),
+              onTap: () {
+                Navigator.pop(context);
+                _selecionarFotoPerfil(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(LucideIcons.image),
+              title: const Text('Escolher da galeria'),
+              onTap: () {
+                Navigator.pop(context);
+                _selecionarFotoPerfil(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _perfil() {
     return RefreshIndicator(
       color: primary,
@@ -2352,27 +2470,67 @@ class _MotoristaDashboardState extends State<MotoristaDashboard>
             const SizedBox(height: 8),
 
             // AVATAR
-            Container(
-              width: 88,
-              height: 88,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFEAF0FF), Color(0xFFDCE7FF)],
+            Semantics(
+              button: true,
+              label: 'Alterar foto do perfil',
+              child: GestureDetector(
+                onTap: _abrirOpcoesFotoPerfil,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 88,
+                      height: 88,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFEAF0FF), Color(0xFFDCE7FF)],
+                        ),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 4),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primary.withValues(alpha: 0.14),
+                            blurRadius: 18,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: CircleAvatar(
+                        backgroundColor: const Color(0xFFEAF0FF),
+                        backgroundImage: AppSession.fotoPerfil == null
+                            ? null
+                            : NetworkImage(
+                                ApiService.instance.fotoUrl(
+                                  AppSession.fotoPerfil,
+                                ),
+                              ),
+                        onBackgroundImageError: AppSession.fotoPerfil == null
+                            ? null
+                            : (_, _) {},
+                        child: AppSession.fotoPerfil == null
+                            ? const Icon(
+                                LucideIcons.circleUserRound,
+                                size: 46,
+                                color: primary,
+                              )
+                            : null,
+                      ),
+                    ),
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: CircleAvatar(
+                        radius: 15,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        child: const Icon(
+                          LucideIcons.camera,
+                          color: Colors.white,
+                          size: 15,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 4),
-                boxShadow: [
-                  BoxShadow(
-                    color: primary.withValues(alpha: 0.14),
-                    blurRadius: 18,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                LucideIcons.circleUserRound,
-                size: 46,
-                color: primary,
               ),
             ),
 
@@ -2650,7 +2808,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard>
 
   Future<void> _sair() async {
     try {
-      await ApiService.instance.logout();
+      await _perfilRepository.sair();
     } catch (_) {
       // Remove the local credentials if the server is unavailable.
     }

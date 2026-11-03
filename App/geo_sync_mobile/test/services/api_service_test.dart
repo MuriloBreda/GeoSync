@@ -31,6 +31,13 @@ void main() {
       await ApiService.saveBaseUrl('http://192.168.0.10:8000');
       expect(ApiService.baseUrl, 'http://192.168.0.10:8000/api');
     });
+
+    test('recusa credenciais embutidas na URL', () async {
+      await expectLater(
+        ApiService.saveBaseUrl('https://usuario:senha@api.geosync.com.br'),
+        throwsA(isA<ApiException>()),
+      );
+    });
   });
 
   group('ApiService authentication parsing', () {
@@ -77,6 +84,28 @@ void main() {
       final espera = api.parseRetryAfterForTesting(header);
       expect(espera, isNotNull);
       expect(espera!.inSeconds, inInclusiveRange(0, 45));
+    });
+  });
+
+  group('Localização IoT response parsing', () {
+    test('unwraps the Laravel data envelope for the latest point', () {
+      expect(
+        api.unwrapMapEnvelopeForTesting({
+          'success': true,
+          'data': {'latitude': -23.5, 'longitude': -46.6},
+        }),
+        {'latitude': -23.5, 'longitude': -46.6},
+      );
+    });
+
+    test('accepts a direct location map for backward compatibility', () {
+      expect(
+        api.unwrapMapEnvelopeForTesting({
+          'latitude': -23.5,
+          'longitude': -46.6,
+        }),
+        {'latitude': -23.5, 'longitude': -46.6},
+      );
     });
   });
 }

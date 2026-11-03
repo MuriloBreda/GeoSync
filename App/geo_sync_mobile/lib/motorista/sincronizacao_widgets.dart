@@ -7,7 +7,6 @@ import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/sync/data_exporter.dart';
 import 'package:mobile/sync/local_store.dart';
 import 'package:mobile/sync/pending_queue.dart';
-import 'package:mobile/sync/performance_metrics.dart';
 import 'package:mobile/sync/sync_engine.dart';
 import 'package:mobile/widgets/settings_widgets.dart';
 
@@ -51,18 +50,6 @@ class SecaoSincronizacao extends StatelessWidget {
                 : 'Veja como cada divergência foi decidida',
             value: estado.conflitos == 0 ? null : '${estado.conflitos}',
             onTap: () => _abrirConflitos(context),
-          ),
-          SettingsActionTile(
-            icon: LucideIcons.history,
-            color: SettingsColors.violet,
-            title: 'Histórico de sincronização',
-            subtitle: 'Resultado, duração e volume estimado por tentativa',
-            onTap: () => showModalBottomSheet<void>(
-              context: context,
-              isScrollControlled: true,
-              useSafeArea: true,
-              builder: (_) => const _HistoricoSincronizacaoSheet(),
-            ),
           ),
           ValueListenableBuilder<int>(
             valueListenable: DataRetentionPolicy.dias,
@@ -184,17 +171,6 @@ class SecaoSincronizacao extends StatelessWidget {
     );
     if (escolhido == null || !context.mounted) return;
     await DataRetentionPolicy.salvar(escolhido);
-    try {
-      await DataRetentionPolicy.aplicar();
-    } catch (_) {
-      if (context.mounted) {
-        showSettingsMessage(
-          context,
-          'Preferência salva. A limpeza será tentada novamente na próxima sincronização.',
-        );
-      }
-      return;
-    }
     if (context.mounted) showSettingsMessage(context, 'Retenção atualizada.');
   }
 
@@ -223,105 +199,6 @@ class SecaoSincronizacao extends StatelessWidget {
     await sync.limparDadosLocais();
     if (context.mounted) showSettingsMessage(context, 'Dados locais apagados.');
   }
-}
-
-class _HistoricoSincronizacaoSheet extends StatefulWidget {
-  const _HistoricoSincronizacaoSheet();
-
-  @override
-  State<_HistoricoSincronizacaoSheet> createState() =>
-      _HistoricoSincronizacaoSheetState();
-}
-
-class _HistoricoSincronizacaoSheetState
-    extends State<_HistoricoSincronizacaoSheet> {
-  Future<List<SyncPerformanceMetric>> _historico = SyncPerformanceStore.instance
-      .listar();
-
-  Future<void> _limpar() async {
-    await SyncPerformanceStore.instance.limpar();
-    if (mounted) {
-      setState(() => _historico = SyncPerformanceStore.instance.listar());
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) => DraggableScrollableSheet(
-    expand: false,
-    initialChildSize: 0.7,
-    minChildSize: 0.4,
-    maxChildSize: 0.95,
-    builder: (context, controller) => FutureBuilder<List<SyncPerformanceMetric>>(
-      future: _historico,
-      builder: (context, snapshot) {
-        final itens = snapshot.data ?? const <SyncPerformanceMetric>[];
-        return ListView(
-          controller: controller,
-          padding: const EdgeInsets.all(20),
-          children: [
-            const SettingsSheetHeader(
-              icon: LucideIcons.history,
-              color: SettingsColors.violet,
-              title: 'Histórico de sincronização',
-              subtitle: 'Volume enviado é estimado pelo tamanho das ações.',
-            ),
-            if (snapshot.connectionState != ConnectionState.done)
-              const Padding(
-                padding: EdgeInsets.all(24),
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else if (itens.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(24),
-                child: Text('Ainda não há tentativas registradas.'),
-              )
-            else ...[
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(
-                  onPressed: _limpar,
-                  icon: const Icon(LucideIcons.trash2),
-                  label: const Text('Limpar histórico'),
-                ),
-              ),
-              for (final item in itens)
-                Card(
-                  child: ListTile(
-                    leading: Icon(
-                      item.sucesso
-                          ? LucideIcons.circleCheck
-                          : LucideIcons.circleAlert,
-                      color: item.sucesso
-                          ? SettingsColors.green
-                          : SettingsColors.orange,
-                    ),
-                    title: Text(
-                      item.sucesso
-                          ? 'Sincronização concluída'
-                          : 'Falha na sincronização',
-                    ),
-                    subtitle: Text(
-                      '${item.registradaEm.toLocal()}\n'
-                      '${(item.duracaoMs / 1000).toStringAsFixed(1)} s • '
-                      '${item.acoesEnviadas} ação(ões) • '
-                      '${_formatarBytes(item.bytesEnviadosEstimados)} enviados'
-                      '${item.erro == null ? '' : '\n${item.erro}'}',
-                    ),
-                    isThreeLine: true,
-                  ),
-                ),
-            ],
-          ],
-        );
-      },
-    ),
-  );
-
-  String _formatarBytes(int bytes) => bytes < 1024
-      ? '$bytes B'
-      : bytes < 1024 * 1024
-      ? '${(bytes / 1024).toStringAsFixed(1)} KB'
-      : '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
 }
 
 class _AcoesRevisaoSheet extends StatefulWidget {
@@ -713,11 +590,9 @@ class _ExportarDadosSheetState extends State<ExportarDadosSheet> {
   Future<void> _atualizarContagemRemessas() async {
     await _servico.atualizarRemessas();
     final remessas = await _servico.contar(ConjuntoExportacao.remessas);
-    final metricas = await _servico.contar(ConjuntoExportacao.sincronizacoes);
     if (mounted) {
       setState(() {
         _contagens[ConjuntoExportacao.remessas] = remessas;
-        _contagens[ConjuntoExportacao.sincronizacoes] = metricas;
       });
     }
   }
@@ -774,9 +649,7 @@ class _ExportarDadosSheetState extends State<ExportarDadosSheet> {
     }
   }
 
-  String get _mensagemVazio => _conjunto == ConjuntoExportacao.sincronizacoes
-      ? 'Ainda não há rodadas de sincronização registradas.'
-      : _conjunto == ConjuntoExportacao.localizacoes
+  String get _mensagemVazio => _conjunto == ConjuntoExportacao.localizacoes
       ? 'Ainda não há localizações registradas. Elas são gravadas enquanto o '
             'rastreamento de uma entrega está ativo.'
       : 'Nenhuma remessa disponível. Sincronize com a internet ligada e '
@@ -856,21 +729,6 @@ class _ExportarDadosSheetState extends State<ExportarDadosSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
-              _OpcaoConjunto(
-                icon: LucideIcons.activity,
-                titulo: 'Métricas de sincronização',
-                contagem: _contagens[ConjuntoExportacao.sincronizacoes],
-                unidade: 'rodada',
-                selecionado: _conjunto == ConjuntoExportacao.sincronizacoes,
-                onTap: _ocupado
-                    ? null
-                    : () => setState(() {
-                        _conjunto = ConjuntoExportacao.sincronizacoes;
-                        _formato = FormatoExportacao.csv;
-                        _erro = null;
-                      }),
-              ),
               const SizedBox(height: 18),
               _rotulo('Formato do arquivo'),
               _OpcaoFormato(
@@ -884,21 +742,19 @@ class _ExportarDadosSheetState extends State<ExportarDadosSheet> {
                     : () => setState(() => _formato = FormatoExportacao.csv),
               ),
               const SizedBox(height: 10),
-              if (_conjunto != ConjuntoExportacao.sincronizacoes)
-                _OpcaoFormato(
-                  icon: LucideIcons.globe,
-                  color: SettingsColors.indigo,
-                  titulo: 'GeoJSON',
-                  descricao: _conjunto == ConjuntoExportacao.localizacoes
-                      ? 'Pontos e trajetos para QGIS, geojson.io e Google Earth'
-                      : 'Remessas com coordenadas para ferramentas de mapa',
-                  selecionado: _formato == FormatoExportacao.geoJson,
-                  onTap: _ocupado
-                      ? null
-                      : () => setState(
-                          () => _formato = FormatoExportacao.geoJson,
-                        ),
-                ),
+              _OpcaoFormato(
+                icon: LucideIcons.globe,
+                color: SettingsColors.indigo,
+                titulo: 'GeoJSON',
+                descricao: _conjunto == ConjuntoExportacao.localizacoes
+                    ? 'Pontos e trajetos para QGIS, geojson.io e Google Earth'
+                    : 'Remessas com coordenadas para ferramentas de mapa',
+                selecionado: _formato == FormatoExportacao.geoJson,
+                onTap: _ocupado
+                    ? null
+                    : () =>
+                          setState(() => _formato = FormatoExportacao.geoJson),
+              ),
               const SizedBox(height: 16),
               if (_erro != null || vazio)
                 _Aviso(texto: _erro ?? _mensagemVazio)
