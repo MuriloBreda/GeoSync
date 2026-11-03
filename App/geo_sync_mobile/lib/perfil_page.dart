@@ -44,7 +44,9 @@ class _PerfilClientePageState extends State<PerfilClientePage> {
 
   Future<void> _carregarPerfil() async {
     try {
-      final resposta = ApiService.instance.authData(await _perfilRepository.dados());
+      final resposta = ApiService.instance.authData(
+        await _perfilRepository.dados(),
+      );
       final usuario = ApiService.instance.authUser(resposta);
       if (!mounted || usuario.isEmpty) return;
       setState(() {
@@ -912,12 +914,6 @@ class _PerfilClientePageState extends State<PerfilClientePage> {
                 ),
               ],
             ),
-          ),
-
-          Icon(
-            CupertinoIcons.chevron_right,
-            color: scheme.onSurfaceVariant,
-            size: 22,
           ),
         ],
       ),

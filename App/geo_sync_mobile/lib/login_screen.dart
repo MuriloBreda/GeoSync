@@ -96,14 +96,13 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
-          // Fundo Decorativo Superior
           Container(
-            height: 280,
+            height: 300,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
+                colors: [Color(0xFF0F172A), Color(0xFF1D4ED8)],
               ),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(36),
@@ -111,22 +110,76 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-
+          Positioned(
+            top: 90,
+            right: -30,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.06),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 120,
+            left: -20,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.04),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
           SafeArea(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(
                 horizontal: MediaQuery.sizeOf(context).width < 360 ? 16 : 24,
-                vertical: 16,
+                vertical: 18,
               ),
               child: Center(
                 child: ConstrainedBox(
-                  // Em tablets o formulário não se estica pela tela toda.
                   constraints: const BoxConstraints(maxWidth: 460),
                   child: Column(
                     children: [
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.18),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              CupertinoIcons.shield_fill,
+                              color: Colors.white,
+                              size: 14,
+                            ),
+                            const SizedBox(width: 6),
+                            const Text(
+                              'Acesso seguro',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       const SizedBox(height: 20),
-
-                      // LOGO
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -135,62 +188,66 @@ class _LoginScreenState extends State<LoginScreen> {
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.15),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
+                              blurRadius: 22,
+                              offset: const Offset(0, 10),
                             ),
                           ],
                         ),
                         child: Image.asset(
                           'assets/logo.png',
-                          height: 80,
-                          width: 80,
+                          height: 84,
+                          width: 84,
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) {
-                            // Fallback caso a imagem da logo falhe no carregamento
                             return Icon(
                               CupertinoIcons.car_detailed,
-                              size: 50,
+                              size: 52,
                               color: primaryColor,
                             );
                           },
                         ),
                       ),
-
                       const SizedBox(height: 20),
-
-                      // TÍTULOS PRINCIPAIS
+                      Text(
+                        'GeoSync',
+                        style: const TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
                       Text(
                         'Bem-vindo de volta! 👋',
                         style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
                           color: Colors.white,
                         ),
                       ),
-
                       const SizedBox(height: 6),
-
                       Text(
                         'Acesse sua conta para continuar',
                         style: TextStyle(
                           fontSize: 15,
-                          color: Colors.white.withValues(alpha: 0.8),
+                          color: Colors.white.withValues(alpha: 0.82),
                         ),
                       ),
-
-                      const SizedBox(height: 30),
-
-                      // CARD DO FORMULÁRIO DE LOGIN
+                      const SizedBox(height: 28),
                       Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
                           color: scheme.surface,
-                          borderRadius: BorderRadius.circular(24),
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(
+                            color: scheme.outlineVariant.withValues(alpha: 0.7),
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.06),
                               blurRadius: 20,
-                              offset: const Offset(0, 8),
+                              offset: const Offset(0, 10),
                             ),
                           ],
                         ),
@@ -199,23 +256,44 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // SELETOR DE TIPO DE USUÁRIO (Alternador Moderno)
-                              Text(
-                                'Entrar como',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: scheme.onSurfaceVariant,
-                                ),
+                              Row(
+                                children: [
+                                  Text(
+                                    'Entrar como',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: scheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: primaryColor.withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Text(
+                                      'Ativo',
+                                      style: TextStyle(
+                                        color: primaryColor,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.6,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-
-                              const SizedBox(height: 10),
-
+                              const SizedBox(height: 12),
                               Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
                                   color: scheme.surfaceContainerHighest,
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(18),
                                 ),
                                 child: Row(
                                   children: [
@@ -232,8 +310,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     _buildUserTypeOption(
                                       label: 'Motorista',
                                       icon: Icons.local_shipping_outlined,
-                                      selectedIcon:
-                                          Icons.local_shipping_rounded,
+                                      selectedIcon: Icons.local_shipping_rounded,
                                       isSelected: _tipoUsuario == 'Motorista',
                                       onTap: () => setState(
                                         () => _tipoUsuario = 'Motorista',
@@ -243,10 +320,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ],
                                 ),
                               ),
-
-                              const SizedBox(height: 24),
-
-                              // CAMPO EMAIL
+                              const SizedBox(height: 22),
                               TextFormField(
                                 controller: _emailController,
                                 keyboardType: TextInputType.emailAddress,
@@ -263,23 +337,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                 decoration: InputDecoration(
                                   labelText: 'E-mail',
                                   hintText: 'seu@email.com',
-                                  prefixIcon: const Icon(
-                                    CupertinoIcons.envelope,
-                                  ),
+                                  prefixIcon: const Icon(CupertinoIcons.envelope),
                                   filled: true,
                                   fillColor: scheme.surfaceContainer,
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
+                                    borderRadius: BorderRadius.circular(16),
                                     borderSide: BorderSide.none,
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
+                                    borderRadius: BorderRadius.circular(16),
                                     borderSide: BorderSide(
                                       color: scheme.outlineVariant,
                                     ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
+                                    borderRadius: BorderRadius.circular(16),
                                     borderSide: BorderSide(
                                       color: primaryColor,
                                       width: 2,
@@ -287,10 +359,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                               ),
-
                               const SizedBox(height: 16),
-
-                              // CAMPO SENHA
                               TextFormField(
                                 controller: _passwordController,
                                 obscureText: _obscurePassword,
@@ -327,17 +396,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                   filled: true,
                                   fillColor: scheme.surfaceContainer,
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
+                                    borderRadius: BorderRadius.circular(16),
                                     borderSide: BorderSide.none,
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
+                                    borderRadius: BorderRadius.circular(16),
                                     borderSide: BorderSide(
                                       color: scheme.outlineVariant,
                                     ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
+                                    borderRadius: BorderRadius.circular(16),
                                     borderSide: BorderSide(
                                       color: primaryColor,
                                       width: 2,
@@ -345,10 +414,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                               ),
-
                               const SizedBox(height: 8),
-
-                              // ESQUECEU A SENHA
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
@@ -358,8 +424,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (_) => EsqueceuSenhaPage(
-                                              emailInicial:
-                                                  _emailController.text,
+                                              emailInicial: _emailController.text,
                                             ),
                                           ),
                                         );
@@ -387,18 +452,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                     'Esqueceu a senha?',
                                     style: TextStyle(
                                       color: primaryColor,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                 ),
                               ),
-
-                              const SizedBox(height: 20),
-
-                              // BOTÃO ENTRAR
+                              const SizedBox(height: 18),
                               SizedBox(
                                 width: double.infinity,
-                                height: 52,
+                                height: 54,
                                 child: ElevatedButton.icon(
                                   onPressed: _carregando ? null : _fazerLogin,
                                   icon: Icon(
@@ -413,23 +475,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                         : 'Entrar como $_tipoUsuario',
                                     style: const TextStyle(
                                       fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w800,
                                       color: Colors.white,
                                     ),
                                   ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: primaryColor,
-                                    elevation: 2,
-                                    shadowColor: primaryColor.withValues(
-                                      alpha: 0.4,
-                                    ),
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    shadowColor: primaryColor.withValues(alpha: 0.26),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
+                                      borderRadius: BorderRadius.circular(16),
                                     ),
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 10),
                               Center(
                                 child: TextButton.icon(
                                   onPressed: _configurarServidor,
@@ -449,10 +510,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 24),
-
-                      // REGISTRO DE CONTA
                       Wrap(
                         alignment: WrapAlignment.center,
                         crossAxisAlignment: WrapCrossAlignment.center,
@@ -474,16 +532,13 @@ class _LoginScreenState extends State<LoginScreen> {
                               'Cadastre-se',
                               style: TextStyle(
                                 color: primaryColor,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
                           ),
                         ],
                       ),
-
-                      const SizedBox(height: 20),
-
-                      // VERSÃO
+                      const SizedBox(height: 18),
                       const Text(
                         'Versão 1.0.0',
                         style: TextStyle(
@@ -516,17 +571,17 @@ class _LoginScreenState extends State<LoginScreen> {
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          constraints: const BoxConstraints(minHeight: 48),
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+          constraints: const BoxConstraints(minHeight: 50),
+          padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 8),
           decoration: BoxDecoration(
             color: isSelected ? activeColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: activeColor.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+                      color: activeColor.withValues(alpha: 0.24),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
                   ]
                 : [],
@@ -549,7 +604,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: isSelected
                         ? Colors.white
                         : Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                     fontSize: 14,
                   ),
                 ),

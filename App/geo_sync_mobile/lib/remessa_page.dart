@@ -294,6 +294,9 @@ class _RemessasPageState extends State<RemessasPage>
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.18),
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.12),
@@ -645,6 +648,12 @@ class FiltroChip extends StatelessWidget {
                   color: const Color(0xFF0B2A4A).withValues(alpha: 0.18),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
+                ),
+              if (!selecionado)
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
                 ),
             ],
           ),
@@ -1263,22 +1272,31 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
 
               const SizedBox(height: 12),
 
-              InfoDetalhe(
-                icone: CupertinoIcons.square_stack_3d_up,
-                titulo: "Tipo de carga",
-                valor: remessa.tipo,
-              ),
-
-              InfoDetalhe(
-                icone: CupertinoIcons.gauge,
-                titulo: "Peso",
-                valor: remessa.peso,
-              ),
-
-              InfoDetalhe(
-                icone: CupertinoIcons.clock,
-                titulo: "Previsão",
-                valor: remessa.eta,
+              Container(
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 2),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    InfoDetalhe(
+                      icone: CupertinoIcons.square_stack_3d_up,
+                      titulo: "Tipo de carga",
+                      valor: remessa.tipo,
+                    ),
+                    InfoDetalhe(
+                      icone: CupertinoIcons.gauge,
+                      titulo: "Peso",
+                      valor: remessa.peso,
+                    ),
+                    InfoDetalhe(
+                      icone: CupertinoIcons.clock,
+                      titulo: "Previsão",
+                      valor: remessa.eta,
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 20),
@@ -1290,18 +1308,28 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
 
               const SizedBox(height: 15),
 
-              RotaDetalhe(
-                icone: CupertinoIcons.largecircle_fill_circle,
-                titulo: "Origem",
-                valor: remessa.origem,
-                cor: Colors.blue,
-              ),
-
-              RotaDetalhe(
-                icone: CupertinoIcons.placemark,
-                titulo: "Destino",
-                valor: remessa.destino,
-                cor: Colors.red,
+              Container(
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 0),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    RotaDetalhe(
+                      icone: CupertinoIcons.largecircle_fill_circle,
+                      titulo: "Origem",
+                      valor: remessa.origem,
+                      cor: Colors.blue,
+                    ),
+                    RotaDetalhe(
+                      icone: CupertinoIcons.placemark,
+                      titulo: "Destino",
+                      valor: remessa.destino,
+                      cor: Colors.red,
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 24),
@@ -1382,8 +1410,31 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
       decoration: BoxDecoration(
         color: statusColor.withValues(alpha: .08),
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: statusColor.withValues(alpha: .18)),
       ),
-      child: Text(mensagem),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            remessa.status.toLowerCase().contains('alerta') ||
+                    remessa.status.toLowerCase().contains('atras')
+                ? CupertinoIcons.exclamationmark_triangle
+                : CupertinoIcons.info_circle,
+            color: statusColor,
+            size: 19,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              mensagem,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

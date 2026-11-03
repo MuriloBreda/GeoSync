@@ -383,6 +383,34 @@ class _SuportePageState extends State<SuportePage> {
               ],
             ),
           ),
+          if (widget.referenciaRemessa != null &&
+              widget.referenciaRemessa!.trim().isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: scheme.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: scheme.outlineVariant),
+              ),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.package, color: _azul, size: 18),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Atendimento sobre a remessa ${widget.referenciaRemessa}',
+                      style: TextStyle(
+                        color: scheme.onSurface,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 25),
           Text(
             'Acesso rápido',

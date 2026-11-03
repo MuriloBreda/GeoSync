@@ -1868,13 +1868,35 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Resumo das entregas',
-          style: TextStyle(
-            color: textDark,
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Resumo das entregas',
+                style: TextStyle(
+                  color: textDark,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                'Live',
+                style: TextStyle(
+                  color: primary,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.6,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         LayoutBuilder(
@@ -1902,7 +1924,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
               _resumo(
                 icon: LucideIcons.alertTriangle,
                 valor: indisponivel ? '-' : '$ocorrencias',
-                legenda: 'Com ocorrência',
+                legenda: 'Ocorrências',
                 cor: const Color(0xFFEF4444),
               ),
               _resumo(
@@ -1910,7 +1932,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
                 valor: _avaliacaoMedia == null
                     ? '-'
                     : _avaliacaoMedia!.toStringAsFixed(1),
-                legenda: 'Avaliação média',
+                legenda: 'Avaliação',
                 cor: const Color(0xFFE58A00),
               ),
             ];
@@ -1941,32 +1963,51 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: border),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: border.withValues(alpha: 0.8)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.025),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 37,
-            height: 37,
-            decoration: BoxDecoration(
-              color: cor.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(11),
-            ),
-            child: Icon(icon, color: cor, size: 19),
+          Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: cor.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: cor, size: 18),
+              ),
+              const Spacer(),
+              Text(
+                legenda,
+                style: TextStyle(
+                  color: textLight,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 11),
+          const SizedBox(height: 12),
           Text(
             valor,
             style: TextStyle(
               color: textDark,
-              fontSize: 19,
+              fontSize: 20,
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 2),
-          Text(legenda, style: TextStyle(color: textLight, fontSize: 9)),
         ],
       ),
     );
@@ -2076,7 +2117,14 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
           decoration: BoxDecoration(
             color: cardColor,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: border),
+            border: Border.all(color: border.withValues(alpha: 0.7)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 12,
+                offset: const Offset(0, 5),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2132,7 +2180,11 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
                                                 .clamp(8, 86)
                                                 .toDouble(),
                                       decoration: BoxDecoration(
-                                        color: primary,
+                                        color: item.key.contains('Ocorr')
+                                            ? const Color(0xFF7C3AED)
+                                            : item.key.contains('Alerta')
+                                                ? const Color(0xFFF59E0B)
+                                                : primary,
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                     ),
@@ -2174,7 +2226,14 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: border),
+        border: Border.all(color: border.withValues(alpha: 0.8)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

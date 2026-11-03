@@ -1998,6 +1998,24 @@ class _SincronizacaoDaEntregaState extends State<_SincronizacaoDaEntrega> {
   );
 }
 
+class _EtaStatus {
+  const _EtaStatus({
+    required this.title,
+    required this.icon,
+    required this.background,
+    required this.border,
+    required this.text,
+    required this.accent,
+  });
+
+  final String title;
+  final IconData icon;
+  final Color background;
+  final Color border;
+  final Color text;
+  final Color accent;
+}
+
 class _DetalhesRemessaState extends State<DetalhesRemessa> {
   final RemessaRepository _remessaRepository = RemessaRepository();
   Remessa get remessa => widget.remessa;
@@ -2824,65 +2842,104 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
           : 14.0,
     );
 
-    final corAlerta = resultado.possivelAtraso
-        ? const Color(0xFFF59E0B)
-        : const Color(0xFF16A34A);
+    final status = resultado.possivelAtraso
+        ? _EtaStatus(
+            title: 'Possível atraso',
+            icon: LucideIcons.alertTriangle,
+            background: const Color(0xFFFFF7ED),
+            border: const Color(0xFFFCD34D),
+            text: const Color(0xFF7C2D12),
+            accent: const Color(0xFFF59E0B),
+          )
+        : _EtaStatus(
+            title: 'ETA atualizada',
+            icon: LucideIcons.route,
+            background: const Color(0xFFEAFBF1),
+            border: const Color(0xFFBBF7D0),
+            text: const Color(0xFF14532D),
+            accent: const Color(0xFF16A34A),
+          );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: resultado.possivelAtraso
-            ? const Color(0xFFFFF7ED)
-            : const Color(0xFFEAFBF1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: resultado.possivelAtraso
-              ? const Color(0xFFFCD34D)
-              : const Color(0xFFBBF7D0),
-        ),
+        color: status.background,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: status.border, width: 1.2),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 34,
-            height: 34,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
-              color: corAlerta.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+              color: status.accent.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              resultado.possivelAtraso
-                  ? LucideIcons.alertTriangle
-                  : LucideIcons.route,
-              color: corAlerta,
-              size: 17,
-            ),
+            child: Icon(status.icon, color: status.accent, size: 20),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  resultado.possivelAtraso
-                      ? 'Possível atraso'
-                      : 'ETA atualizada',
-                  style: TextStyle(
-                    color: corAlerta,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      status.title,
+                      style: TextStyle(
+                        color: status.text,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    if (resultado.tempoRestanteMin > 0) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: status.accent.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          '${resultado.tempoRestanteMin} min',
+                          style: TextStyle(
+                            color: status.text,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 5),
                 Text(
                   resultado.texto,
                   style: const TextStyle(
                     color: Color(0xFF172033),
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
+                    height: 1.35,
                   ),
                 ),
+                if (resultado.motivo.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    resultado.motivo,
+                    style: TextStyle(
+                      color: status.text.withValues(alpha: 0.8),
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

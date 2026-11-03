@@ -123,18 +123,33 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
                                   vertical: 13,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: scheme.primary.withValues(alpha: 0.06),
-                                  borderRadius: BorderRadius.circular(16),
+                                  color: const Color(0xFFEFF6FF),
+                                  borderRadius: BorderRadius.circular(18),
                                   border: Border.all(
-                                    color: scheme.primary.withValues(alpha: 0.10),
+                                    color: const Color(0xFFBFDBFE),
                                   ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.02),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(
-                                      LucideIcons.bellRing,
-                                      color: scheme.primary,
-                                      size: 19,
+                                    Container(
+                                      width: 36,
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        color: scheme.primary.withValues(alpha: 0.10),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Icon(
+                                        LucideIcons.bellRing,
+                                        color: scheme.primary,
+                                        size: 18,
+                                      ),
                                     ),
                                     const SizedBox(width: 10),
                                     Expanded(
@@ -145,19 +160,29 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
                                             .labelLarge
                                             ?.copyWith(
                                               color: scheme.onSurface,
-                                              fontWeight: FontWeight.w700,
+                                              fontWeight: FontWeight.w800,
                                             ),
                                       ),
                                     ),
-                                    Text(
-                                      '${_avisos.length}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelLarge
-                                          ?.copyWith(
-                                            color: scheme.primary,
-                                            fontWeight: FontWeight.w800,
-                                          ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: scheme.primary.withValues(alpha: 0.10),
+                                        borderRadius: BorderRadius.circular(999),
+                                      ),
+                                      child: Text(
+                                        '${_avisos.length}',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelSmall
+                                            ?.copyWith(
+                                              color: scheme.primary,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                      ),
                                     ),
                                   ],
                                 ),

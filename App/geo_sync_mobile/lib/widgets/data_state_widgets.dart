@@ -22,54 +22,98 @@ class DataStatePanel extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final carregando = kind == DataStateKind.loading;
     final erro = kind == DataStateKind.error;
+    final vazio = kind == DataStateKind.empty;
+
+    final accentColor = erro
+        ? const Color(0xFFEF4444)
+        : vazio
+            ? const Color(0xFF64748B)
+            : const Color(0xFF2563EB);
+
+    final backgroundColor = erro
+        ? const Color(0xFFFFF1F2)
+        : vazio
+            ? const Color(0xFFF8FAFC)
+            : const Color(0xFFEFF6FF);
+
     return SingleChildScrollView(
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Semantics(
             liveRegion: carregando,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (carregando)
-                  const SizedBox.square(
-                    dimension: 34,
-                    child: CircularProgressIndicator(strokeWidth: 3),
-                  )
-                else
-                  Icon(
-                    erro
-                        ? Icons.cloud_off_outlined
-                        : Icons.inventory_2_outlined,
-                    size: 42,
-                    color: erro ? scheme.error : scheme.onSurfaceVariant,
-                  ),
-                const SizedBox(height: 12),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  message,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: scheme.onSurfaceVariant, height: 1.4),
-                ),
-                if (erro && onRetry != null) ...[
-                  const SizedBox(height: 14),
-                  FilledButton.icon(
-                    onPressed: onRetry,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Tentar novamente'),
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size(48, 48),
+            child: Container(
+              width: double.infinity,
+              constraints: const BoxConstraints(maxWidth: 420),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: accentColor.withValues(alpha: 0.16)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Center(
+                      child: carregando
+                          ? SizedBox(
+                              width: 26,
+                              height: 26,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  accentColor,
+                                ),
+                              ),
+                            )
+                          : Icon(
+                              erro
+                                  ? Icons.cloud_off_outlined
+                                  : vazio
+                                      ? Icons.inventory_2_outlined
+                                      : Icons.sync_outlined,
+                              size: 30,
+                              color: accentColor,
+                            ),
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      height: 1.5,
+                    ),
+                  ),
+                  if (erro && onRetry != null) ...[
+                    const SizedBox(height: 18),
+                    FilledButton.icon(
+                      onPressed: onRetry,
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('Tentar novamente'),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(48, 48),
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),

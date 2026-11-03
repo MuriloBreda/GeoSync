@@ -783,36 +783,66 @@ class _TelaDashboardState extends State<TelaDashboard>
   }
 
   Widget _buildWelcome() {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "${_saudacao()}, ${AppSession.nome.isEmpty ? 'cliente' : AppSession.nome.split(' ').first} 👋",
-                style: TextStyle(
-                  color: textLight,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-
-              SizedBox(height: 5),
-
-              Text(
-                "Tudo sob controle?",
-                style: TextStyle(
-                  color: textDark,
-                  fontSize: 25,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.8,
-                ),
-              ),
-            ],
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: border.withValues(alpha: 0.8)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.025),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
-        ),
-      ],
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "${_saudacao()}, ${AppSession.nome.isEmpty ? 'cliente' : AppSession.nome.split(' ').first} 👋",
+                  style: TextStyle(
+                    color: textLight,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  "Tudo sob controle?",
+                  style: TextStyle(
+                    color: textDark,
+                    fontSize: 25,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.8,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0C46FF), Color(0xFF0B2A4A)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              CupertinoIcons.sparkles,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -825,30 +855,31 @@ class _TelaDashboardState extends State<TelaDashboard>
       onTap: () {
         _changePage(1);
       },
-
       child: Container(
-        height: 52,
+        height: 58,
         padding: const EdgeInsets.symmetric(horizontal: 15),
-
         decoration: BoxDecoration(
           color: cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: border),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: border.withValues(alpha: 0.8)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.025),
+              blurRadius: 12,
+              offset: const Offset(0, 5),
+            ),
+          ],
         ),
-
         child: const Row(
           children: [
             Icon(CupertinoIcons.search, color: Color(0xFF94A3B8), size: 21),
-
             SizedBox(width: 11),
-
             Expanded(
               child: Text(
                 "Buscar remessa, código ou cidade...",
                 style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
               ),
             ),
-
             Icon(
               CupertinoIcons.slider_horizontal_3,
               color: Color(0xFF64748B),
@@ -1081,33 +1112,33 @@ class _TelaDashboardState extends State<TelaDashboard>
   }) {
     return GestureDetector(
       onTap: onTap,
-
       child: Container(
         padding: const EdgeInsets.all(13),
-
         decoration: BoxDecoration(
           color: cardColor,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: border),
+          border: Border.all(color: border.withValues(alpha: 0.8)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.025),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: 36,
               height: 36,
-
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(11),
               ),
-
               child: Icon(icon, color: color, size: 19),
             ),
-
             const SizedBox(height: 10),
-
             Text(
               title,
               style: TextStyle(
@@ -1116,9 +1147,7 @@ class _TelaDashboardState extends State<TelaDashboard>
                 fontWeight: FontWeight.w700,
               ),
             ),
-
             const SizedBox(height: 2),
-
             Text(subtitle, style: TextStyle(color: textLight, fontSize: 9)),
           ],
         ),
@@ -1175,7 +1204,14 @@ class _TelaDashboardState extends State<TelaDashboard>
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: border),
+        border: Border.all(color: border.withValues(alpha: 0.8)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1347,16 +1383,20 @@ class _TelaDashboardState extends State<TelaDashboard>
   }) {
     return GestureDetector(
       onTap: () => _changePage(3),
-
       child: Container(
         padding: const EdgeInsets.all(15),
-
         decoration: BoxDecoration(
           color: cardColor,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: border),
+          border: Border.all(color: border.withValues(alpha: 0.8)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1365,21 +1405,17 @@ class _TelaDashboardState extends State<TelaDashboard>
                 Container(
                   width: 36,
                   height: 36,
-
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(11),
                   ),
-
                   child: Icon(
                     CupertinoIcons.exclamationmark_triangle,
                     color: color,
                     size: 19,
                   ),
                 ),
-
                 const SizedBox(width: 10),
-
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1394,9 +1430,7 @@ class _TelaDashboardState extends State<TelaDashboard>
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-
                       const SizedBox(height: 3),
-
                       Text(
                         code,
                         maxLines: 1,
@@ -1406,9 +1440,7 @@ class _TelaDashboardState extends State<TelaDashboard>
                     ],
                   ),
                 ),
-
                 const SizedBox(width: 8),
-
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 100),
                   child: Container(
@@ -1416,12 +1448,10 @@ class _TelaDashboardState extends State<TelaDashboard>
                       horizontal: 7,
                       vertical: 4,
                     ),
-
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(7),
                     ),
-
                     child: Text(
                       severity,
                       maxLines: 1,
@@ -1436,9 +1466,7 @@ class _TelaDashboardState extends State<TelaDashboard>
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-
             Row(
               children: [
                 const Icon(
@@ -1446,16 +1474,13 @@ class _TelaDashboardState extends State<TelaDashboard>
                   color: Color(0xFF94A3B8),
                   size: 14,
                 ),
-
                 const SizedBox(width: 5),
-
                 Expanded(
                   child: Text(
                     route,
                     style: TextStyle(color: textLight, fontSize: 10),
                   ),
                 ),
-
                 Text(
                   time,
                   style: TextStyle(
@@ -1597,13 +1622,18 @@ class _TelaDashboardState extends State<TelaDashboard>
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
-
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: border),
+        border: Border.all(color: border.withValues(alpha: 0.8)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.025),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
-
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1612,21 +1642,17 @@ class _TelaDashboardState extends State<TelaDashboard>
               Container(
                 width: 38,
                 height: 38,
-
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.09),
                   borderRadius: BorderRadius.circular(12),
                 ),
-
                 child: Icon(
                   CupertinoIcons.cube_box,
                   color: statusColor,
                   size: 19,
                 ),
               ),
-
               const SizedBox(width: 10),
-
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1641,9 +1667,7 @@ class _TelaDashboardState extends State<TelaDashboard>
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-
                     const SizedBox(height: 2),
-
                     Text(
                       type,
                       maxLines: 1,
@@ -1653,9 +1677,7 @@ class _TelaDashboardState extends State<TelaDashboard>
                   ],
                 ),
               ),
-
               const SizedBox(width: 8),
-
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 110),
                 child: Container(
@@ -1663,12 +1685,10 @@ class _TelaDashboardState extends State<TelaDashboard>
                     horizontal: 8,
                     vertical: 5,
                   ),
-
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.09),
                     borderRadius: BorderRadius.circular(9),
                   ),
-
                   child: Text(
                     status,
                     maxLines: 1,
@@ -1683,9 +1703,7 @@ class _TelaDashboardState extends State<TelaDashboard>
               ),
             ],
           ),
-
           const SizedBox(height: 14),
-
           Row(
             children: [
               const Icon(
@@ -1693,9 +1711,7 @@ class _TelaDashboardState extends State<TelaDashboard>
                 color: Color(0xFF94A3B8),
                 size: 15,
               ),
-
               const SizedBox(width: 6),
-
               Expanded(
                 child: Text(
                   route,
@@ -1708,17 +1724,13 @@ class _TelaDashboardState extends State<TelaDashboard>
                   ),
                 ),
               ),
-
               const SizedBox(width: 8),
-
               const Icon(
                 CupertinoIcons.clock,
                 color: Color(0xFF94A3B8),
                 size: 14,
               ),
-
               const SizedBox(width: 4),
-
               Text(
                 eta,
                 style: TextStyle(
@@ -1731,24 +1743,17 @@ class _TelaDashboardState extends State<TelaDashboard>
               ),
             ],
           ),
-
           const SizedBox(height: 12),
-
           ClipRRect(
             borderRadius: BorderRadius.circular(20),
-
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 6,
-
               backgroundColor: const Color(0xFFE9EDF3),
-
               valueColor: AlwaysStoppedAnimation<Color>(statusColor),
             ),
           ),
-
           const SizedBox(height: 7),
-
           Row(
             children: [
               Expanded(
@@ -1759,7 +1764,6 @@ class _TelaDashboardState extends State<TelaDashboard>
                   style: TextStyle(color: textLight, fontSize: 9),
                 ),
               ),
-
               Text(
                 "${(progress * 100).round()}%",
                 style: TextStyle(

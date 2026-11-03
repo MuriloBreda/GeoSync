@@ -138,21 +138,46 @@ class _CadastroScreenState extends State<CadastroScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           Container(
-            height: 250,
+            height: 290,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
+                colors: [Color(0xFF0F172A), Color(0xFF1D4ED8)],
               ),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(36),
                 bottomRight: Radius.circular(36),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 90,
+            right: -28,
+            child: Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.06),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 120,
+            left: -18,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.04),
+                shape: BoxShape.circle,
               ),
             ),
           ),
@@ -165,26 +190,54 @@ class _CadastroScreenState extends State<CadastroScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(CupertinoIcons.chevron_left),
-                        color: Colors.white,
-                        tooltip: 'Voltar',
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(CupertinoIcons.chevron_left),
+                            color: Colors.white,
+                            tooltip: 'Voltar',
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.18),
+                              ),
+                            ),
+                            child: const Text(
+                              'Cadastro',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 18),
                       const Text(
                         'Crie sua conta',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 28,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         'Comece a gerenciar suas entregas com a gente.',
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: .8),
+                          color: Colors.white.withValues(alpha: .82),
+                          fontSize: 15,
                         ),
                       ),
                       const SizedBox(height: 28),
@@ -193,16 +246,16 @@ class _CadastroScreenState extends State<CadastroScreen> {
                       Center(
                         child: TextButton(
                           onPressed: () => Navigator.pop(context),
-                          child: const Text.rich(
+                          child: Text.rich(
                             TextSpan(
                               text: 'Já possui uma conta? ',
-                              style: TextStyle(color: Color(0xFF64748B)),
+                              style: TextStyle(color: scheme.onSurfaceVariant),
                               children: [
                                 TextSpan(
                                   text: 'Entrar',
                                   style: TextStyle(
                                     color: _blue,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w800,
                                   ),
                                 ),
                               ],
@@ -225,13 +278,16 @@ class _CadastroScreenState extends State<CadastroScreen> {
     width: double.infinity,
     padding: EdgeInsets.all(MediaQuery.sizeOf(context).width < 360 ? 18 : 24),
     decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(24),
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(28),
+      border: Border.all(
+        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.8),
+      ),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withValues(alpha: .07),
+          color: Colors.black.withValues(alpha: .05),
           blurRadius: 20,
-          offset: const Offset(0, 8),
+          offset: const Offset(0, 10),
         ),
       ],
     ),
@@ -240,12 +296,34 @@ class _CadastroScreenState extends State<CadastroScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Como você vai usar o app?',
-            style: TextStyle(
-              color: Color(0xFF475569),
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              Text(
+                'Como você vai usar o app?',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: BoxDecoration(
+                  color: _blue.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  'Novo',
+                  style: TextStyle(
+                    color: _blue,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 10),
           _seletorTipo(),
@@ -411,7 +489,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
     padding: const EdgeInsets.all(4),
     decoration: BoxDecoration(
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
     ),
     child: Row(
       children: [
@@ -433,14 +511,23 @@ class _CadastroScreenState extends State<CadastroScreen> {
     return Expanded(
       child: InkWell(
         onTap: () => setState(() => _tipoUsuario = label),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          constraints: const BoxConstraints(minHeight: 44),
+          constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
           decoration: BoxDecoration(
             color: ativo ? _blue : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: ativo
+                ? [
+                    BoxShadow(
+                      color: _blue.withValues(alpha: 0.22),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : [],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -462,7 +549,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
                     color: ativo
                         ? Colors.white
                         : Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: ativo ? FontWeight.w800 : FontWeight.w600,
                   ),
                 ),
               ),

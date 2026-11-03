@@ -186,6 +186,12 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
                       )
                     : const Icon(CupertinoIcons.lock_rotation),
                 label: Text(_enviando ? 'Atualizando...' : 'Atualizar senha'),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(54),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
               ),
             ),
           ],
