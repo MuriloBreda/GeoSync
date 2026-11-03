@@ -187,12 +187,27 @@ class ApiService
     }
   }
 
-  String _safeUriForLog(Uri uri) => Uri(
-    scheme: uri.scheme,
-    host: uri.host,
-    port: uri.hasPort ? uri.port : null,
-    pathSegments: uri.pathSegments,
-  ).toString();
+  String _safeUriForLog(Uri uri) {
+    final query = <String, String>{};
+    for (final entry in uri.queryParameters.entries) {
+      final key = entry.key.toLowerCase();
+      final redacted = key.contains('token') ||
+          key.contains('password') ||
+          key.contains('secret') ||
+          key.contains('authorization') ||
+          key.contains('api_key') ||
+          key.contains('senha');
+      query[entry.key] = redacted ? '[redacted]' : entry.value;
+    }
+
+    return Uri(
+      scheme: uri.scheme,
+      host: uri.host,
+      port: uri.hasPort ? uri.port : null,
+      pathSegments: uri.pathSegments,
+      queryParameters: query.isEmpty ? null : query,
+    ).toString();
+  }
 
   Duration? _retryAfter(String? value) {
     if (value == null) return null;

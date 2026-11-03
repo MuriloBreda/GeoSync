@@ -76,5 +76,16 @@ void main() {
         'O servidor encontrou um erro ao processar a solicitação. Tente novamente mais tarde.',
       );
     });
+
+    test('expõe uma mensagem legível para erros em formato de validação', () {
+      final formatted = ApiErrorFormatter.messageFrom({
+        'errors': {
+          'email': ['Email já cadastrado.'],
+          'password': ['A senha é obrigatória.'],
+        },
+      });
+
+      expect(formatted, 'Email já cadastrado.');
+    });
   });
 }
