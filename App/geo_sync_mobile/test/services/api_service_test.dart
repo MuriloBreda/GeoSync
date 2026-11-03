@@ -31,6 +31,13 @@ void main() {
       await ApiService.saveBaseUrl('http://192.168.0.10:8000');
       expect(ApiService.baseUrl, 'http://192.168.0.10:8000/api');
     });
+
+    test('recusa credenciais embutidas na URL', () async {
+      await expectLater(
+        ApiService.saveBaseUrl('https://usuario:senha@api.geosync.com.br'),
+        throwsA(isA<ApiException>()),
+      );
+    });
   });
 
   group('ApiService authentication parsing', () {

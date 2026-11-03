@@ -406,6 +406,8 @@ O app oferece fluxos para clientes e motoristas e adota operação **offline-fir
 
 O app consulta as posições IoT associadas às remessas e **não coleta a localização do celular**. A documentação detalhada, incluindo rotas esperadas, permissões, armazenamento local e testes, está no [README do aplicativo](../App/geo_sync_mobile/README.md).
 
+No mapa, a posição da remessa selecionada é atualizada a cada 30 segundos enquanto o app está em primeiro plano, usando `GET /api/localizacao/remessa/{id}/ultima`. A atualização pausa em segundo plano; se a API falhar, o último ponto conhecido permanece visível.
+
 Para conectar o app a esta API:
 
 1. Inicie o backend (`composer dev`).
@@ -420,6 +422,8 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api
 flutter analyze
 flutter test
 ```
+
+O [workflow Flutter mobile](../.github/workflows/flutter-mobile.yml) automatiza a análise, a suíte de testes e o build Android release. A suíte também valida rótulos semânticos e áreas tocáveis na tela de login.
 
 ---
 

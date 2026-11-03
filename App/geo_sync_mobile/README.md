@@ -321,13 +321,20 @@ flutter test
 flutter test integration_test
 ```
 
+O workflow [Flutter mobile](../../.github/workflows/flutter-mobile.yml) executa `flutter analyze --fatal-infos`, `flutter test` e o build Android release em alterações do app e em pull requests. Para rodar somente as verificações de acessibilidade localmente:
+
+```bash
+flutter test test/ui/accessibility_test.dart
+```
+
 | Suíte | O que cobre |
 |---|---|
 | `test/integration/sync_integration_test.dart` | Fila offline, sincronizacao incremental, conflitos e exportacao, contra `FakeApiServer` |
 | `test/integration/auth_integration_test.dart` | Login, token expirado, validação da sessão ao abrir, logout, recuperação de senha e troca de conta |
 | `test/session_repository_test.dart`, `test/sync_repository_test.dart` | Inicialização/sincronização de sessão e orquestração do sync. |
 | `test/domain_repositories_test.dart`, `test/perfil_motorista_repositories_test.dart` | Encaminhamento de operações por repositório usando clientes fake, sem depender de chamadas HTTP reais. |
-| `test/ui/screens_layout_test.dart` | Cada tela em 4 tamanhos (320 px até tablet), fonte 1,0x e 1,3x, temas claro e escuro: falha se houver overflow |
+| `test/ui/screens_layout_test.dart` | Cada tela em 4 tamanhos (320 px até tablet), fonte 1,0x, 1,3x e 2,0x, temas claro e escuro: falha se houver overflow |
+| `test/ui/accessibility_test.dart` | Diretrizes Flutter para rótulos semânticos e alvos tocáveis no login |
 | `test/ui/perfil_senha_test.dart`, `veiculo_test.dart`, `exportar_test.dart` | Comportamento das telas redesenhadas e gravação real dos arquivos exportados |
 | `test/services/rota_otimizacao_service_test.dart` | Ordem por coordenadas, indicação de fallback aproximado e rota vazia |
 
@@ -345,6 +352,7 @@ flutter test integration_test
 
 - Localização é dado pessoal. O tratamento deve observar a LGPD (Lei nº 13.709/2018).
 - **HTTPS obrigatório em produção:** no Android, `usesCleartextTraffic="false"` no manifest principal; HTTP só é liberado no build de debug (`android/app/src/debug/AndroidManifest.xml`). No iOS, `NSAllowsLocalNetworking` permite HTTP apenas na rede local. O build release também recusa URLs `http://` ao configurar o servidor.
+- URLs de API com credenciais embutidas são recusadas. Os logs não incluem query strings, tokens ou detalhes brutos de exceções e respostas do servidor.
 - Erros internos do servidor não são exibidos ao usuário, para não expor a estrutura do banco.
 - A recuperação de senha responde da mesma forma para e-mails cadastrados ou não, para não revelar quais contas existem.
 - Os dados locais de um usuário são apagados quando outra conta entra no mesmo aparelho.
@@ -368,6 +376,8 @@ flutter test integration_test
 - [x] Layout responsivo e modo escuro revisados
 - [x] Armazenamento seguro do token (`flutter_secure_storage`)
 - [x] Desativar `usesCleartextTraffic` no build de produção
+- [x] Atualizar localização IoT selecionada a cada 30 segundos enquanto o app está em primeiro plano
+- [x] Validar rótulos e alvos tocáveis no login e executar análise, testes e build Android no CI
 
 ## Contribuição
 

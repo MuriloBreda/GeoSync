@@ -5,8 +5,7 @@ class ApiErrorFormatter {
 
   static String messageFrom(dynamic data, [int? statusCode]) {
     if (statusCode != null && statusCode >= 500) {
-      final detalhe = data is Map ? data['message'] : data;
-      debugPrint('[API] erro $statusCode do servidor: $detalhe');
+      debugPrint('[API] erro $statusCode do servidor');
       return 'O servidor encontrou um erro ao processar a solicitação. Tente novamente mais tarde.';
     }
 

@@ -68,6 +68,7 @@ class ApiService
     if (uri == null ||
         !uri.hasScheme ||
         uri.host.isEmpty ||
+        uri.userInfo.isNotEmpty ||
         (uri.scheme != 'http' && uri.scheme != 'https') ||
         uri.hasQuery ||
         uri.hasFragment) {
@@ -107,7 +108,6 @@ class ApiService
         .toList();
     return Uri(
       scheme: base.scheme,
-      userInfo: base.userInfo,
       host: base.host,
       port: base.port,
       pathSegments: [...base.pathSegments, ...endpointSegments],
@@ -131,7 +131,7 @@ class ApiService
   }) async {
     try {
       final uri = _uri(path, query);
-      debugPrint('[API] $method $uri');
+      debugPrint('[API] $method ${_safeUriForLog(uri)}');
       final request = http.Request(method, uri);
       request.headers.addAll(_headers(authenticated: authenticated));
       if (body != null) request.body = jsonEncode(body);
@@ -155,7 +155,9 @@ class ApiService
         );
       }
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        debugPrint('[API] $method $uri -> ${response.statusCode}');
+        debugPrint(
+          '[API] $method ${_safeUriForLog(uri)} -> ${response.statusCode}',
+        );
         if (response.statusCode == 401 && authenticated) {
           await AppSession.encerrarSessao();
         }
@@ -168,8 +170,8 @@ class ApiService
       return data;
     } on ApiException {
       rethrow;
-    } on http.ClientException catch (error) {
-      debugPrint('[API] connection error: $error');
+    } on http.ClientException {
+      debugPrint('[API] connection error');
       throw ApiConnectionException(
         'Não foi possível acessar $baseUrl. Confirme que o Laravel está em execução e a URL está correta.',
       );
@@ -177,13 +179,20 @@ class ApiService
       throw ApiConnectionException(
         'O servidor $baseUrl demorou para responder. Verifique a rede e o Laravel.',
       );
-    } catch (error) {
-      debugPrint('[API] unexpected error: $error');
+    } catch (_) {
+      debugPrint('[API] unexpected error');
       throw const ApiException(
         'Não foi possível conectar ao servidor. Verifique a URL da API e sua rede.',
       );
     }
   }
+
+  String _safeUriForLog(Uri uri) => Uri(
+    scheme: uri.scheme,
+    host: uri.host,
+    port: uri.hasPort ? uri.port : null,
+    pathSegments: uri.pathSegments,
+  ).toString();
 
   Duration? _retryAfter(String? value) {
     if (value == null) return null;
@@ -430,7 +439,7 @@ class ApiService
       if ({401, 403}.contains(error.statusCode) || !await sync.possuiCache()) {
         rethrow;
       }
-      debugPrint('[API] usando cache de remessas após falha: ${error.message}');
+      debugPrint('[API] usando cache local de remessas após falha de sync');
     }
     final List<dynamic> remessas = await sync.remessasLocais();
     _remessasCache = List<dynamic>.from(remessas);
@@ -728,8 +737,8 @@ class ApiService
       return _map(data);
     } on ApiException {
       rethrow;
-    } catch (error) {
-      debugPrint('[API] document upload error: $error');
+    } catch (_) {
+      debugPrint('[API] falha no envio de documento');
       throw const ApiConnectionException(
         'Não foi possível enviar o documento.',
       );

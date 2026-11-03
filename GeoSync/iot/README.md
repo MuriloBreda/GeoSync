@@ -8,6 +8,8 @@
 
 O endpoint devolve `proximidade_destino` com a distância calculada. Ao receber um ponto a até 100 m do destino, o servidor cria um alerta e envia um único e-mail ao cliente da remessa.
 
+O app Flutter consulta a última localização IoT da remessa selecionada a cada 30 segundos enquanto permanece em primeiro plano. Esse ciclo usa `GET /api/localizacao/remessa/{id}/ultima`, sem reenviar dados pelo celular; o ESP32 continua sendo a origem das coordenadas.
+
 ## E-mail
 
 O padrão do Laravel neste projeto é `MAIL_MAILER=log`, que registra o e-mail no log e não o entrega. Para envio real, configure no `.env` um provedor SMTP, por exemplo:

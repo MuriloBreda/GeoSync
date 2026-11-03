@@ -310,6 +310,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   hintText: '••••••••',
                                   prefixIcon: const Icon(CupertinoIcons.lock),
                                   suffixIcon: IconButton(
+                                    tooltip: _obscurePassword
+                                        ? 'Mostrar senha'
+                                        : 'Ocultar senha',
                                     icon: Icon(
                                       _obscurePassword
                                           ? CupertinoIcons.eye_slash
@@ -378,7 +381,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 4,
                                     ),
-                                    minimumSize: const Size(0, 44),
+                                    minimumSize: const Size(0, 48),
                                   ),
                                   child: Text(
                                     'Esqueceu a senha?',
@@ -513,7 +516,7 @@ class _LoginScreenState extends State<LoginScreen> {
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          constraints: const BoxConstraints(minHeight: 44),
+          constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
           decoration: BoxDecoration(
             color: isSelected ? activeColor : Colors.transparent,

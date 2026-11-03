@@ -9,7 +9,7 @@ enum NotificationSeverity { info, warning, critical }
 /// Centraliza a contagem de não lidos e exibe um banner chamativo (com som e
 /// vibração) quando surge um item novo. Não depende de nenhum pacote de push;
 /// funciona por polling enquanto o app está aberto.
-class AppNotificationCenter {
+class AppNotificationCenter with WidgetsBindingObserver {
   AppNotificationCenter._();
 
   static final AppNotificationCenter instance = AppNotificationCenter._();
@@ -21,6 +21,10 @@ class AppNotificationCenter {
   OverlayState? _overlay;
   final Set<String> _seenIds = {};
   bool _primed = false;
+  bool _polling = false;
+  bool _foreground = true;
+  bool _observingLifecycle = false;
+  int _generation = 0;
 
   /// Começa a monitorar [fetch] (ex.: alertas ou avisos) em [interval].
   /// Deve ser chamado a partir de uma tela sempre visível (dashboard).
@@ -29,20 +33,41 @@ class AppNotificationCenter {
     required Future<List<dynamic>> Function() fetch,
     Duration interval = const Duration(seconds: 45),
   }) {
+    _generation++;
+    final lifecycleState = WidgetsBinding.instance.lifecycleState;
+    _foreground =
+        lifecycleState == null || lifecycleState == AppLifecycleState.resumed;
     _fetcher = fetch;
     _overlay = Overlay.maybeOf(context, rootOverlay: true);
     _seenIds.clear();
     _primed = false;
+    if (!_observingLifecycle) {
+      WidgetsBinding.instance.addObserver(this);
+      _observingLifecycle = true;
+    }
     _timer?.cancel();
     unawaited(_poll());
-    _timer = Timer.periodic(interval, (_) => _poll());
+    _timer = Timer.periodic(interval, (_) {
+      if (_foreground) unawaited(_poll());
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
+    if (_foreground) unawaited(_poll());
   }
 
   void detach() {
+    _generation++;
     _timer?.cancel();
     _timer = null;
     _fetcher = null;
     _overlay = null;
+    if (_observingLifecycle) {
+      WidgetsBinding.instance.removeObserver(this);
+      _observingLifecycle = false;
+    }
   }
 
   Future<void> refreshNow() => _poll();
@@ -57,12 +82,16 @@ class AppNotificationCenter {
 
   Future<void> _poll() async {
     final fetch = _fetcher;
-    if (fetch == null) return;
+    if (fetch == null || _polling || !_foreground) return;
+    final generation = _generation;
+    _polling = true;
     try {
       final items = await fetch();
-      _handle(items);
+      if (generation == _generation && _fetcher != null) _handle(items);
     } catch (_) {
       // Mantém a última contagem conhecida em caso de falha de rede.
+    } finally {
+      _polling = false;
     }
   }
 

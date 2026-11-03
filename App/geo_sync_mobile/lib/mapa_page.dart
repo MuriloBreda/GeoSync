@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart'
@@ -27,13 +29,16 @@ class MapaPage extends StatefulWidget {
 }
 
 class _MapaPageState extends State<MapaPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final RemessaRepository _remessaRepository = RemessaRepository();
   String _filtroSelecionado = "Todos";
   String? _veiculoSelecionado;
   late AnimationController _pulseController;
   String? _erroLocalizacoes;
   bool _carregandoLocalizacoes = true;
+  bool _atualizandoRota = false;
+  final Set<String> _rotasEmAtualizacao = {};
+  Timer? _timerRota;
   final MapController _mapController = MapController();
 
   final List<RotaModel> _rotas = [];
@@ -43,12 +48,66 @@ class _MapaPageState extends State<MapaPage>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
     _carregarLocalizacoes();
+    _timerRota = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_appEmPrimeiroPlano) unawaited(_atualizarRotaSelecionada());
+    });
+  }
+
+  bool get _appEmPrimeiroPlano =>
+      WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_atualizarRotaSelecionada());
+    }
+  }
+
+  Future<void> _atualizarRotaSelecionada() async {
+    final rota = _rotaSelecionada;
+    if (rota == null ||
+        rota.id == null ||
+        _atualizandoRota ||
+        _rotasEmAtualizacao.contains(rota.id.toString())) {
+      return;
+    }
+    _atualizandoRota = true;
+    try {
+      final ultima = await _remessaRepository.ultimaLocalizacao(rota.id!);
+      final latitude = double.tryParse(
+        '${ultima['latitude'] ?? ultima['lat']}',
+      );
+      final longitude = double.tryParse(
+        '${ultima['longitude'] ?? ultima['lng'] ?? ultima['lon']}',
+      );
+      if (!_coordenadasValidas(latitude, longitude)) return;
+      if (!mounted || _remessaSelecionadaId?.toString() != rota.id.toString()) {
+        return;
+      }
+      final ponto = latlong2.LatLng(latitude!, longitude!);
+      setState(() {
+        if (_pontosRota.isEmpty ||
+            _pontosRota.last.latitude != latitude ||
+            _pontosRota.last.longitude != longitude) {
+          _pontosRota = [..._pontosRota, ponto];
+        }
+        _erroLocalizacoes = null;
+      });
+      _mapController.move(ponto, 10);
+    } on ApiException catch (error) {
+      if (mounted && _remessaSelecionadaId?.toString() == rota.id.toString()) {
+        setState(() => _erroLocalizacoes = error.message);
+      }
+    } finally {
+      _atualizandoRota = false;
+    }
   }
 
   Future<bool> _carregarLocalizacoes() async {
@@ -177,6 +236,8 @@ class _MapaPageState extends State<MapaPage>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _timerRota?.cancel();
     _pulseController.dispose();
     super.dispose();
   }
@@ -465,6 +526,8 @@ class _MapaPageState extends State<MapaPage>
 
   Future<void> _carregarRota(RotaModel rota) async {
     if (rota.id == null) return;
+    final rotaId = rota.id.toString();
+    if (!_rotasEmAtualizacao.add(rotaId)) return;
     try {
       final dados = await _remessaRepository.localizacoes(rota.id!);
       final registros = dados.whereType<Map>().toList()
@@ -498,10 +561,11 @@ class _MapaPageState extends State<MapaPage>
     } on ApiException catch (error) {
       if (mounted && _remessaSelecionadaId?.toString() == rota.id.toString()) {
         setState(() {
-          _pontosRota = [];
           _erroLocalizacoes = error.message;
         });
       }
+    } finally {
+      _rotasEmAtualizacao.remove(rotaId);
     }
   }
 

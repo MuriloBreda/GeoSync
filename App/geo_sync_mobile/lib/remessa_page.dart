@@ -16,7 +16,8 @@ class RemessasPage extends StatefulWidget {
   State<RemessasPage> createState() => _RemessasPageState();
 }
 
-class _RemessasPageState extends State<RemessasPage> {
+class _RemessasPageState extends State<RemessasPage>
+    with WidgetsBindingObserver {
   final RemessaRepository _remessaRepository = RemessaRepository();
   final TextEditingController _searchController = TextEditingController();
 
@@ -42,6 +43,8 @@ class _RemessasPageState extends State<RemessasPage> {
   bool _carregando = true;
   String? _erro;
   Timer? _timerRemessas;
+  bool _appAtivo = true;
+  bool _carregandoRemessas = false;
 
   List<Remessa> get remessasFiltradas {
     final pesquisa = _normalizarTexto(_searchController.text);
@@ -71,18 +74,26 @@ class _RemessasPageState extends State<RemessasPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _searchController.addListener(() {
       setState(() {});
     });
     _carregarRemessas();
-    _timerRemessas = Timer.periodic(
-      const Duration(seconds: 30),
-      (_) => _carregarRemessas(),
-    );
+    _timerRemessas = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_appAtivo) _carregarRemessas();
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appAtivo = state == AppLifecycleState.resumed;
+    if (_appAtivo) _carregarRemessas();
   }
 
   Future<void> _carregarRemessas() async {
+    if (_carregandoRemessas) return;
+    _carregandoRemessas = true;
     if (mounted) {
       setState(() {
         _carregando = remessas.isEmpty;
@@ -112,6 +123,8 @@ class _RemessasPageState extends State<RemessasPage> {
         _erro = 'Não foi possível atualizar suas remessas.';
         _carregando = false;
       });
+    } finally {
+      _carregandoRemessas = false;
     }
   }
 
@@ -157,6 +170,7 @@ class _RemessasPageState extends State<RemessasPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timerRemessas?.cancel();
     _searchController.dispose();
     super.dispose();

@@ -27,7 +27,8 @@ class TelaDashboard extends StatefulWidget {
   State<TelaDashboard> createState() => _TelaDashboardState();
 }
 
-class _TelaDashboardState extends State<TelaDashboard> {
+class _TelaDashboardState extends State<TelaDashboard>
+    with WidgetsBindingObserver {
   final AlertaRepository _alertaRepository = AlertaRepository();
   final RemessaRepository _remessaRepository = RemessaRepository();
   final PagamentoRepository _pagamentoRepository = PagamentoRepository();
@@ -55,6 +56,8 @@ class _TelaDashboardState extends State<TelaDashboard> {
   double? _saldoMovimentado;
   double? _avaliacaoMedia;
   Timer? _timerRemessas;
+  bool _appAtivo = true;
+  bool _carregandoRemessas = false;
 
   String _normalizarStatus(String status) => status
       .trim()
@@ -91,9 +94,10 @@ class _TelaDashboardState extends State<TelaDashboard> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _carregarResumo();
     _timerRemessas = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (_currentIndex == 0 && !_carregandoResumo) {
+      if (_appAtivo && _currentIndex == 0 && !_carregandoResumo) {
         _atualizarRemessasEmTempoReal();
       }
     });
@@ -107,7 +111,16 @@ class _TelaDashboardState extends State<TelaDashboard> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appAtivo = state == AppLifecycleState.resumed;
+    if (_appAtivo && _currentIndex == 0 && !_carregandoResumo) {
+      _atualizarRemessasEmTempoReal();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timerRemessas?.cancel();
     AppNotificationCenter.instance.detach();
     super.dispose();
@@ -149,6 +162,8 @@ class _TelaDashboardState extends State<TelaDashboard> {
   }
 
   Future<List<Remessa>> _carregarRemessas() async {
+    if (_carregandoRemessas) return _remessas;
+    _carregandoRemessas = true;
     try {
       // A API decide quais remessas pertencem à sessão autenticada.
       final dados = await _remessaRepository.autorizadas();
@@ -177,6 +192,8 @@ class _TelaDashboardState extends State<TelaDashboard> {
       _falhaRemessas = true;
       _falhaCarregamentoResumo = true;
       return _remessas;
+    } finally {
+      _carregandoRemessas = false;
     }
   }
 
