@@ -87,6 +87,14 @@ class _RemessasPageState extends State<RemessasPage> {
     'completed',
   }.contains(_normalizarStatus(status));
 
+  bool _statusPendente(Object? status) => {
+    'aguardando coleta',
+    'aguardando retirada',
+    'pending',
+    'pending pickup',
+    'assigned',
+  }.contains(_normalizarStatus(status));
+
   bool _statusOcorrencia(Object? status) => {
     'alerta',
     'atrasado',
@@ -100,6 +108,9 @@ class _RemessasPageState extends State<RemessasPage> {
 
   bool _correspondeFiltro(Remessa remessa, String filtro) {
     switch (_normalizarStatus(filtro)) {
+      case 'pendentes':
+      case 'pendente':
+        return _statusPendente(remessa.status);
       case 'transito':
       case 'em transito':
         return _statusTransito(remessa.status);
@@ -959,6 +970,11 @@ class _RemessasPageState extends State<RemessasPage> {
             quantidade: quantidadePorStatus("Todas"),
           ),
           _filtro(
+            texto: 'Pendentes',
+            filtro: 'Pendentes',
+            quantidade: quantidadePorStatus('Pendentes'),
+          ),
+          _filtro(
             texto: "Em rota",
             filtro: "Trânsito",
             quantidade: quantidadePorStatus("Trânsito"),
@@ -1339,7 +1355,11 @@ class _ComprovanteEntregaDialogState extends State<_ComprovanteEntregaDialog> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(LucideIcons.camera),
-                      label: Text(_carregandoFoto ? 'Capturando...' : 'Foto'),
+                      label: Text(
+                        _carregandoFoto
+                            ? 'Capturando...'
+                            : 'Foto (opcional)',
+                      ),
                     ),
                   ),
                 ],
@@ -1391,7 +1411,7 @@ class _ComprovanteEntregaDialogState extends State<_ComprovanteEntregaDialog> {
                 child: TextButton.icon(
                   onPressed: () => _signatureController.clear(),
                   icon: const Icon(LucideIcons.trash2),
-                  label: const Text('Limpar'),
+                  label: const Text('Limpar assinatura'),
                 ),
               ),
             ],
@@ -2767,7 +2787,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
                           ),
                     label: Text(
                       _statusTransitoMotorista(remessa.status)
-                          ? 'Marcar como entregue'
+                          ? 'Concluir entrega'
                           : 'Iniciar entrega',
                     ),
                   ),
@@ -2811,7 +2831,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
                   },
                   icon: const Icon(LucideIcons.map, size: 20),
                   label: const Text(
-                    "Acompanhar no mapa",
+                    'Abrir rota',
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                   ),
                   style: ElevatedButton.styleFrom(

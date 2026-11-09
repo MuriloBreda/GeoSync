@@ -1987,14 +1987,20 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
                 ),
                 child: Icon(icon, color: cor, size: 18),
               ),
-              const Spacer(),
-              Text(
-                legenda,
-                style: TextStyle(
-                  color: textLight,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.4,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  legenda,
+                  maxLines: 2,
+                  softWrap: true,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: TextStyle(
+                    color: textLight,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.4,
+                  ),
                 ),
               ),
             ],

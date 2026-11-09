@@ -256,7 +256,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
+                              Wrap(
+                                alignment: WrapAlignment.spaceBetween,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                runSpacing: 8,
                                 children: [
                                   Text(
                                     'Entrar como',
@@ -266,7 +269,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                       color: scheme.onSurfaceVariant,
                                     ),
                                   ),
-                                  const Spacer(),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 8,

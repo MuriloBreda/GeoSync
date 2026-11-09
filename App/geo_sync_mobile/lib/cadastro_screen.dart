@@ -296,7 +296,10 @@ class _CadastroScreenState extends State<CadastroScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runSpacing: 8,
             children: [
               Text(
                 'Como você vai usar o app?',
@@ -306,7 +309,6 @@ class _CadastroScreenState extends State<CadastroScreen> {
                   fontSize: 14,
                 ),
               ),
-              const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                 decoration: BoxDecoration(
