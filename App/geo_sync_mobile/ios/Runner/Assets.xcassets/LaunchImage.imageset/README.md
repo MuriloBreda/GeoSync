@@ -1,5 +1,5 @@
-# Launch Screen Assets
+# Imagens da tela de abertura (iOS)
 
-This asset catalog contains the iOS launch-screen images. Replace the image files in this directory to customize the launch screen, keeping the filenames declared by `Contents.json` in sync with the files present.
+Este catálogo contém as imagens de inicialização do aplicativo GeoSync Mobile para iOS. Para substituí-las, mantenha os nomes e as variantes declarados em [`Contents.json`](Contents.json) sincronizados com os arquivos presentes neste diretório.
 
-You can also open the Flutter project's Xcode workspace with `open ios/Runner.xcworkspace`, select `Runner/Assets.xcassets` in the Project Navigator, and add or replace the images there. Verify the launch screen on an iOS simulator after changing the catalog.
+O Flutter usa os catálogos de assets do projeto Xcode em `ios/Runner/Assets.xcassets`. Depois de alterar as imagens, abra `ios/Runner.xcworkspace` no Xcode e confira a tela de abertura em um simulador antes de gerar o build de distribuição. As instruções gerais de execução e release estão no [README do aplicativo](../../../../README.md).
