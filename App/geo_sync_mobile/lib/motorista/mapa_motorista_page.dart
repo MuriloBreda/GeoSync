@@ -208,7 +208,13 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage>
     setState(() {
       _selecionada = remessa.codigo;
       _pontosIoT = [];
+      _erroRotaIoT = null;
     });
+    final latitude = remessa.latitude;
+    final longitude = remessa.longitude;
+    if (latitude != null && longitude != null) {
+      _mapController.move(latlong2.LatLng(latitude, longitude), 12);
+    }
     _carregarRotaIoT(remessa);
   }
 
@@ -280,20 +286,32 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage>
         actions: [
           IconButton(
             tooltip: 'Atualizar localização IoT',
-            icon: const Icon(LucideIcons.refreshCw),
-            onPressed: () {
-              final atual = _remessa;
-              if (atual != null) _carregarRotaIoT(atual);
-            },
+            icon: _carregandoRota
+                ? SizedBox.square(
+                    dimension: 19,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: scheme.primary,
+                    ),
+                  )
+                : const Icon(LucideIcons.refreshCw),
+            onPressed: _carregandoRota
+                ? null
+                : () {
+                    final atual = _remessa;
+                    if (atual != null) _carregarRotaIoT(atual);
+                  },
           ),
           IconButton(
             tooltip: 'Centralizar localização IoT',
             icon: const Icon(LucideIcons.locateFixed),
-            onPressed: () {
-              if (_pontosIoT.isNotEmpty) {
-                _mapController.move(_pontosIoT.last, 14);
-              }
-            },
+            onPressed: _pontosIoT.isEmpty
+                ? null
+                : () {
+                    if (_pontosIoT.isNotEmpty) {
+                      _mapController.move(_pontosIoT.last, 14);
+                    }
+                  },
           ),
           const SizedBox(width: 4),
         ],
@@ -324,24 +342,64 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage>
                   children: [
                     Row(
                       children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: scheme.primary.withValues(alpha: .09),
+                            borderRadius: BorderRadius.circular(13),
+                          ),
+                          child: Icon(
+                            LucideIcons.packageCheck,
+                            color: scheme.primary,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 11),
                         Expanded(
-                          child: Text(
-                            'Minhas remessas',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: scheme.onSurface,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Minhas remessas',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: scheme.onSurface,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Toque em uma remessa para acompanhar a rota',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: scheme.onSurfaceVariant,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          '${_remessas.length} ativas',
-                          style: const TextStyle(
-                            color: Color(0xFF718096),
-                            fontSize: 12,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: scheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${_remessas.length} ativas',
+                            style: TextStyle(
+                              color: scheme.onSurfaceVariant,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ],
@@ -431,8 +489,8 @@ class _Mapa extends StatelessWidget {
                   markers: [
                     Marker(
                       point: pontos.last,
-                      width: 48,
-                      height: 48,
+                      width: 56,
+                      height: 56,
                       child: const _Marcador(
                         icone: LucideIcons.radio,
                         cor: Color(0xFF0C46FF),
@@ -492,12 +550,47 @@ class _Mapa extends StatelessWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   else
-                    Text(
-                      '${pontos.length} pontos IoT',
-                      style: const TextStyle(
-                        color: Color(0xFF475569),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 220),
+                      child: Container(
+                        key: ValueKey(pontos.isNotEmpty),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: pontos.isNotEmpty
+                              ? const Color(0xFF16A34A).withValues(alpha: .10)
+                              : const Color(0xFFF59E0B).withValues(alpha: .12),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              pontos.isNotEmpty
+                                  ? LucideIcons.radio
+                                  : LucideIcons.radioTower,
+                              size: 13,
+                              color: pontos.isNotEmpty
+                                  ? const Color(0xFF15803D)
+                                  : const Color(0xFFB45309),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              pontos.isNotEmpty
+                                  ? '${pontos.length} pontos'
+                                  : 'Sem sinal',
+                              style: TextStyle(
+                                color: pontos.isNotEmpty
+                                    ? const Color(0xFF15803D)
+                                    : const Color(0xFFB45309),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                 ],
@@ -529,22 +622,90 @@ class _Mapa extends StatelessWidget {
   }
 }
 
-class _Marcador extends StatelessWidget {
+class _Marcador extends StatefulWidget {
   const _Marcador({required this.icone, required this.cor});
   final IconData icone;
   final Color cor;
+
   @override
-  Widget build(BuildContext context) => Container(
-    width: 40,
-    height: 40,
-    decoration: BoxDecoration(
-      color: cor,
-      shape: BoxShape.circle,
-      boxShadow: [BoxShadow(color: cor.withValues(alpha: .35), blurRadius: 10)],
+  State<_Marcador> createState() => _MarcadorState();
+}
+
+class _MarcadorState extends State<_Marcador>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1500),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 54,
+    height: 54,
+    child: AnimatedBuilder(
+      animation: _pulse,
+      builder: (context, _) {
+        final t = _pulse.value;
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            Transform.scale(
+              scale: .72 + t * .5,
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: widget.cor.withValues(alpha: (1 - t) * .55),
+                    width: 2,
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: widget.cor,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.cor.withValues(alpha: .35),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+              child: Icon(widget.icone, color: Colors.white, size: 20),
+            ),
+          ],
+        );
+      },
     ),
-    child: Icon(icone, color: Colors.white, size: 21),
   );
 }
+
+String _normalizarStatusMotorista(Object? value) => '$value'
+    .trim()
+    .toLowerCase()
+    .replaceAll('á', 'a')
+    .replaceAll('ã', 'a')
+    .replaceAll('ç', 'c')
+    .replaceAll('_', ' ')
+    .replaceAll('-', ' ');
+
+bool _statusEntregueMotorista(Object? status) => {
+  'entregue',
+  'delivered',
+  'completed',
+  'concluida',
+}.contains(_normalizarStatusMotorista(status));
 
 class _CartaoRemessa extends StatelessWidget {
   const _CartaoRemessa({
@@ -556,74 +717,161 @@ class _CartaoRemessa extends StatelessWidget {
   final bool selecionada;
   final VoidCallback onTap;
   @override
-  Widget build(BuildContext context) => Material(
-    color: selecionada ? const Color(0xFFE9EEFF) : const Color(0xFFF8FAFC),
-    borderRadius: BorderRadius.circular(17),
-    child: InkWell(
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final status = _normalizarStatusMotorista(remessa.status);
+    final statusColor =
+        status.contains('atras') ||
+            status.contains('alerta') ||
+            status.contains('problema')
+        ? scheme.error
+        : _statusEntregueMotorista(status)
+        ? const Color(0xFF16A34A)
+        : status.startsWith('aguardando') || status == 'pending'
+        ? const Color(0xFFF59E0B)
+        : scheme.primary;
+
+    return Semantics(
+      button: true,
+      selected: selecionada,
+      label: '${remessa.codigo}, ${remessa.status}, ${remessa.rota}',
       onTap: onTap,
-      borderRadius: BorderRadius.circular(17),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(17),
-          border: Border.all(
-            color: selecionada
-                ? const Color(0xFF0C46FF)
-                : const Color(0xFFE8ECF3),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(19),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(19),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: selecionada
+                  ? Color.alphaBlend(
+                      scheme.primary.withValues(alpha: .08),
+                      scheme.surface,
+                    )
+                  : scheme.surface,
+              borderRadius: BorderRadius.circular(19),
+              border: Border.all(
+                color: selecionada
+                    ? scheme.primary.withValues(alpha: .7)
+                    : scheme.outlineVariant,
+                width: selecionada ? 1.4 : 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: selecionada
+                      ? scheme.primary.withValues(alpha: .09)
+                      : Colors.black.withValues(alpha: .025),
+                  blurRadius: selecionada ? 16 : 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 260),
+                  width: 4,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              remessa.codigo,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: scheme.onSurface,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: statusColor.withValues(alpha: .10),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              remessa.status,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: statusColor,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        remessa.rota,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: scheme.onSurfaceVariant,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 9),
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: remessa.progresso),
+                        duration: const Duration(milliseconds: 500),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, progresso, _) => ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: LinearProgressIndicator(
+                            value: progresso,
+                            minHeight: 5,
+                            color: scheme.primary,
+                            backgroundColor: scheme.surfaceContainerHighest,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                AnimatedScale(
+                  scale: selecionada ? 1.08 : 1,
+                  duration: const Duration(milliseconds: 220),
+                  child: Icon(
+                    selecionada
+                        ? LucideIcons.circleCheck
+                        : LucideIcons.chevronRight,
+                    color: selecionada
+                        ? scheme.primary
+                        : scheme.onSurfaceVariant,
+                    size: 19,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 9,
-              height: 40,
-              decoration: BoxDecoration(
-                color: remessa.status == 'Atenção'
-                    ? const Color(0xFFDC2626)
-                    : const Color(0xFF0C46FF),
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            const SizedBox(width: 11),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    remessa.codigo,
-                    style: const TextStyle(
-                      color: Color(0xFF172033),
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    remessa.rota,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFF718096),
-                      fontSize: 11,
-                    ),
-                  ),
-                  const SizedBox(height: 7),
-                  LinearProgressIndicator(
-                    value: remessa.progresso,
-                    minHeight: 4,
-                    borderRadius: BorderRadius.circular(10),
-                    color: const Color(0xFF0C46FF),
-                    backgroundColor: Colors.white,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Icon(LucideIcons.chevronRight, color: Color(0xFF718096)),
-          ],
-        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _Remessa {

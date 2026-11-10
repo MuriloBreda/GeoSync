@@ -96,7 +96,7 @@ class _TelaDashboardState extends State<TelaDashboard>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _carregarResumo();
-    _timerRemessas = Timer.periodic(const Duration(seconds: 30), (_) {
+    _timerRemessas = Timer.periodic(const Duration(seconds: 90), (_) {
       if (_appAtivo && _currentIndex == 0 && !_carregandoResumo) {
         _atualizarRemessasEmTempoReal();
       }
@@ -106,6 +106,7 @@ class _TelaDashboardState extends State<TelaDashboard>
       AppNotificationCenter.instance.attach(
         context,
         fetch: () => _alertaRepository.listar(),
+        onOpenNotifications: () => _changePage(3),
       );
     });
   }
@@ -316,9 +317,19 @@ class _TelaDashboardState extends State<TelaDashboard>
       appBar: _buildAppBar(),
 
       body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
+        duration: const Duration(milliseconds: 380),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.025, 0),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
+          ),
+        ),
         child: KeyedSubtree(key: ValueKey(_currentIndex), child: _getBody()),
       ),
 
@@ -384,7 +395,9 @@ class _TelaDashboardState extends State<TelaDashboard>
                 ),
                 SizedBox(height: 2),
                 Text(
-                  "Área do cliente",
+                  widget.tipoUsuario == 'Motorista'
+                      ? 'Área do motorista'
+                      : 'Área do cliente',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -410,68 +423,69 @@ class _TelaDashboardState extends State<TelaDashboard>
 
   Widget _notificationButton() {
     final scheme = Theme.of(context).colorScheme;
-    return Semantics(
-      button: true,
-      excludeSemantics: true,
-      label: AppNotificationCenter.instance.unreadCount.value > 0
-          ? 'Alertas, ${AppNotificationCenter.instance.unreadCount.value} não lidos'
-          : 'Abrir alertas',
-      onTap: () => _changePage(3),
-      child: GestureDetector(
+    return ValueListenableBuilder<int>(
+      valueListenable: AppNotificationCenter.instance.unreadCount,
+      builder: (context, unread, _) => Semantics(
+        button: true,
+        excludeSemantics: true,
+        label: unread > 0 ? 'Alertas, $unread não lidos' : 'Abrir alertas',
         onTap: () => _changePage(3),
-        child: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: border),
-          ),
-          child: Stack(
-            children: [
-              Center(
-                child: Icon(
-                  CupertinoIcons.bell,
-                  color: scheme.onSurfaceVariant,
-                  size: 22,
+        child: GestureDetector(
+          onTap: () => _changePage(3),
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: cardColor,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: border),
+            ),
+            child: Stack(
+              children: [
+                Center(
+                  child: Icon(
+                    CupertinoIcons.bell,
+                    color: scheme.onSurfaceVariant,
+                    size: 22,
+                  ),
                 ),
-              ),
 
-              ValueListenableBuilder<int>(
-                valueListenable: AppNotificationCenter.instance.unreadCount,
-                builder: (context, unread, _) {
-                  if (unread <= 0) return const SizedBox.shrink();
-                  return Positioned(
-                    top: 4,
-                    right: 4,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 2,
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 17,
-                        minHeight: 17,
-                      ),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: Colors.redAccent,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: scheme.surface, width: 1.5),
-                      ),
-                      child: Text(
-                        unread > 9 ? '9+' : '$unread',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 8,
-                          fontWeight: FontWeight.bold,
+                ValueListenableBuilder<int>(
+                  valueListenable: AppNotificationCenter.instance.unreadCount,
+                  builder: (context, unread, _) {
+                    if (unread <= 0) return const SizedBox.shrink();
+                    return Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 2,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 17,
+                          minHeight: 17,
+                        ),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: scheme.surface, width: 1.5),
+                        ),
+                        child: Text(
+                          unread > 9 ? '9+' : '$unread',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ],
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -539,161 +553,45 @@ class _TelaDashboardState extends State<TelaDashboard>
   // ============================================================
 
   Widget _buildBottomNavigation() {
-    return Container(
-      decoration: BoxDecoration(
-        color: cardColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
+    return ValueListenableBuilder<int>(
+      valueListenable: AppNotificationCenter.instance.unreadCount,
+      builder: (context, unread, _) => NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: _changePage,
+        destinations: [
+          const NavigationDestination(
+            icon: Icon(CupertinoIcons.house),
+            selectedIcon: Icon(CupertinoIcons.house_fill),
+            label: 'Início',
+          ),
+          const NavigationDestination(
+            icon: Icon(CupertinoIcons.cube_box),
+            selectedIcon: Icon(CupertinoIcons.cube_box_fill),
+            label: 'Remessas',
+          ),
+          const NavigationDestination(
+            icon: Icon(CupertinoIcons.map),
+            selectedIcon: Icon(CupertinoIcons.map_fill),
+            label: 'Mapa',
+          ),
+          NavigationDestination(
+            icon: _alertasNavigationIcon(unread),
+            selectedIcon: _alertasNavigationIcon(unread, selected: true),
+            label: 'Alertas',
           ),
         ],
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(4, 8, 4, 6),
-          child: Row(
-            children: [
-              Expanded(
-                child: _navItem(
-                  icon: CupertinoIcons.house,
-                  iconeAtivo: CupertinoIcons.house_fill,
-                  label: "Início",
-                  index: 0,
-                ),
-              ),
-              Expanded(
-                child: _navItem(
-                  icon: CupertinoIcons.cube_box,
-                  iconeAtivo: CupertinoIcons.cube_box_fill,
-                  label: "Remessas",
-                  index: 1,
-                ),
-              ),
-              Expanded(
-                child: _navItem(
-                  icon: CupertinoIcons.map,
-                  iconeAtivo: CupertinoIcons.map_fill,
-                  label: "Mapa",
-                  index: 2,
-                ),
-              ),
-              Expanded(
-                child: ValueListenableBuilder<int>(
-                  valueListenable: AppNotificationCenter.instance.unreadCount,
-                  builder: (context, unread, _) => _navItem(
-                    icon: CupertinoIcons.exclamationmark_triangle,
-                    iconeAtivo: CupertinoIcons.exclamationmark_triangle_fill,
-                    label: "Alertas",
-                    index: 3,
-                    badge: unread > 0 ? unread : null,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
 
-  Widget _navItem({
-    required IconData icon,
-    required IconData iconeAtivo,
-    required String label,
-    required int index,
-    int? badge,
-  }) {
-    final selected = _currentIndex == index;
-
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: label,
-      onTap: () => _changePage(index),
-      child: GestureDetector(
-        onTap: () => _changePage(index),
-        behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOut,
-          constraints: const BoxConstraints(minHeight: 48),
-          margin: const EdgeInsets.symmetric(horizontal: 2),
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
-          decoration: BoxDecoration(
-            color: selected
-                ? primary.withValues(alpha: 0.09)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  AnimatedScale(
-                    scale: selected ? 1.08 : 1,
-                    duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      selected ? iconeAtivo : icon,
-                      size: 23,
-                      color: selected ? primary : const Color(0xFF94A3B8),
-                    ),
-                  ),
-
-                  if (badge != null)
-                    Positioned(
-                      right: -7,
-                      top: -7,
-                      child: Container(
-                        padding: const EdgeInsets.all(3),
-                        constraints: const BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.redAccent,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1.5),
-                        ),
-                        child: Center(
-                          child: Text(
-                            "$badge",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 8,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-
-              const SizedBox(height: 4),
-
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                // Não amplia além de 1.2x: a barra tem altura limitada.
-                textScaler: MediaQuery.textScalerOf(
-                  context,
-                ).clamp(maxScaleFactor: 1.2),
-                style: TextStyle(
-                  color: selected ? primary : const Color(0xFF94A3B8),
-                  fontSize: 11,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+  Widget _alertasNavigationIcon(int unread, {bool selected = false}) {
+    final icon = Icon(
+      selected
+          ? CupertinoIcons.exclamationmark_triangle_fill
+          : CupertinoIcons.exclamationmark_triangle,
     );
+    if (unread <= 0) return icon;
+    return Badge(label: Text(unread > 9 ? '9+' : '$unread'), child: icon);
   }
 
   // ============================================================
@@ -729,22 +627,24 @@ class _TelaDashboardState extends State<TelaDashboard>
 
             const SizedBox(height: 18),
 
-            // BUSCA
-            _buildSearch(),
+            // RESUMO DA OPERAÇÃO
+            _buildOverviewCard(),
 
             const SizedBox(height: 18),
 
-            // RESUMO DA OPERAÇÃO
-            _buildOverviewCard(),
+            _buildRecentShipments(),
+
+            const SizedBox(height: 18),
+
+            // Acesso direto ao rastreamento, depois do resumo principal.
+            _buildSearch(),
 
             const SizedBox(height: 22),
 
             // AÇÕES RÁPIDAS
             _buildQuickActions(),
 
-            const SizedBox(height: 28),
-
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
 
             _buildStatistics(),
 
@@ -753,10 +653,7 @@ class _TelaDashboardState extends State<TelaDashboard>
             // ALERTAS
             _buildCriticalAlerts(),
 
-            const SizedBox(height: 28),
-
-            // REMESSAS
-            _buildRecentShipments(),
+            const SizedBox(height: 22),
           ],
         ),
       ),
@@ -783,63 +680,25 @@ class _TelaDashboardState extends State<TelaDashboard>
   }
 
   Widget _buildWelcome() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: border.withValues(alpha: 0.8)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.025),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(2, 8, 2, 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "${_saudacao()}, ${AppSession.nome.isEmpty ? 'cliente' : AppSession.nome.split(' ').first} 👋",
-                  style: TextStyle(
-                    color: textLight,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  "Tudo sob controle?",
-                  style: TextStyle(
-                    color: textDark,
-                    fontSize: 25,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.8,
-                  ),
-                ),
-              ],
+          Text(
+            "${_saudacao()}, ${AppSession.nome.isEmpty ? 'cliente' : AppSession.nome.split(' ').first}",
+            style: TextStyle(
+              color: textLight,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF0C46FF), Color(0xFF0B2A4A)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(
-              CupertinoIcons.sparkles,
-              color: Colors.white,
-              size: 20,
-            ),
+          const SizedBox(height: 4),
+          Text(
+            'Acompanhe suas entregas',
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(color: textDark),
           ),
         ],
       ),
@@ -851,41 +710,36 @@ class _TelaDashboardState extends State<TelaDashboard>
   // ============================================================
 
   Widget _buildSearch() {
-    return GestureDetector(
-      onTap: () {
-        _changePage(1);
-      },
-      child: Container(
-        height: 58,
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: border.withValues(alpha: 0.8)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.025),
-              blurRadius: 12,
-              offset: const Offset(0, 5),
+    return Semantics(
+      button: true,
+      label: 'Abrir pesquisa de remessas por código ou cidade',
+      child: Material(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: () => _changePage(1),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 54),
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: border),
             ),
-          ],
-        ),
-        child: const Row(
-          children: [
-            Icon(CupertinoIcons.search, color: Color(0xFF94A3B8), size: 21),
-            SizedBox(width: 11),
-            Expanded(
-              child: Text(
-                "Buscar remessa, código ou cidade...",
-                style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-              ),
+            child: Row(
+              children: [
+                Icon(CupertinoIcons.search, color: textLight, size: 20),
+                const SizedBox(width: 11),
+                Expanded(
+                  child: Text(
+                    'Pesquisar remessas por código ou cidade',
+                    style: TextStyle(color: textLight, fontSize: 13),
+                  ),
+                ),
+                Icon(CupertinoIcons.arrow_right, color: textLight, size: 17),
+              ],
             ),
-            Icon(
-              CupertinoIcons.slider_horizontal_3,
-              color: Color(0xFF64748B),
-              size: 19,
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -902,38 +756,12 @@ class _TelaDashboardState extends State<TelaDashboard>
       padding: const EdgeInsets.all(20),
 
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [primaryDark, Color(0xFF123C69), primary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-
-        borderRadius: BorderRadius.circular(24),
-
-        boxShadow: [
-          BoxShadow(
-            color: primary.withValues(alpha: 0.22),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        color: primary,
+        borderRadius: BorderRadius.circular(16),
       ),
 
       child: Stack(
         children: [
-          Positioned(
-            right: -40,
-            top: -50,
-            child: Container(
-              width: 160,
-              height: 160,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.06),
-              ),
-            ),
-          ),
-
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1076,7 +904,7 @@ class _TelaDashboardState extends State<TelaDashboard>
                 icon: CupertinoIcons.map,
                 title: "Mapa",
                 subtitle: "Ver frota",
-                color: const Color(0xFF7C3AED),
+                color: Theme.of(context).colorScheme.secondary,
                 onTap: () => _changePage(2),
               ),
             ),
@@ -1110,46 +938,44 @@ class _TelaDashboardState extends State<TelaDashboard>
     required Color color,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(13),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: border.withValues(alpha: 0.8)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.025),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(11),
+    return Material(
+      color: cardColor,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 128),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(icon, color: color, size: 19),
               ),
-              child: Icon(icon, color: color, size: 19),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: TextStyle(
-                color: textDark,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
+              const SizedBox(height: 10),
+              Text(
+                title,
+                style: TextStyle(
+                  color: textDark,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(subtitle, style: TextStyle(color: textLight, fontSize: 9)),
-          ],
+              const SizedBox(height: 2),
+              Text(subtitle, style: TextStyle(color: textLight, fontSize: 11)),
+            ],
+          ),
         ),
       ),
     );
@@ -1203,15 +1029,8 @@ class _TelaDashboardState extends State<TelaDashboard>
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: border.withValues(alpha: 0.8)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1314,7 +1133,13 @@ class _TelaDashboardState extends State<TelaDashboard>
         if (_carregandoResumo)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(
+              child: GeoSyncLoader(
+                label: 'Carregando alertas',
+                color: primary,
+                size: 48,
+              ),
+            ),
           )
         else if (_alertasDestaque.isEmpty)
           _buildAlertasVazio()
@@ -1358,7 +1183,7 @@ class _TelaDashboardState extends State<TelaDashboard>
     padding: const EdgeInsets.symmetric(vertical: 22),
     decoration: BoxDecoration(
       color: cardColor,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(12),
       border: Border.all(color: border),
     ),
     child: Column(
@@ -1387,15 +1212,8 @@ class _TelaDashboardState extends State<TelaDashboard>
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
           color: cardColor,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: border.withValues(alpha: 0.8)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1502,6 +1320,18 @@ class _TelaDashboardState extends State<TelaDashboard>
   // ============================================================
 
   Widget _buildRecentShipments() {
+    final remessasPrioritarias = List<Remessa>.of(_remessas)
+      ..sort((a, b) {
+        final statusA = _normalizarStatus(a.status);
+        final statusB = _normalizarStatus(b.status);
+        final finalizadaA = statusA == 'entregue' || statusA == 'cancelada';
+        final finalizadaB = statusB == 'entregue' || statusB == 'cancelada';
+        return finalizadaA == finalizadaB
+            ? 0
+            : finalizadaA
+            ? 1
+            : -1;
+      });
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1570,7 +1400,13 @@ class _TelaDashboardState extends State<TelaDashboard>
         if (_carregandoResumo)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(
+              child: GeoSyncLoader(
+                label: 'Carregando remessas',
+                color: primary,
+                size: 48,
+              ),
+            ),
           )
         else if (_falhaRemessas && _remessas.isEmpty)
           Padding(
@@ -1583,7 +1419,8 @@ class _TelaDashboardState extends State<TelaDashboard>
         else if (_remessas.isEmpty)
           _buildAlertasVazio()
         else
-          for (final entry in _remessas.take(3).toList().asMap().entries) ...[
+          for (final entry
+              in remessasPrioritarias.take(3).toList().asMap().entries) ...[
             if (entry.key > 0) const SizedBox(height: 10),
             _buildShipment(
               code: entry.value.codigo,
@@ -1593,9 +1430,19 @@ class _TelaDashboardState extends State<TelaDashboard>
               progress: entry.value.progresso,
               eta: entry.value.eta,
               statusColor: _corRemessa(entry.value.status),
+              onTap: () => _abrirDetalhesRemessa(entry.value),
             ),
           ],
       ],
+    );
+  }
+
+  void _abrirDetalhesRemessa(Remessa remessa) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DetalhesRemessa(remessa: remessa),
     );
   }
 
@@ -1619,162 +1466,161 @@ class _TelaDashboardState extends State<TelaDashboard>
     required double progress,
     required String eta,
     required Color statusColor,
+    required VoidCallback onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: border.withValues(alpha: 0.8)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.025),
-            blurRadius: 12,
-            offset: const Offset(0, 5),
+    return Material(
+      color: cardColor,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: border),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.09),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  CupertinoIcons.cube_box,
-                  color: statusColor,
-                  size: 19,
-                ),
+              Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.09),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      CupertinoIcons.cube_box,
+                      color: statusColor,
+                      size: 19,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          code,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: textDark,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          type,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: textLight, fontSize: 10),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 110),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.09),
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      child: Text(
+                        status,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: statusColor,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      code,
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Icon(
+                    CupertinoIcons.map_pin_ellipse,
+                    color: textLight,
+                    size: 15,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      route,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: textDark,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      type,
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(CupertinoIcons.clock, color: textLight, size: 14),
+                  const SizedBox(width: 4),
+                  Text(
+                    eta,
+                    style: TextStyle(
+                      color: status == "Atrasado"
+                          ? const Color(0xFFEF4444)
+                          : textLight,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 6,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest,
+                  valueColor: AlwaysStoppedAnimation<Color>(statusColor),
+                ),
+              ),
+              const SizedBox(height: 7),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      "Progresso pela etapa",
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: textLight, fontSize: 10),
+                      style: TextStyle(color: textLight, fontSize: 9),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 110),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 5,
                   ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.09),
-                    borderRadius: BorderRadius.circular(9),
-                  ),
-                  child: Text(
-                    status,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Text(
+                    "${(progress * 100).round()}%",
                     style: TextStyle(
                       color: statusColor,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              const Icon(
-                CupertinoIcons.map_pin_ellipse,
-                color: Color(0xFF94A3B8),
-                size: 15,
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  route,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: textDark,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Icon(
-                CupertinoIcons.clock,
-                color: Color(0xFF94A3B8),
-                size: 14,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                eta,
-                style: TextStyle(
-                  color: status == "Atrasado"
-                      ? const Color(0xFFEF4444)
-                      : textLight,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 6,
-              backgroundColor: const Color(0xFFE9EDF3),
-              valueColor: AlwaysStoppedAnimation<Color>(statusColor),
-            ),
-          ),
-          const SizedBox(height: 7),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  "Progresso pela etapa",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: textLight, fontSize: 9),
-                ),
-              ),
-              Text(
-                "${(progress * 100).round()}%",
-                style: TextStyle(
-                  color: statusColor,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }

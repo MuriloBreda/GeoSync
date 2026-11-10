@@ -322,7 +322,13 @@ class ApiService
     await _request(
       'POST',
       'contatos',
-      body: {'mensagem': mensagem.trim(), 'canal': canal},
+      body: {
+        // O endpoint Laravel exige nome, e-mail e mensagem. Como a tabela
+        // contatos não tem coluna para canal, registramos a origem no texto.
+        'nome': AppSession.nome.trim(),
+        'email': AppSession.email.trim(),
+        'mensagem': '[Canal: $canal]\n${mensagem.trim()}',
+      },
     ),
   );
 

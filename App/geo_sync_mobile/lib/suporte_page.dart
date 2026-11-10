@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/app_session.dart';
 import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/services/api_service.dart';
 
@@ -34,7 +35,23 @@ class _SuportePageState extends State<SuportePage> {
     VoidCallback atualizarSheet,
   ) async {
     final mensagem = _mensagemController.text.trim();
-    if (mensagem.isEmpty || _enviando) return;
+    if (_enviando) return;
+    if (mensagem.length < 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Escreva pelo menos 10 caracteres.')),
+      );
+      return;
+    }
+    if (AppSession.nome.trim().isEmpty || AppSession.email.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Complete nome e e-mail no perfil antes de pedir suporte.',
+          ),
+        ),
+      );
+      return;
+    }
     setState(() => _enviando = true);
     atualizarSheet();
     var enviado = false;
@@ -48,8 +65,8 @@ class _SuportePageState extends State<SuportePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          content: Text(
-            'Solicitação enviada pelo $canal. Retornaremos em breve.',
+          content: const Text(
+            'Solicitação registrada. A equipe poderá consultar sua mensagem.',
           ),
         ),
       );
@@ -120,7 +137,7 @@ class _SuportePageState extends State<SuportePage> {
                 ),
                 const SizedBox(height: 7),
                 Text(
-                  'Conte o que aconteceu. Nossa equipe receberá sua mensagem e poderá ajudar.',
+                  'Conte o que aconteceu. Sua solicitação ficará registrada para consulta pela equipe.',
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                     height: 1.45,
@@ -131,6 +148,7 @@ class _SuportePageState extends State<SuportePage> {
                   controller: _mensagemController,
                   maxLines: 5,
                   minLines: 3,
+                  maxLength: 1000,
                   autofocus: true,
                   textCapitalization: TextCapitalization.sentences,
                   decoration: InputDecoration(
@@ -146,13 +164,15 @@ class _SuportePageState extends State<SuportePage> {
                       borderSide: BorderSide.none,
                     ),
                   ),
+                  onChanged: (_) => setSheetState(() {}),
                 ),
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   height: 52,
                   child: FilledButton.icon(
-                    onPressed: _enviando
+                    onPressed: _enviando ||
+                            _mensagemController.text.trim().length < 10
                         ? null
                         : () {
                             _enviarSolicitacao(
@@ -160,14 +180,30 @@ class _SuportePageState extends State<SuportePage> {
                               () => setSheetState(() {}),
                             );
                           },
-                    icon: _enviando
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(LucideIcons.send, size: 18),
-                    label: Text(_enviando ? 'Enviando...' : 'Enviar mensagem'),
+                    icon: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      child: _enviando
+                          ? const SizedBox(
+                              key: ValueKey('support-sending'),
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Icon(
+                              LucideIcons.send,
+                              key: ValueKey('support-send'),
+                              size: 18,
+                            ),
+                    ),
+                    label: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      child: Text(
+                        _enviando ? 'Enviando...' : 'Enviar mensagem',
+                        key: ValueKey(_enviando),
+                      ),
+                    ),
                     style: FilledButton.styleFrom(
                       backgroundColor: _azul,
                       shape: RoundedRectangleBorder(
@@ -443,7 +479,7 @@ class _SuportePageState extends State<SuportePage> {
           ),
           const SizedBox(height: 27),
           Text(
-            'Outros canais',
+            'Fale com a equipe',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: _tinta,
               fontWeight: FontWeight.w800,
@@ -451,36 +487,13 @@ class _SuportePageState extends State<SuportePage> {
           ),
           const SizedBox(height: 12),
           _CanalSuporte(
-            icon: LucideIcons.mail,
+            icon: LucideIcons.messageCircle,
             cor: const Color(0xFF0F9D78),
-            titulo: 'E-mail',
-            detalhe: 'suporte@geosync.com.br',
-            acao: 'Enviar mensagem',
-            onTap: () => _abrirFormulario('Enviar e-mail', 'e-mail'),
-          ),
-          const SizedBox(height: 10),
-          _CanalSuporte(
-            icon: LucideIcons.phone,
-            cor: const Color(0xFFEA8A16),
-            titulo: 'Central telefônica',
-            detalhe: '0800 123 4567 · Seg a sex, 8h às 18h',
-            acao: 'Ver horário',
-            onTap: () => showDialog<void>(
-              context: context,
-              builder: (dialogContext) => AlertDialog(
-                icon: const Icon(LucideIcons.headset, color: _azul),
-                title: const Text('Central telefônica'),
-                content: const Text(
-                  'Ligue gratuitamente para 0800 123 4567, de segunda a sexta, das 8h às 18h.',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(dialogContext),
-                    child: const Text('Entendi'),
-                  ),
-                ],
-              ),
-            ),
+            titulo: 'Solicitação pelo aplicativo',
+            detalhe:
+                'Sua mensagem será registrada para consulta pela equipe GeoSync.',
+            acao: 'Abrir formulário',
+            onTap: () => _abrirFormulario('Fale com o suporte', 'aplicativo'),
           ),
           const SizedBox(height: 18),
           Wrap(
@@ -494,7 +507,7 @@ class _SuportePageState extends State<SuportePage> {
                 color: scheme.onSurfaceVariant,
               ),
               Text(
-                'Estamos aqui para ajudar você',
+                'Incluímos seus dados de perfil na solicitação.',
                 style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
               ),
             ],
@@ -637,10 +650,13 @@ class _CanalSuporte extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(
-                LucideIcons.chevronRight,
-                color: scheme.onSurfaceVariant,
-                size: 19,
+              Text(
+                acao,
+                style: TextStyle(
+                  color: scheme.primary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),

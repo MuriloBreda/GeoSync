@@ -80,6 +80,16 @@
 		CONSTRAINT fk_alertas_remessa FOREIGN KEY (remessa_id) REFERENCES remessas(id) ON DELETE CASCADE ON UPDATE CASCADE
 	);
 
+	CREATE TABLE alerta_leituras (
+		id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+		alerta_id BIGINT UNSIGNED NOT NULL,
+		user_id BIGINT UNSIGNED NOT NULL,
+		read_at TIMESTAMP NOT NULL,
+		UNIQUE KEY alerta_leituras_alerta_user_unique (alerta_id, user_id),
+		CONSTRAINT fk_alerta_leituras_alerta FOREIGN KEY (alerta_id) REFERENCES alertas(id) ON DELETE CASCADE,
+		CONSTRAINT fk_alerta_leituras_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+	);
+
 	-- 4. TABELA DE LOCALIZAÇÕES
 	CREATE TABLE localizacoes (
 		id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

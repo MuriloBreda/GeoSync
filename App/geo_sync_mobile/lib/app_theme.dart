@@ -24,12 +24,13 @@ class AppTheme {
           surface: isDark ? const Color(0xFF172033) : Colors.white,
         ).copyWith(
           surface: isDark ? const Color(0xFF182335) : Colors.white,
+          secondary: isDark ? const Color(0xFF5EEAD4) : const Color(0xFF0F766E),
           surfaceContainer: isDark
               ? const Color(0xFF202D42)
-              : const Color(0xFFF8FAFC),
+              : const Color(0xFFF6F8FB),
           surfaceContainerHighest: isDark
               ? const Color(0xFF2A3950)
-              : const Color(0xFFE8EEF5),
+              : const Color(0xFFEDF2F7),
           onSurface: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF172033),
           onSurfaceVariant: isDark
               ? const Color(0xFFD2DCEB)
@@ -46,7 +47,16 @@ class AppTheme {
       colorScheme: scheme,
       scaffoldBackgroundColor: isDark
           ? const Color(0xFF0F172A)
-          : const Color(0xFFF5F7FB),
+          : const Color(0xFFF3F6FA),
+      textTheme: const TextTheme(
+        displaySmall: TextStyle(fontSize: 36, fontWeight: FontWeight.w700),
+        headlineSmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+        titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+        titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        bodyLarge: TextStyle(fontSize: 16, height: 1.4),
+        bodyMedium: TextStyle(fontSize: 14, height: 1.4),
+        labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      ).apply(bodyColor: scheme.onSurface, displayColor: scheme.onSurface),
       appBarTheme: AppBarTheme(
         backgroundColor: isDark
             ? const Color(0xFF0F172A)
@@ -60,6 +70,10 @@ class AppTheme {
         color: scheme.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: scheme.outlineVariant),
+        ),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: scheme.surface,
@@ -72,6 +86,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: scheme.surface,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 15,
+        ),
         labelStyle: TextStyle(color: scheme.onSurfaceVariant),
         hintStyle: TextStyle(
           color: scheme.onSurfaceVariant.withValues(alpha: .8),
@@ -81,6 +99,36 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: scheme.outlineVariant),
         ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: scheme.outlineVariant),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: scheme.primary, width: 1.5),
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: scheme.surface,
+        indicatorColor: scheme.primary.withValues(alpha: 0.10),
+        elevation: 0,
+        height: 72,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return IconThemeData(
+            color: selected ? scheme.primary : scheme.onSurfaceVariant,
+            size: 22,
+          );
+        }),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return TextStyle(
+            color: selected ? scheme.primary : scheme.onSurfaceVariant,
+            fontSize: 11,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          );
+        }),
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(

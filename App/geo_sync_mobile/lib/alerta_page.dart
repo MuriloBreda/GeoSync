@@ -6,6 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/alerta_repository.dart';
 import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/services/notification_center.dart';
+import 'package:mobile/widgets/data_state_widgets.dart';
 
 void main() {
   runApp(
@@ -134,13 +135,14 @@ class _TelaAlertasState extends State<TelaAlertas> {
 
   final List<Alerta> alertas = [];
   bool _carregando = true;
+  bool _marcandoTodosComoLidos = false;
   String? _erro;
 
   @override
   void initState() {
     super.initState();
     _buscaController.addListener(_atualizarBusca);
-    _carregarAlertas();
+    _carregarAlertas(forceRefresh: true);
   }
 
   @override
@@ -191,20 +193,27 @@ class _TelaAlertasState extends State<TelaAlertas> {
     }
   }
 
-  Alerta _alertaFromApi(Map value) => Alerta(
-    id: value['id'],
-    titulo: '${value['titulo'] ?? value['title'] ?? 'Alerta'}',
-    descricao:
-        '${value['descricao'] ?? value['description'] ?? value['mensagem'] ?? '-'}',
-    local: '${value['local'] ?? value['localizacao'] ?? '-'}',
-    horario: '${value['horario'] ?? value['created_at'] ?? '-'}',
-    status: _statusExibicao(value['status'] ?? value['gravidade']),
-    icone: _iconeStatus(_statusExibicao(value['status'] ?? value['gravidade'])),
-    lido:
-        value['lido'] == true ||
-        value['read'] == true ||
-        value['read_at'] != null,
-  );
+  Alerta _alertaFromApi(Map value) {
+    final remessa = value['remessa'] is Map ? value['remessa'] as Map : const {};
+    final status = _statusExibicao(
+      value['status'] ?? value['gravidade'] ?? value['tipo'],
+    );
+    return Alerta(
+      id: value['id'],
+      titulo: '${value['titulo'] ?? value['title'] ?? value['tipo'] ?? 'Alerta'}',
+      descricao:
+          '${value['descricao'] ?? value['description'] ?? value['mensagem'] ?? '-'}',
+      local:
+          '${value['local'] ?? value['localizacao'] ?? remessa['codigo_rastreio'] ?? '-'}',
+      horario: '${value['horario'] ?? value['created_at'] ?? '-'}',
+      status: status,
+      icone: _iconeStatus(status),
+      lido:
+          value['lido'] == true ||
+          value['read'] == true ||
+          value['read_at'] != null,
+    );
+  }
 
   int get _quantidadeNaoLidos => alertas.where((a) => !a.lido).length;
 
@@ -213,9 +222,12 @@ class _TelaAlertasState extends State<TelaAlertas> {
     setState(() => alerta.lido = true);
     try {
       await _alertaRepository.marcarComoLido(alerta.id!);
-    } on ApiException catch (_) {
-      // Mantém como lido localmente mesmo se o backend não confirmar,
-      // para não reabrir um alerta que o usuário já visualizou.
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() => alerta.lido = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message)),
+      );
     } finally {
       unawaited(AppNotificationCenter.instance.refreshNow());
     }
@@ -223,20 +235,35 @@ class _TelaAlertasState extends State<TelaAlertas> {
 
   Future<void> _marcarTodosComoLidos() async {
     final pendentes = alertas.where((a) => !a.lido).toList();
-    if (pendentes.isEmpty) return;
+    if (pendentes.isEmpty || _marcandoTodosComoLidos) return;
+    if (pendentes.any((alerta) => alerta.id == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Alguns alertas não têm identificador.')),
+      );
+      return;
+    }
     setState(() {
+      _marcandoTodosComoLidos = true;
       for (final alerta in pendentes) {
         alerta.lido = true;
       }
     });
-    await Future.wait([
-      for (final alerta in pendentes)
-        if (alerta.id != null)
-          _alertaRepository
-              .marcarComoLido(alerta.id!)
-              .catchError((_) => <String, dynamic>{}),
-    ]);
-    unawaited(AppNotificationCenter.instance.refreshNow());
+    try {
+      await Future.wait([
+        for (final alerta in pendentes)
+          _alertaRepository.marcarComoLido(alerta.id!),
+      ]);
+    } on ApiException catch (error) {
+      await _carregarAlertas(forceRefresh: true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message)),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _marcandoTodosComoLidos = false);
+      unawaited(AppNotificationCenter.instance.refreshNow());
+    }
   }
 
   // ============================================================
@@ -339,7 +366,12 @@ class _TelaAlertasState extends State<TelaAlertas> {
 
             Expanded(
               child: _carregando
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const Center(
+                      child: GeoSyncLoader(
+                        label: 'Carregando alertas',
+                        size: 48,
+                      ),
+                    )
                   : _erro != null
                   ? _buildErro()
                   : RefreshIndicator(
@@ -501,14 +533,24 @@ class _TelaAlertasState extends State<TelaAlertas> {
                 borderRadius: BorderRadius.circular(14),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(14),
-                  onTap: _marcarTodosComoLidos,
-                  child: const Padding(
+                  onTap: _marcandoTodosComoLidos
+                      ? null
+                      : _marcarTodosComoLidos,
+                  child: Padding(
                     padding: EdgeInsets.all(12),
-                    child: Icon(
-                      LucideIcons.checkCheck,
-                      color: Colors.white,
-                      size: 22,
-                    ),
+                    child: _marcandoTodosComoLidos
+                        ? const SizedBox.square(
+                            dimension: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(
+                            LucideIcons.checkCheck,
+                            color: Colors.white,
+                            size: 22,
+                          ),
                   ),
                 ),
               ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/services/api_service.dart';
+import 'package:mobile/services/notification_center.dart';
 import 'package:mobile/widgets/app_gradient_header.dart';
 import 'package:mobile/widgets/responsive_content.dart';
 
@@ -17,11 +18,23 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
   List<Map<String, dynamic>> _avisos = [];
   bool _loading = true;
   String? _error;
+  bool _markingAll = false;
+  bool _onlyUnread = false;
+
+  bool _isRead(Map<String, dynamic> aviso) =>
+      aviso['lido'] == true ||
+      aviso['read'] == true ||
+      aviso['read_at'] != null;
+
+  int get _unreadCount => _avisos.where((aviso) => !_isRead(aviso)).length;
+  List<Map<String, dynamic>> get _visibleAvisos => _onlyUnread
+      ? _avisos.where((aviso) => !_isRead(aviso)).toList()
+      : _avisos;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _load(refresh: true);
   }
 
   Future<void> _load({bool refresh = false}) async {
@@ -50,6 +63,63 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
     }
   }
 
+  Future<void> _markRead(Map<String, dynamic> aviso) async {
+    if (_isRead(aviso)) return;
+    final id = aviso['id'];
+    if (id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Este aviso não pode ser marcado como lido.'),
+        ),
+      );
+      return;
+    }
+    setState(() => aviso['lido'] = true);
+    try {
+      await ApiService.instance.atualizarAlerta(id, {'lido': true});
+      await AppNotificationCenter.instance.refreshNow();
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() => aviso['lido'] = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    }
+  }
+
+  Future<void> _markAllRead() async {
+    final unread = _avisos.where((aviso) => !_isRead(aviso)).toList();
+    if (unread.isEmpty || _markingAll) return;
+    if (unread.any((aviso) => aviso['id'] == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Alguns avisos não têm identificador.')),
+      );
+      return;
+    }
+    setState(() {
+      _markingAll = true;
+      for (final aviso in unread) {
+        aviso['lido'] = true;
+      }
+    });
+    try {
+      await Future.wait([
+        for (final aviso in unread)
+          ApiService.instance.atualizarAlerta(aviso['id'], {'lido': true}),
+      ]);
+      await AppNotificationCenter.instance.refreshNow();
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+        await _load(refresh: true);
+      }
+    } finally {
+      if (mounted) setState(() => _markingAll = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -67,6 +137,25 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
                   ? '1 atualização das suas remessas'
                   : '${_avisos.length} atualizações das suas remessas',
               icon: LucideIcons.bell,
+              actions: [
+                if (_unreadCount > 0)
+                  IconButton(
+                    tooltip: 'Marcar todos como lidos',
+                    onPressed: _markingAll ? null : _markAllRead,
+                    icon: _markingAll
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(
+                            LucideIcons.checkCheck,
+                            color: Colors.white,
+                          ),
+                  ),
+              ],
             ),
             Expanded(
               child: ResponsiveContent(
@@ -116,6 +205,75 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
                                 ),
                               )
                             else ...[
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 14),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Suas notificações',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w800,
+                                              color: scheme.onSurface,
+                                            ),
+                                      ),
+                                    ),
+                                    if (_unreadCount > 0)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 9,
+                                          vertical: 5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFFFF7ED),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '$_unreadCount nao lidos',
+                                          style: const TextStyle(
+                                            color: Color(0xFFB45309),
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: scheme.surfaceContainerHighest
+                                      .withValues(alpha: .65),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: Row(
+                                  children: [
+                                    _filterButton(
+                                      context,
+                                      label: 'Todas',
+                                      count: _avisos.length,
+                                      selected: !_onlyUnread,
+                                      onTap: () =>
+                                          setState(() => _onlyUnread = false),
+                                    ),
+                                    _filterButton(
+                                      context,
+                                      label: 'Nao lidas',
+                                      count: _unreadCount,
+                                      selected: _onlyUnread,
+                                      onTap: () =>
+                                          setState(() => _onlyUnread = true),
+                                    ),
+                                  ],
+                                ),
+                              ),
                               Container(
                                 margin: const EdgeInsets.only(bottom: 20),
                                 padding: const EdgeInsets.symmetric(
@@ -130,7 +288,9 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.02),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.02,
+                                      ),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -142,7 +302,9 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
                                       width: 36,
                                       height: 36,
                                       decoration: BoxDecoration(
-                                        color: scheme.primary.withValues(alpha: 0.10),
+                                        color: scheme.primary.withValues(
+                                          alpha: 0.10,
+                                        ),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Icon(
@@ -170,8 +332,12 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
                                         vertical: 5,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: scheme.primary.withValues(alpha: 0.10),
-                                        borderRadius: BorderRadius.circular(999),
+                                        color: scheme.primary.withValues(
+                                          alpha: 0.10,
+                                        ),
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
                                       ),
                                       child: Text(
                                         '${_avisos.length}',
@@ -187,7 +353,19 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
                                   ],
                                 ),
                               ),
-                              ..._avisos.map(_card),
+                              if (_visibleAvisos.isEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 22),
+                                  child: _emptyState(
+                                    context,
+                                    icon: LucideIcons.checkCheck,
+                                    title: 'Tudo em dia',
+                                    message:
+                                        'Voce ja leu todos os avisos. Se quiser, veja a lista completa na aba Todas.',
+                                  ),
+                                )
+                              else
+                                ..._visibleAvisos.map(_card),
                             ],
                           ],
                         ),
@@ -195,6 +373,71 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _filterButton(
+    BuildContext context, {
+    required String label,
+    required int count,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    return Expanded(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        decoration: BoxDecoration(
+          color: selected ? scheme.surface : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: .06),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: selected
+                          ? scheme.primary
+                          : scheme.onSurfaceVariant,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '$count',
+                    style: TextStyle(
+                      color: selected
+                          ? scheme.primary
+                          : scheme.onSurfaceVariant,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -222,9 +465,9 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
         Text(
           title,
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 8),
         ConstrainedBox(
@@ -243,6 +486,7 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
   }
 
   Widget _card(Map<String, dynamic> aviso) {
+    final naoLido = !_isRead(aviso);
     final remessa = aviso['remessa'] is Map
         ? Map<String, dynamic>.from(aviso['remessa'] as Map)
         : <String, dynamic>{};
@@ -255,11 +499,13 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
       '${aviso['created_at'] ?? aviso['data'] ?? ''}',
     )?.toLocal();
     final tipoNormalizado = '$tipo'.toLowerCase();
-    final critico = tipoNormalizado.contains('atras') ||
+    final critico =
+        tipoNormalizado.contains('atras') ||
         tipoNormalizado.contains('problema') ||
         tipoNormalizado.contains('ocorr');
     final entregue = tipoNormalizado.contains('entreg');
-    final proximidade = tipoNormalizado.contains('proxim') ||
+    final proximidade =
+        tipoNormalizado.contains('proxim') ||
         tipoNormalizado.contains('destino');
     final cor = critico
         ? const Color(0xFFDC2626)
@@ -283,9 +529,18 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: scheme.surface,
+        color: naoLido
+            ? Color.alphaBlend(
+                scheme.primary.withValues(alpha: 0.035),
+                scheme.surface,
+              )
+            : scheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.65)),
+        border: Border.all(
+          color: naoLido
+              ? scheme.primary.withValues(alpha: 0.35)
+              : scheme.outlineVariant.withValues(alpha: 0.65),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.035),
@@ -329,10 +584,11 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
                       if (horario != null)
                         Text(
                           horario,
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
+                              ),
                         ),
                     ],
                   ),
@@ -363,6 +619,17 @@ class _AvisosMotoristaPageState extends State<AvisosMotoristaPage> {
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.5,
                         ),
+                      ),
+                    ),
+                  ],
+                  if (naoLido) ...[
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton.icon(
+                        onPressed: () => _markRead(aviso),
+                        icon: const Icon(LucideIcons.check, size: 17),
+                        label: const Text('Marcar como lido'),
                       ),
                     ),
                   ],

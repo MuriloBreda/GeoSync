@@ -1,5 +1,87 @@
 import 'package:flutter/material.dart';
 
+/// Indicador animado reutilizável para operações que carregam dados.
+class GeoSyncLoader extends StatefulWidget {
+  const GeoSyncLoader({super.key, this.label, this.color, this.size = 56});
+
+  final String? label;
+  final Color? color;
+  final double size;
+
+  @override
+  State<GeoSyncLoader> createState() => _GeoSyncLoaderState();
+}
+
+class _GeoSyncLoaderState extends State<GeoSyncLoader>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 850),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = widget.color ?? Theme.of(context).colorScheme.primary;
+    final iconSize = widget.size * .42;
+    return Semantics(
+      liveRegion: true,
+      label: widget.label ?? 'Carregando',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox.square(
+            dimension: widget.size,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox.square(
+                  dimension: widget.size,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: color.withValues(alpha: .28),
+                    backgroundColor: color.withValues(alpha: .08),
+                  ),
+                ),
+                ScaleTransition(
+                  scale: Tween<double>(begin: .82, end: 1.08).animate(
+                    CurvedAnimation(
+                      parent: _controller,
+                      curve: Curves.easeInOut,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.local_shipping_outlined,
+                    size: iconSize,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (widget.label != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              widget.label!,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 enum DataStateKind { loading, error, empty }
 
 /// Estados consistentes para listas que dependem de dados remotos.
@@ -63,16 +145,7 @@ class DataStatePanel extends StatelessWidget {
                     ),
                     child: Center(
                       child: carregando
-                          ? SizedBox(
-                              width: 26,
-                              height: 26,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 3,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  accentColor,
-                                ),
-                              ),
-                            )
+                          ? GeoSyncLoader(color: accentColor, size: 42)
                           : Icon(
                               erro
                                   ? Icons.cloud_off_outlined

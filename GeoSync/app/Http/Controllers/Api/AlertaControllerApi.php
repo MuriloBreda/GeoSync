@@ -11,11 +11,22 @@ class AlertaControllerApi extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
         $query = Alerta::with('remessa:id,codigo_rastreio,cliente_id,motorista_id')->latest();
-        if ($request->user()->tipo !== 'admin') {
-            $query->whereHas('remessa', fn ($q) => $q->where('cliente_id', $request->user()->id)->orWhere('motorista_id', $request->user()->id));
+        if ($user->tipo !== 'admin') {
+            $query->whereHas('remessa', fn ($q) => $q->where('cliente_id', $user->id)->orWhere('motorista_id', $user->id));
         }
-        return response()->json(['success' => true, 'data' => $query->paginate(20)]);
+        $alertas = $query
+            ->with(['leituras' => fn ($q) => $q->where('user_id', $user->id)])
+            ->paginate(20);
+        $alertas->getCollection()->transform(function (Alerta $alerta) {
+            $leitura = $alerta->leituras->first();
+            $alerta->setAttribute('lido', $leitura !== null);
+            $alerta->setAttribute('read_at', $leitura?->read_at);
+            $alerta->unsetRelation('leituras');
+            return $alerta;
+        });
+        return response()->json(['success' => true, 'data' => $alertas]);
     }
 
     public function store(Request $request)
@@ -35,9 +46,36 @@ class AlertaControllerApi extends Controller
 
     public function update(Request $request, Alerta $alerta)
     {
-        $this->canManage($request, $alerta->remessa);
-        $alerta->update($request->validate(['tipo' => 'sometimes|string|max:100', 'mensagem' => 'sometimes|string']));
-        return response()->json(['success' => true, 'message' => 'Alerta atualizado.', 'data' => $alerta->fresh()]);
+        $data = $request->validate([
+            'tipo' => 'sometimes|string|max:100',
+            'mensagem' => 'sometimes|string',
+            'lido' => 'sometimes|boolean',
+        ]);
+        $camposEditaveis = array_intersect_key($data, array_flip(['tipo', 'mensagem']));
+        if ($camposEditaveis !== []) {
+            $this->canManage($request, $alerta->remessa);
+            $alerta->update($camposEditaveis);
+        } else {
+            $this->canAccess($request, $alerta->remessa);
+        }
+
+        if (array_key_exists('lido', $data)) {
+            $leitura = $alerta->leituras()->where('user_id', $request->user()->id);
+            if ($data['lido']) {
+                $alerta->leituras()->updateOrCreate(
+                    ['user_id' => $request->user()->id],
+                    ['read_at' => now()],
+                );
+            } else {
+                $leitura->delete();
+            }
+        }
+
+        $alerta = $alerta->fresh('remessa');
+        $leitura = $alerta->leituras()->where('user_id', $request->user()->id)->first();
+        $alerta->setAttribute('lido', $leitura !== null);
+        $alerta->setAttribute('read_at', $leitura?->read_at);
+        return response()->json(['success' => true, 'message' => 'Alerta atualizado.', 'data' => $alerta]);
     }
 
     public function destroy(Request $request, Alerta $alerta)

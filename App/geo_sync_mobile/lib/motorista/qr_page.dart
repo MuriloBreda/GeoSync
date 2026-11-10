@@ -4,6 +4,7 @@ import 'package:mobile/core/remessa_repository.dart';
 import 'package:mobile/motorista/entrega_page.dart';
 import 'package:mobile/widgets/app_gradient_header.dart';
 import 'package:mobile/widgets/responsive_content.dart';
+import 'package:mobile/widgets/data_state_widgets.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -164,7 +165,12 @@ class _QrRemessaPageState extends State<QrRemessaPage> {
             Expanded(
               child: ResponsiveContent(
                 child: _loading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const Center(
+                        child: GeoSyncLoader(
+                          label: 'Carregando remessas',
+                          size: 48,
+                        ),
+                      )
                     : _error != null
                     ? Center(
                         child: Padding(

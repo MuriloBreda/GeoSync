@@ -97,40 +97,12 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Stack(
         children: [
           Container(
-            height: 300,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF0F172A), Color(0xFF1D4ED8)],
-              ),
+            height: 264,
+            decoration: BoxDecoration(
+              color: primaryColor,
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(36),
                 bottomRight: Radius.circular(36),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 90,
-            right: -30,
-            child: Container(
-              width: 150,
-              height: 150,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.06),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 120,
-            left: -20,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.04),
-                shape: BoxShape.circle,
               ),
             ),
           ),
@@ -158,17 +130,18 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: Colors.white.withValues(alpha: 0.18),
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 6,
                           children: [
-                            Icon(
+                            const Icon(
                               CupertinoIcons.shield_fill,
                               color: Colors.white,
                               size: 14,
                             ),
-                            const SizedBox(width: 6),
                             const Text(
                               'Acesso seguro',
+                              softWrap: true,
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 11,
@@ -219,9 +192,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Bem-vindo de volta! 👋',
+                        'Bem-vindo de volta',
                         style: const TextStyle(
-                          fontSize: 24,
+                          fontSize: 22,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
                         ),
@@ -239,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
                           color: scheme.surface,
-                          borderRadius: BorderRadius.circular(28),
+                          borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: scheme.outlineVariant.withValues(alpha: 0.7),
                           ),
@@ -256,70 +229,40 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Wrap(
-                                alignment: WrapAlignment.spaceBetween,
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                runSpacing: 8,
-                                children: [
-                                  Text(
-                                    'Entrar como',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: scheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 5,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: primaryColor.withValues(alpha: 0.08),
-                                      borderRadius: BorderRadius.circular(999),
-                                    ),
-                                    child: Text(
-                                      'Ativo',
-                                      style: TextStyle(
-                                        color: primaryColor,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.6,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                              Text(
+                                'Tipo de acesso',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: scheme.onSurface,
+                                ),
                               ),
                               const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: scheme.surfaceContainerHighest,
-                                  borderRadius: BorderRadius.circular(18),
+                              SegmentedButton<String>(
+                                showSelectedIcon: false,
+                                segments: const [
+                                  ButtonSegment(
+                                    value: 'Cliente',
+                                    icon: Icon(CupertinoIcons.person),
+                                    label: Text('Cliente'),
+                                  ),
+                                  ButtonSegment(
+                                    value: 'Motorista',
+                                    icon: Icon(Icons.local_shipping_outlined),
+                                    label: Text('Motorista'),
+                                  ),
+                                ],
+                                selected: {_tipoUsuario},
+                                onSelectionChanged: (selection) => setState(
+                                  () => _tipoUsuario = selection.first,
                                 ),
-                                child: Row(
-                                  children: [
-                                    _buildUserTypeOption(
-                                      label: 'Cliente',
-                                      icon: CupertinoIcons.person,
-                                      selectedIcon: CupertinoIcons.person_fill,
-                                      isSelected: _tipoUsuario == 'Cliente',
-                                      onTap: () => setState(
-                                        () => _tipoUsuario = 'Cliente',
-                                      ),
-                                      activeColor: primaryColor,
-                                    ),
-                                    _buildUserTypeOption(
-                                      label: 'Motorista',
-                                      icon: Icons.local_shipping_outlined,
-                                      selectedIcon: Icons.local_shipping_rounded,
-                                      isSelected: _tipoUsuario == 'Motorista',
-                                      onTap: () => setState(
-                                        () => _tipoUsuario = 'Motorista',
-                                      ),
-                                      activeColor: primaryColor,
-                                    ),
-                                  ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'O perfil final é confirmado pela conta cadastrada.',
+                                style: TextStyle(
+                                  color: scheme.onSurfaceVariant,
+                                  fontSize: 12,
                                 ),
                               ),
                               const SizedBox(height: 22),
@@ -339,7 +282,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 decoration: InputDecoration(
                                   labelText: 'E-mail',
                                   hintText: 'seu@email.com',
-                                  prefixIcon: const Icon(CupertinoIcons.envelope),
+                                  prefixIcon: const Icon(
+                                    CupertinoIcons.envelope,
+                                  ),
                                   filled: true,
                                   fillColor: scheme.surfaceContainer,
                                   border: OutlineInputBorder(
@@ -426,7 +371,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (_) => EsqueceuSenhaPage(
-                                              emailInicial: _emailController.text,
+                                              emailInicial:
+                                                  _emailController.text,
                                             ),
                                           ),
                                         );
@@ -485,7 +431,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                     backgroundColor: primaryColor,
                                     foregroundColor: Colors.white,
                                     elevation: 0,
-                                    shadowColor: primaryColor.withValues(alpha: 0.26),
+                                    shadowColor: primaryColor.withValues(
+                                      alpha: 0.26,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
@@ -555,65 +503,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  // Widget auxiliar para construir a opção do tipo de usuário
-  Widget _buildUserTypeOption({
-    required String label,
-    required IconData icon,
-    required IconData selectedIcon,
-    required bool isSelected,
-    required VoidCallback onTap,
-    required Color activeColor,
-  }) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          constraints: const BoxConstraints(minHeight: 50),
-          padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? activeColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: activeColor.withValues(alpha: 0.24),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : [],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                isSelected ? selectedIcon : icon,
-                size: 18,
-                color: isSelected ? Colors.white : const Color(0xFF64748B),
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: isSelected
-                        ? Colors.white
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

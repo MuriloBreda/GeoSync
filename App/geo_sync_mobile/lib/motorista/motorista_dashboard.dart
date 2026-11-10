@@ -23,6 +23,7 @@ import 'package:mobile/core/perfil_repository.dart';
 import 'package:mobile/core/remessa_repository.dart';
 import 'package:mobile/motorista/veiculo_motorista_page.dart';
 import 'package:mobile/widgets/responsive_content.dart';
+import 'package:mobile/widgets/data_state_widgets.dart';
 
 class MotoristaDashboard extends StatefulWidget {
   const MotoristaDashboard({super.key, this.initialIndex = 0});
@@ -33,7 +34,8 @@ class MotoristaDashboard extends StatefulWidget {
   State<MotoristaDashboard> createState() => _MotoristaDashboardState();
 }
 
-class _MotoristaDashboardState extends State<MotoristaDashboard> {
+class _MotoristaDashboardState extends State<MotoristaDashboard>
+    with WidgetsBindingObserver {
   final RemessaRepository _remessaRepository = RemessaRepository();
   final AvaliacaoRepository _avaliacaoRepository = AvaliacaoRepository();
   final MotoristaRepository _motoristaRepository = MotoristaRepository();
@@ -70,6 +72,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
   bool _atualizandoPainel = false;
   Timer? _novasEntregasTimer;
   int? _disponiveisConhecidas;
+  bool _appAtivo = true;
 
   String _normalizarStatus(Object? valor) {
     if (valor is Map) {
@@ -248,6 +251,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _currentIndex = widget.initialIndex.clamp(0, 2).toInt();
     unawaited(SyncEngine.instance.atualizarContadores());
@@ -259,17 +263,31 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
       AppNotificationCenter.instance.attach(
         context,
         fetch: () => ApiService.instance.avisosMotorista(),
+        onOpenNotifications: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const AvisosMotoristaPage())),
       );
     });
-    _novasEntregasTimer = Timer.periodic(const Duration(seconds: 60), (_) {
-      _verificarNovasEntregas();
-      if (_currentIndex == 0) _carregarResumo();
+    _novasEntregasTimer = Timer.periodic(const Duration(minutes: 2), (_) {
+      if (!_appAtivo || _currentIndex != 0 || _atualizandoPainel) return;
+      unawaited(_verificarNovasEntregas());
+      unawaited(_carregarResumo());
     });
     _verificarNovasEntregas();
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appAtivo = state == AppLifecycleState.resumed;
+    if (_appAtivo && _currentIndex == 0 && !_atualizandoPainel) {
+      unawaited(_carregarResumo());
+      unawaited(_verificarNovasEntregas());
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     AppNotificationCenter.instance.detach();
     _novasEntregasTimer?.cancel();
     super.dispose();
@@ -300,15 +318,10 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
   Future<void> _atualizarPainel({bool mostrarResultado = false}) async {
     if (_atualizandoPainel) return;
     setState(() => _atualizandoPainel = true);
-    String? erroSync;
-    try {
-      await SyncEngine.instance.sincronizar();
-    } catch (error) {
-      erroSync = '$error';
-    }
-
     await Future.wait([
-      _carregarResumo(),
+      // A leitura forçada já sincroniza a fila no repositório. Não execute
+      // SyncEngine.sincronizar aqui também, para evitar duas passagens.
+      _carregarResumo(forceRefresh: true),
       _carregarPerfil(),
       _carregarAvaliacao(),
       AppNotificationCenter.instance.refreshNow(),
@@ -319,10 +332,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
     setState(() => _atualizandoPainel = false);
     if (!mostrarResultado) return;
 
-    final houveFalha =
-        erroSync != null ||
-        _falhaCarregamentoResumo ||
-        _falhaCarregamentoPerfil;
+    final houveFalha = _falhaCarregamentoResumo || _falhaCarregamentoPerfil;
     final mensagem = houveFalha
         ? 'Atualização parcial. Confira a conexão e tente novamente.'
         : 'Informações atualizadas com sucesso.';
@@ -331,7 +341,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
       ..showSnackBar(SnackBar(content: Text(mensagem)));
   }
 
-  Future<void> _carregarResumo() async {
+  Future<void> _carregarResumo({bool forceRefresh = false}) async {
     if (mounted) {
       setState(() {
         _carregandoResumo = _remessas.isEmpty;
@@ -339,7 +349,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
       });
     }
     try {
-      final dados = await _remessaRepository.minhas(forceRefresh: true);
+      final dados = await _remessaRepository.minhas(forceRefresh: forceRefresh);
       if (!mounted) return;
       setState(() {
         _remessas = dados.whereType<Map>().map((item) {
@@ -744,9 +754,19 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
           final desktop = constraints.maxWidth >= 800;
           final content = ResponsiveContent(
             child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              switchInCurve: Curves.easeOut,
-              switchOutCurve: Curves.easeIn,
+              duration: const Duration(milliseconds: 380),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0.025, 0),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                ),
+              ),
               child: KeyedSubtree(
                 key: ValueKey(_currentIndex),
                 child: _getBody(),
@@ -896,59 +916,56 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
   // ============================================================
 
   Widget _notificationButton() {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(
+    return ValueListenableBuilder<int>(
+      valueListenable: AppNotificationCenter.instance.unreadCount,
+      builder: (context, unread, _) => IconButton(
+        tooltip: unread > 0 ? 'Avisos, $unread não lidos' : 'Abrir avisos',
+        onPressed: () => Navigator.of(
           context,
-        ).push(MaterialPageRoute(builder: (_) => const AvisosMotoristaPage()));
-      },
-      child: Container(
-        width: 43,
-        height: 43,
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: border),
+        ).push(MaterialPageRoute(builder: (_) => const AvisosMotoristaPage())),
+        style: IconButton.styleFrom(
+          fixedSize: const Size(48, 48),
+          padding: EdgeInsets.zero,
+          backgroundColor: cardColor,
+          side: BorderSide(color: border),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
-        child: Stack(
+        icon: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
           children: [
-            const Center(
-              child: Icon(LucideIcons.bell, color: Color(0xFF475569), size: 22),
-            ),
-            ValueListenableBuilder<int>(
-              valueListenable: AppNotificationCenter.instance.unreadCount,
-              builder: (context, unread, _) {
-                if (unread <= 0) return const SizedBox.shrink();
-                return Positioned(
-                  top: 4,
-                  right: 4,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
-                      vertical: 2,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 17,
-                      minHeight: 17,
-                    ),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 1.5),
-                    ),
-                    child: Text(
-                      unread > 9 ? '9+' : '$unread',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
-                      ),
+            Icon(LucideIcons.bell, color: textLight, size: 22),
+            if (unread > 0)
+              Positioned(
+                top: -10,
+                right: -12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 2,
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 17,
+                    minHeight: 17,
+                  ),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: cardColor, width: 1.5),
+                  ),
+                  child: Text(
+                    unread > 9 ? '9+' : '$unread',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+              ),
           ],
         ),
       ),
@@ -1011,51 +1028,26 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
   // ============================================================
 
   Widget _buildBottomNavigation() {
-    return Container(
-      decoration: BoxDecoration(
-        color: cardColor,
-        border: Border(top: BorderSide(color: border, width: 0.7)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
-          child: Row(
-            children: [
-              Expanded(
-                child: _navItem(
-                  icon: LucideIcons.house,
-                  iconeAtivo: LucideIcons.house600,
-                  label: 'Início',
-                  index: 0,
-                ),
-              ),
-              Expanded(
-                child: _navItem(
-                  icon: LucideIcons.truck,
-                  iconeAtivo: LucideIcons.truck600,
-                  label: 'Entregas',
-                  index: 1,
-                ),
-              ),
-              Expanded(
-                child: _navItem(
-                  icon: LucideIcons.circleUserRound,
-                  iconeAtivo: LucideIcons.circleUserRound600,
-                  label: 'Perfil',
-                  index: 2,
-                ),
-              ),
-            ],
-          ),
+    return NavigationBar(
+      selectedIndex: _currentIndex,
+      onDestinationSelected: _changePage,
+      destinations: const [
+        NavigationDestination(
+          icon: Icon(LucideIcons.house),
+          selectedIcon: Icon(LucideIcons.house600),
+          label: 'Início',
         ),
-      ),
+        NavigationDestination(
+          icon: Icon(LucideIcons.truck),
+          selectedIcon: Icon(LucideIcons.truck600),
+          label: 'Entregas',
+        ),
+        NavigationDestination(
+          icon: Icon(LucideIcons.circleUserRound),
+          selectedIcon: Icon(LucideIcons.circleUserRound600),
+          label: 'Perfil',
+        ),
+      ],
     );
   }
 
@@ -1086,63 +1078,6 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
     ],
   );
 
-  Widget _navItem({
-    required IconData icon,
-    required IconData iconeAtivo,
-    required String label,
-    required int index,
-  }) {
-    final bool selected = _currentIndex == index;
-
-    return GestureDetector(
-      onTap: () {
-        _changePage(index);
-      },
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOut,
-        constraints: const BoxConstraints(minHeight: 48),
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-        decoration: BoxDecoration(
-          color: selected
-              ? primary.withValues(alpha: 0.09)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedScale(
-              scale: selected ? 1.08 : 1,
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                selected ? iconeAtivo : icon,
-                size: 23,
-                color: selected ? primary : const Color(0xFF94A3B8),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textScaler: MediaQuery.textScalerOf(
-                context,
-              ).clamp(maxScaleFactor: 1.2),
-              style: TextStyle(
-                color: selected ? primary : const Color(0xFF94A3B8),
-                fontSize: 11,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   // ============================================================
   // INÍCIO
   // ============================================================
@@ -1160,10 +1095,10 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildWelcome(),
-            const SizedBox(height: 12),
-            _buildStatusSincronizacao(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             _cardRota(),
+            const SizedBox(height: 14),
+            _buildStatusSincronizacao(),
             const SizedBox(height: 24),
             _buildTelemetria(),
             const SizedBox(height: 24),
@@ -1392,7 +1327,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
                       descricao,
                       style: TextStyle(
                         color: textLight,
-                        fontSize: 11,
+                        fontSize: 12,
                         height: 1.3,
                       ),
                     ),
@@ -1428,7 +1363,9 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
     if (_carregandoResumo) {
       return const SizedBox(
         height: 180,
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(
+          child: GeoSyncLoader(label: 'Carregando sua rota', size: 52),
+        ),
       );
     }
     if (_falhaCarregamentoResumo && _remessas.isEmpty) {
@@ -1557,7 +1494,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: Colors.white70,
-                        fontSize: 10,
+                        fontSize: 12,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.8,
                       ),
@@ -1573,7 +1510,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
                       remessa.codigo,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 31,
+                        fontSize: 28,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -1,
                       ),
@@ -1619,7 +1556,11 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
               const SizedBox(height: 5),
               Text(
                 '${remessa.origem} → ${remessa.destino}',
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  height: 1.3,
+                ),
               ),
               if (remessa.tipo != 'Não informado' ||
                   remessa.peso != 'Não informado') ...[
@@ -1631,7 +1572,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
                   ].join(' • '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
               const SizedBox(height: 18),
@@ -1732,7 +1673,7 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
             const SizedBox(height: 1),
             Text(
               label,
-              style: const TextStyle(color: Colors.white60, fontSize: 9),
+              style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
           ],
         ),
@@ -2189,8 +2130,8 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
                                         color: item.key.contains('Ocorr')
                                             ? const Color(0xFF7C3AED)
                                             : item.key.contains('Alerta')
-                                                ? const Color(0xFFF59E0B)
-                                                : primary,
+                                            ? const Color(0xFFF59E0B)
+                                            : primary,
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                     ),
@@ -2325,7 +2266,13 @@ class _MotoristaDashboardState extends State<MotoristaDashboard> {
         if (_carregandoResumo)
           const Padding(
             padding: EdgeInsets.all(16),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(
+              child: GeoSyncLoader(
+                label: 'Carregando paradas',
+                color: primary,
+                size: 48,
+              ),
+            ),
           )
         else if (_falhaCarregamentoResumo && _remessas.isEmpty)
           Padding(

@@ -17,6 +17,7 @@ import 'package:flutter_map/flutter_map.dart'
 import 'package:latlong2/latlong.dart' as latlong2;
 import 'package:mobile/core/remessa_repository.dart';
 import 'package:mobile/services/api_exception.dart';
+import 'package:mobile/widgets/data_state_widgets.dart';
 
 class MapaPage extends StatefulWidget {
   final int currentIndex;
@@ -291,6 +292,7 @@ class _MapaPageState extends State<MapaPage>
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -308,33 +310,42 @@ class _MapaPageState extends State<MapaPage>
                   margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFEF2F2),
+                    color: scheme.errorContainer,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFFECACA)),
+                    border: Border.all(
+                      color: scheme.error.withValues(alpha: 0.3),
+                    ),
                   ),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        CupertinoIcons.exclamationmark_triangle,
-                        color: Color(0xFFDC2626),
-                        size: 20,
-                      ),
-                      const SizedBox(width: 11),
-                      Expanded(
-                        child: Text(
-                          _erroLocalizacoes!,
-                          style: const TextStyle(
-                            color: Color(0xFF991B1B),
-                            fontSize: 12,
-                            height: 1.35,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            CupertinoIcons.exclamationmark_triangle,
+                            color: scheme.error,
+                            size: 20,
                           ),
-                        ),
+                          const SizedBox(width: 11),
+                          Expanded(
+                            child: Text(
+                              _erroLocalizacoes!,
+                              style: TextStyle(
+                                color: scheme.onErrorContainer,
+                                fontSize: 12,
+                                height: 1.35,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      TextButton(
-                        onPressed: () {
-                          _carregarLocalizacoes();
-                        },
-                        child: const Text('Tentar novamente'),
+                      Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: TextButton(
+                          onPressed: _carregarLocalizacoes,
+                          child: const Text('Tentar novamente'),
+                        ),
                       ),
                     ],
                   ),
@@ -355,10 +366,14 @@ class _MapaPageState extends State<MapaPage>
               const SizedBox(height: 10),
 
               if (_carregandoLocalizacoes)
-                const Center(
+                Center(
                   child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: CircularProgressIndicator(),
+                    padding: const EdgeInsets.all(24),
+                    child: GeoSyncLoader(
+                      label: 'Carregando localizações',
+                      color: scheme.primary,
+                      size: 48,
+                    ),
                   ),
                 )
               else if (_rotasFiltradas.isEmpty)
@@ -391,6 +406,7 @@ class _MapaPageState extends State<MapaPage>
   // ================================================================
 
   Widget _buildHeader() {
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
       child: Row(
@@ -399,10 +415,10 @@ class _MapaPageState extends State<MapaPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "Rastreamento",
                   style: TextStyle(
-                    color: Color(0xFF0F172A),
+                    color: scheme.onSurface,
                     fontSize: 25,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.5,
@@ -411,8 +427,8 @@ class _MapaPageState extends State<MapaPage>
                 const SizedBox(height: 4),
                 Text(
                   "${_rotas.length} remessas no seu rastreamento",
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
+                  style: TextStyle(
+                    color: scheme.onSurfaceVariant,
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
@@ -461,6 +477,7 @@ class _MapaPageState extends State<MapaPage>
     required VoidCallback onTap,
     String? tooltip,
   }) {
+    final scheme = Theme.of(context).colorScheme;
     return Semantics(
       button: true,
       label: tooltip ?? 'Ação do mapa',
@@ -477,9 +494,9 @@ class _MapaPageState extends State<MapaPage>
               height: 42,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(13),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: scheme.outlineVariant),
               ),
-              child: Icon(icon, color: const Color(0xFF334155), size: 20),
+              child: Icon(icon, color: scheme.onSurfaceVariant, size: 20),
             ),
           ),
         ),
@@ -602,6 +619,10 @@ class _MapaPageState extends State<MapaPage>
 
   Widget _buildMapCard() {
     final scheme = Theme.of(context).colorScheme;
+    final mapHeight = (MediaQuery.sizeOf(context).height * 0.38).clamp(
+      240.0,
+      360.0,
+    );
     final selecionada = _rotaSelecionada;
     final pontos = _pontosRota;
     final centro = pontos.isEmpty
@@ -611,7 +632,7 @@ class _MapaPageState extends State<MapaPage>
         : pontos.last;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      height: 330,
+      height: mapHeight.toDouble(),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
@@ -818,6 +839,7 @@ class _MapaPageState extends State<MapaPage>
     VoidCallback onTap, {
     bool primary = false,
   }) {
+    final scheme = Theme.of(context).colorScheme;
     final label = switch (icon) {
       CupertinoIcons.plus => 'Aumentar zoom',
       CupertinoIcons.minus => 'Diminuir zoom',
@@ -830,8 +852,8 @@ class _MapaPageState extends State<MapaPage>
         message: label,
         child: Material(
           color: primary
-              ? const Color(0xFF0C46FF)
-              : Colors.white.withValues(alpha: 0.95),
+              ? scheme.primary
+              : scheme.surface.withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             onTap: onTap,
@@ -841,7 +863,7 @@ class _MapaPageState extends State<MapaPage>
               height: 42,
               child: Icon(
                 icon,
-                color: primary ? Colors.white : const Color(0xFF334155),
+                color: primary ? scheme.onPrimary : scheme.onSurface,
                 size: 20,
               ),
             ),
@@ -897,12 +919,13 @@ class _MapaPageState extends State<MapaPage>
     required String value,
     required Color color,
   }) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE8EDF3)),
+        border: Border.all(color: scheme.outlineVariant),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.025),
@@ -929,18 +952,18 @@ class _MapaPageState extends State<MapaPage>
               children: [
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF0F172A),
+                    color: scheme.onSurface,
                   ),
                 ),
                 Text(
                   label,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
-                    color: Color(0xFF64748B),
+                    color: scheme.onSurfaceVariant,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -977,21 +1000,22 @@ class _MapaPageState extends State<MapaPage>
 
   Widget _buildFilterChip(String label, int quantidade) {
     final bool selecionado = _filtroSelecionado == label;
+    final scheme = Theme.of(context).colorScheme;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       decoration: BoxDecoration(
-        color: selecionado ? const Color(0xFF0B2A4A) : Colors.white,
+        color: selecionado ? scheme.primary : scheme.surface,
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: selecionado ? Colors.transparent : const Color(0xFFE2E8F0),
+          color: selecionado ? scheme.primary : scheme.outlineVariant,
         ),
         boxShadow: selecionado
             ? [
                 BoxShadow(
-                  color: const Color(0xFF0C46FF).withValues(alpha: 0.20),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  color: scheme.primary.withValues(alpha: 0.12),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
                 ),
               ]
             : null,
@@ -1012,7 +1036,7 @@ class _MapaPageState extends State<MapaPage>
                 Text(
                   label,
                   style: TextStyle(
-                    color: selecionado ? Colors.white : const Color(0xFF475569),
+                    color: selecionado ? scheme.onPrimary : scheme.onSurface,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
@@ -1025,16 +1049,16 @@ class _MapaPageState extends State<MapaPage>
                   ),
                   decoration: BoxDecoration(
                     color: selecionado
-                        ? Colors.white.withValues(alpha: 0.20)
-                        : const Color(0xFFF1F5F9),
+                        ? scheme.onPrimary.withValues(alpha: 0.18)
+                        : scheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     quantidade.toString(),
                     style: TextStyle(
                       color: selecionado
-                          ? Colors.white
-                          : const Color(0xFF64748B),
+                          ? scheme.onPrimary
+                          : scheme.onSurfaceVariant,
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                     ),
@@ -1053,25 +1077,26 @@ class _MapaPageState extends State<MapaPage>
   // ================================================================
 
   Widget _buildRoutesHeader() {
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Text(
               "Remessas com IoT",
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w800,
-                color: Color(0xFF0F172A),
+                color: scheme.onSurface,
               ),
             ),
           ),
           Text(
             "${_rotasFiltradas.length} encontrados",
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
-              color: Color(0xFF64748B),
+              color: scheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -1086,17 +1111,16 @@ class _MapaPageState extends State<MapaPage>
 
   Widget _buildRouteCard(RotaModel rota) {
     final bool selecionado = _veiculoSelecionado == rota.codigo;
+    final scheme = Theme.of(context).colorScheme;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: selecionado
-              ? const Color(0xFF0C46FF)
-              : const Color(0xFFE5EAF0),
+          color: selecionado ? const Color(0xFF0C46FF) : scheme.outlineVariant,
           width: selecionado ? 1.4 : 1,
         ),
         boxShadow: [
@@ -1142,8 +1166,8 @@ class _MapaPageState extends State<MapaPage>
                             rota.codigo,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Color(0xFF0F172A),
+                            style: TextStyle(
+                              color: scheme.onSurface,
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
                             ),
@@ -1153,8 +1177,8 @@ class _MapaPageState extends State<MapaPage>
                             rota.motorista,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Color(0xFF64748B),
+                            style: TextStyle(
+                              color: scheme.onSurfaceVariant,
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                             ),
@@ -1181,7 +1205,7 @@ class _MapaPageState extends State<MapaPage>
                               Expanded(
                                 child: Container(
                                   height: 1,
-                                  color: const Color(0xFFDCE3EC),
+                                  color: scheme.outlineVariant,
                                 ),
                               ),
                               const SizedBox(width: 5),
@@ -1194,7 +1218,7 @@ class _MapaPageState extends State<MapaPage>
                               Expanded(
                                 child: Container(
                                   height: 1,
-                                  color: const Color(0xFFDCE3EC),
+                                  color: scheme.outlineVariant,
                                 ),
                               ),
                             ],
@@ -1204,9 +1228,9 @@ class _MapaPageState extends State<MapaPage>
                             rota.previsao,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 10,
-                              color: Color(0xFF64748B),
+                              color: scheme.onSurfaceVariant,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -1226,8 +1250,10 @@ class _MapaPageState extends State<MapaPage>
 
                 Container(
                   padding: const EdgeInsets.only(top: 12),
-                  decoration: const BoxDecoration(
-                    border: Border(top: BorderSide(color: Color(0xFFF0F2F5))),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(color: scheme.outlineVariant),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -1245,9 +1271,9 @@ class _MapaPageState extends State<MapaPage>
                           "Atualização",
                         ),
                       ),
-                      const Icon(
+                      Icon(
                         CupertinoIcons.chevron_right,
-                        color: Color(0xFF94A3B8),
+                        color: scheme.onSurfaceVariant,
                         size: 22,
                       ),
                     ],
@@ -1296,6 +1322,7 @@ class _MapaPageState extends State<MapaPage>
   }
 
   Widget _buildLocationBox(String sigla, String nome, {bool alignEnd = false}) {
+    final scheme = Theme.of(context).colorScheme;
     return SizedBox(
       width: 72,
       child: Column(
@@ -1305,8 +1332,8 @@ class _MapaPageState extends State<MapaPage>
         children: [
           Text(
             sigla,
-            style: const TextStyle(
-              color: Color(0xFF0F172A),
+            style: TextStyle(
+              color: scheme.onSurface,
               fontSize: 16,
               fontWeight: FontWeight.w900,
             ),
@@ -1317,8 +1344,8 @@ class _MapaPageState extends State<MapaPage>
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: alignEnd ? TextAlign.right : TextAlign.left,
-            style: const TextStyle(
-              color: Color(0xFF64748B),
+            style: TextStyle(
+              color: scheme.onSurfaceVariant,
               fontSize: 9,
               fontWeight: FontWeight.w500,
             ),
@@ -1329,10 +1356,11 @@ class _MapaPageState extends State<MapaPage>
   }
 
   Widget _buildInfo(IconData icon, String value, String label) {
+    final scheme = Theme.of(context).colorScheme;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: const Color(0xFF64748B), size: 16),
+        Icon(icon, color: scheme.onSurfaceVariant, size: 16),
         const SizedBox(width: 6),
         Expanded(
           child: Column(
@@ -1342,8 +1370,8 @@ class _MapaPageState extends State<MapaPage>
                 value,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Color(0xFF334155),
+                style: TextStyle(
+                  color: scheme.onSurface,
                   fontSize: 10,
                   fontWeight: FontWeight.w800,
                 ),
@@ -1352,8 +1380,8 @@ class _MapaPageState extends State<MapaPage>
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Color(0xFF94A3B8),
+                style: TextStyle(
+                  color: scheme.onSurfaceVariant,
                   fontSize: 8,
                   fontWeight: FontWeight.w500,
                 ),

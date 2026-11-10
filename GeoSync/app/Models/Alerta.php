@@ -22,4 +22,9 @@ class Alerta extends Model
     {
         return $this->belongsTo(Remessa::class, 'remessa_id');
     }
+
+    public function leituras()
+    {
+        return $this->hasMany(AlertaLeitura::class, 'alerta_id');
+    }
 }

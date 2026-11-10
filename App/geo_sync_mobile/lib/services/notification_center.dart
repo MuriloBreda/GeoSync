@@ -18,6 +18,7 @@ class AppNotificationCenter with WidgetsBindingObserver {
 
   Timer? _timer;
   Future<List<dynamic>> Function()? _fetcher;
+  VoidCallback? _onOpenNotifications;
   OverlayState? _overlay;
   final Set<String> _seenIds = {};
   bool _primed = false;
@@ -31,6 +32,7 @@ class AppNotificationCenter with WidgetsBindingObserver {
   void attach(
     BuildContext context, {
     required Future<List<dynamic>> Function() fetch,
+    VoidCallback? onOpenNotifications,
     Duration interval = const Duration(seconds: 45),
   }) {
     _generation++;
@@ -38,6 +40,7 @@ class AppNotificationCenter with WidgetsBindingObserver {
     _foreground =
         lifecycleState == null || lifecycleState == AppLifecycleState.resumed;
     _fetcher = fetch;
+    _onOpenNotifications = onOpenNotifications;
     _overlay = Overlay.maybeOf(context, rootOverlay: true);
     _seenIds.clear();
     _primed = false;
@@ -63,6 +66,7 @@ class AppNotificationCenter with WidgetsBindingObserver {
     _timer?.cancel();
     _timer = null;
     _fetcher = null;
+    _onOpenNotifications = null;
     _overlay = null;
     if (_observingLifecycle) {
       WidgetsBinding.instance.removeObserver(this);
@@ -123,7 +127,8 @@ class AppNotificationCenter with WidgetsBindingObserver {
 
     final destaque = novos.first;
     _notificar(
-      titulo: '${destaque['titulo'] ?? destaque['title'] ?? 'Novo alerta'}',
+      titulo:
+          '${destaque['titulo'] ?? destaque['title'] ?? destaque['tipo'] ?? 'Novo alerta'}',
       mensagem:
           '${destaque['descricao'] ?? destaque['message'] ?? destaque['mensagem'] ?? ''}',
       severidade: _severidadeDe(destaque),
@@ -132,7 +137,9 @@ class AppNotificationCenter with WidgetsBindingObserver {
   }
 
   NotificationSeverity _severidadeDe(Map item) {
-    final status = '${item['status'] ?? item['gravidade'] ?? ''}'.toLowerCase();
+    final status =
+        '${item['status'] ?? item['gravidade'] ?? item['tipo'] ?? ''}'
+            .toLowerCase();
     if (status.contains('crít') || status.contains('critic')) {
       return NotificationSeverity.critical;
     }
@@ -163,6 +170,7 @@ class AppNotificationCenter with WidgetsBindingObserver {
             ? '$mensagem  (+$extras nova${extras == 1 ? '' : 's'})'
             : mensagem,
         severidade: severidade,
+        onOpen: _onOpenNotifications,
         onDismiss: () {
           if (entry.mounted) entry.remove();
         },
@@ -180,12 +188,14 @@ class _NotificationBanner extends StatefulWidget {
     required this.titulo,
     required this.mensagem,
     required this.severidade,
+    required this.onOpen,
     required this.onDismiss,
   });
 
   final String titulo;
   final String mensagem;
   final NotificationSeverity severidade;
+  final VoidCallback? onOpen;
   final VoidCallback onDismiss;
 
   @override
@@ -260,7 +270,10 @@ class _NotificationBannerState extends State<_NotificationBanner>
             direction: DismissDirection.up,
             onDismissed: (_) => widget.onDismiss(),
             child: GestureDetector(
-              onTap: _fechar,
+              onTap: () async {
+                await _fechar();
+                widget.onOpen?.call();
+              },
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(

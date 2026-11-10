@@ -10,6 +10,7 @@ import 'package:mobile/core/remessa_repository.dart';
 import 'package:mobile/services/api_exception.dart';
 import 'package:mobile/services/eta_service.dart';
 import 'package:mobile/services/shipment_progress.dart';
+import 'package:mobile/services/notification_center.dart';
 import 'package:mobile/app_session.dart';
 import 'package:mobile/sync/location_point.dart';
 import 'package:mobile/sync/pending_queue.dart';
@@ -95,6 +96,11 @@ class _RemessasPageState extends State<RemessasPage> {
     'assigned',
   }.contains(_normalizarStatus(status));
 
+  bool _statusCancelada(Object? status) {
+    final chave = _normalizarStatus(status);
+    return chave == 'cancelada' || chave == 'cancelado' || chave == 'cancelled';
+  }
+
   bool _statusOcorrencia(Object? status) => {
     'alerta',
     'atrasado',
@@ -140,6 +146,19 @@ class _RemessasPageState extends State<RemessasPage> {
   bool _atualizandoPeriodicamente = false;
   String? get _erroAtual => _modoDisponiveis ? _erroDisponiveis : _erroRemessas;
   List<Remessa> get _listaAtual => _modoDisponiveis ? disponiveis : remessas;
+
+  Remessa? get _rotaEmDestaque {
+    for (final remessa in remessas) {
+      if (_statusTransito(remessa.status)) return remessa;
+    }
+    for (final remessa in remessas) {
+      if (!_statusEntregue(remessa.status) &&
+          !_statusCancelada(remessa.status)) {
+        return remessa;
+      }
+    }
+    return null;
+  }
 
   // ============================================================
   // FILTRO
@@ -434,10 +453,19 @@ class _RemessasPageState extends State<RemessasPage> {
           ),
           slivers: [
             SliverToBoxAdapter(child: _buildHeader()),
+            if (!_modoDisponiveis && _rotaEmDestaque != null)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 0),
+                  child: _buildRotaDestaque(_rotaEmDestaque!),
+                ),
+              ),
             if (_carregando && _listaAtual.isEmpty && _erroAtual == null)
               const SliverFillRemaining(
                 hasScrollBody: false,
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(
+                  child: GeoSyncLoader(label: 'Carregando entregas', size: 48),
+                ),
               )
             else if (_erroAtual != null && _listaAtual.isEmpty)
               SliverFillRemaining(hasScrollBody: false, child: _buildErro())
@@ -633,38 +661,57 @@ class _RemessasPageState extends State<RemessasPage> {
   // ============================================================
 
   Widget _buildNotificationButton() {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(
+    final scheme = Theme.of(context).colorScheme;
+    return ValueListenableBuilder<int>(
+      valueListenable: AppNotificationCenter.instance.unreadCount,
+      builder: (context, unread, _) => IconButton(
+        tooltip: unread > 0 ? 'Avisos, $unread não lidos' : 'Abrir avisos',
+        onPressed: () => Navigator.of(
           context,
-        ).push(MaterialPageRoute(builder: (_) => const AvisosMotoristaPage()));
-      },
-      child: Container(
-        width: 46,
-        height: 46,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: corBorda),
+        ).push(MaterialPageRoute(builder: (_) => const AvisosMotoristaPage())),
+        style: IconButton.styleFrom(
+          fixedSize: const Size(46, 46),
+          padding: EdgeInsets.zero,
+          backgroundColor: scheme.surface,
+          side: BorderSide(color: corBorda),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
         ),
-        child: Stack(
+        icon: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
           children: [
-            const Center(
-              child: Icon(LucideIcons.bell, color: Color(0xFF475569), size: 23),
-            ),
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: Colors.redAccent,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1.5),
+            Icon(LucideIcons.bell, color: scheme.onSurfaceVariant, size: 23),
+            if (unread > 0)
+              Positioned(
+                top: -9,
+                right: -11,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 2,
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 17,
+                    minHeight: 17,
+                  ),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: scheme.surface, width: 1.5),
+                  ),
+                  child: Text(
+                    unread > 9 ? '9+' : '$unread',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -758,6 +805,180 @@ class _RemessasPageState extends State<RemessasPage> {
   // RESUMO RÁPIDO
   // ============================================================
 
+  Widget _buildRotaDestaque(Remessa remessa) {
+    final emTransito = _statusTransito(remessa.status);
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [azulEscuro, Color(0xFF1749E8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: azul.withValues(alpha: .18),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                emTransito ? LucideIcons.navigation : LucideIcons.route,
+                color: Colors.white70,
+                size: 17,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  emTransito ? 'ROTA EM ANDAMENTO' : 'PRÓXIMA ENTREGA',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: .8,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: .14),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  remessa.status,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            remessa.codigo,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -.4,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(
+                LucideIcons.circleDot,
+                color: Colors.white70,
+                size: 14,
+              ),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Text(
+                  remessa.origem,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Icon(
+                  LucideIcons.arrowRight,
+                  color: Colors.white54,
+                  size: 15,
+                ),
+              ),
+              const Icon(LucideIcons.mapPin, color: Colors.white, size: 14),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Text(
+                  remessa.destino,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+          Row(
+            children: [
+              Expanded(
+                child: TweenAnimationBuilder<double>(
+                  key: ValueKey(remessa.codigo),
+                  tween: Tween(begin: 0, end: remessa.progresso),
+                  duration: const Duration(milliseconds: 650),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, value, _) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${(value * 100).round()}% concluído',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 7),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          value: value,
+                          minHeight: 6,
+                          color: Colors.white,
+                          backgroundColor: Colors.white.withValues(alpha: .2),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              FilledButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        MapaMotoristaPage(remessaInicial: remessa.codigo),
+                  ),
+                ),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: azulEscuro,
+                  minimumSize: const Size(48, 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                icon: const Icon(LucideIcons.map, size: 17),
+                label: const Text(
+                  'Abrir mapa',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildResumoRapido() {
     final emRota = remessas.where((r) => _statusTransito(r.status)).length;
     final aguardando = remessas.where((r) {
@@ -834,12 +1055,26 @@ class _RemessasPageState extends State<RemessasPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  valor,
-                  style: TextStyle(
-                    color: corTexto,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, .25),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  ),
+                  child: Text(
+                    valor,
+                    key: ValueKey(valor),
+                    style: TextStyle(
+                      color: corTexto,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
                 Text(
@@ -847,7 +1082,7 @@ class _RemessasPageState extends State<RemessasPage> {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: textoSecundario,
-                    fontSize: 9,
+                    fontSize: 10,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -864,6 +1099,7 @@ class _RemessasPageState extends State<RemessasPage> {
   // ============================================================
 
   List<Widget> _buildConteudo() {
+    final filtradas = remessasFiltradas;
     return [
       if (_dadosDesatualizados || _erroAtual != null)
         SliverToBoxAdapter(
@@ -892,12 +1128,16 @@ class _RemessasPageState extends State<RemessasPage> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
-                  Text(
-                    "${remessasFiltradas.length} entregas",
-                    style: TextStyle(
-                      color: corTexto,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 180),
+                    child: Text(
+                      "${filtradas.length} entregas",
+                      key: ValueKey(filtradas.length),
+                      style: TextStyle(
+                        color: corTexto,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                   const Spacer(),
@@ -925,20 +1165,35 @@ class _RemessasPageState extends State<RemessasPage> {
           ],
         ),
       ),
-      if (remessasFiltradas.isEmpty)
+      if (filtradas.isEmpty)
         const SliverFillRemaining(hasScrollBody: false, child: _EstadoVazio())
       else
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           sliver: SliverList.builder(
-            itemCount: remessasFiltradas.length,
+            itemCount: filtradas.length,
             itemBuilder: (context, index) {
-              final remessa = remessasFiltradas[index];
+              final remessa = filtradas[index];
+              final durationMs = (260 + index * 35).clamp(260, 520).toInt();
               return Padding(
                 padding: const EdgeInsets.only(bottom: 13),
-                child: _RemessaCard(
-                  remessa: remessa,
-                  onTap: () => abrirDetalhes(remessa),
+                child: TweenAnimationBuilder<double>(
+                  key: ValueKey('$filtroSelecionado:${remessa.codigo}'),
+                  tween: Tween(begin: 0, end: 1),
+                  duration: Duration(milliseconds: durationMs),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, value, child) => Opacity(
+                    opacity: value,
+                    child: Transform.translate(
+                      offset: Offset(0, 14 * (1 - value)),
+                      child: child,
+                    ),
+                  ),
+                  child: _RemessaCard(
+                    key: ValueKey(remessa.codigo),
+                    remessa: remessa,
+                    onTap: () => abrirDetalhes(remessa),
+                  ),
                 ),
               );
             },
@@ -1356,9 +1611,7 @@ class _ComprovanteEntregaDialogState extends State<_ComprovanteEntregaDialog> {
                             )
                           : const Icon(LucideIcons.camera),
                       label: Text(
-                        _carregandoFoto
-                            ? 'Capturando...'
-                            : 'Foto (opcional)',
+                        _carregandoFoto ? 'Capturando...' : 'Foto (opcional)',
                       ),
                     ),
                   ),
@@ -1477,7 +1730,7 @@ class _RemessaCard extends StatefulWidget {
   final Remessa remessa;
   final VoidCallback onTap;
 
-  const _RemessaCard({required this.remessa, required this.onTap});
+  const _RemessaCard({super.key, required this.remessa, required this.onTap});
 
   @override
   State<_RemessaCard> createState() => _RemessaCardState();
@@ -1517,260 +1770,267 @@ class _RemessaCardState extends State<_RemessaCard> {
       button: true,
       label: 'Entrega ${remessa.codigo}, ${remessa.status}',
       onTap: widget.onTap,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: scheme.surface,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: const Color(0xFFE1E7F0)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.025),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ÍCONE
-                  Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: corStatus.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(15),
+      child: Material(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(22),
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(22),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 240),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: scheme.outlineVariant),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.035),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ÍCONE
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: corStatus.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Icon(iconeStatus, color: corStatus, size: 24),
                     ),
-                    child: Icon(iconeStatus, color: corStatus, size: 24),
-                  ),
 
-                  const SizedBox(width: 13),
+                    const SizedBox(width: 13),
 
-                  // INFORMAÇÕES
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                remessa.codigo,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: scheme.onSurface,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 7),
-                            Flexible(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 7,
-                                  vertical: 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: corStatus.withValues(alpha: 0.09),
-                                  borderRadius: BorderRadius.circular(7),
-                                ),
+                    // INFORMAÇÕES
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
                                 child: Text(
-                                  remessa.status,
+                                  remessa.codigo,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    color: corStatus,
-                                    fontSize: 8,
+                                    color: scheme.onSurface,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 6),
-
-                        Text(
-                          remessa.tipo,
-                          style: TextStyle(
-                            color: scheme.onSurfaceVariant,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
+                              const SizedBox(width: 7),
+                              Flexible(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 7,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: corStatus.withValues(alpha: 0.09),
+                                    borderRadius: BorderRadius.circular(7),
+                                  ),
+                                  child: Text(
+                                    remessa.status,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: corStatus,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(height: 7),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: [
-                            _chipFila(
-                              'Prioridade ${remessa.prioridade}',
-                              corStatus,
+
+                          const SizedBox(height: 6),
+
+                          Text(
+                            remessa.tipo,
+                            style: TextStyle(
+                              color: scheme.onSurfaceVariant,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
                             ),
-                            _chipFila(
-                              remessa.prazoEntrega == null
-                                  ? 'Prazo não informado'
-                                  : '${remessa.prazoEntrega!.isBefore(DateTime.now()) ? 'Atrasada • ' : 'Prazo • '}${remessa.prazoEntrega!.toLocal().day.toString().padLeft(2, '0')}/${remessa.prazoEntrega!.toLocal().month.toString().padLeft(2, '0')} ${remessa.prazoEntrega!.toLocal().hour.toString().padLeft(2, '0')}:${remessa.prazoEntrega!.toLocal().minute.toString().padLeft(2, '0')}',
-                              remessa.prazoEntrega?.isBefore(DateTime.now()) ==
-                                      true
-                                  ? const Color(0xFFDC2626)
-                                  : const Color(0xFF64748B),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const Icon(
-                    LucideIcons.chevronRight,
-                    color: Color(0xFFB1BBCB),
-                    size: 14,
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // ROTA
-              Row(
-                children: [
-                  _pontoRota(
-                    cor: const Color(0xFF2563EB),
-                    icon: LucideIcons.circleDot,
-                  ),
-
-                  const SizedBox(width: 8),
-
-                  Expanded(
-                    child: Text(
-                      remessa.origem,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: scheme.onSurfaceVariant,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
+                          ),
+                          const SizedBox(height: 7),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: [
+                              _chipFila(
+                                'Prioridade ${remessa.prioridade}',
+                                corStatus,
+                              ),
+                              _chipFila(
+                                remessa.prazoEntrega == null
+                                    ? 'Prazo não informado'
+                                    : '${remessa.prazoEntrega!.isBefore(DateTime.now()) ? 'Atrasada • ' : 'Prazo • '}${remessa.prazoEntrega!.toLocal().day.toString().padLeft(2, '0')}/${remessa.prazoEntrega!.toLocal().month.toString().padLeft(2, '0')} ${remessa.prazoEntrega!.toLocal().hour.toString().padLeft(2, '0')}:${remessa.prazoEntrega!.toLocal().minute.toString().padLeft(2, '0')}',
+                                remessa.prazoEntrega?.isBefore(
+                                          DateTime.now(),
+                                        ) ==
+                                        true
+                                    ? const Color(0xFFDC2626)
+                                    : const Color(0xFF64748B),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                  ),
 
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 5),
-                    child: Icon(
-                      LucideIcons.arrowRight,
-                      size: 15,
-                      color: Color(0xFFB0BAC9),
+                    const Icon(
+                      LucideIcons.chevronRight,
+                      color: Color(0xFFB1BBCB),
+                      size: 14,
                     ),
-                  ),
+                  ],
+                ),
 
-                  Expanded(
-                    child: Text(
-                      remessa.destino,
-                      textAlign: TextAlign.right,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: scheme.onSurfaceVariant,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                      ),
+                const SizedBox(height: 16),
+
+                // ROTA
+                Row(
+                  children: [
+                    _pontoRota(
+                      cor: const Color(0xFF2563EB),
+                      icon: LucideIcons.circleDot,
                     ),
-                  ),
 
-                  const SizedBox(width: 8),
+                    const SizedBox(width: 8),
 
-                  _pontoRota(
-                    cor: const Color(0xFFDC2626),
-                    icon: LucideIcons.mapPin,
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 15),
-
-              // PROGRESSO
-              Column(
-                children: [
-                  Row(
-                    children: [
-                      const Text(
-                        "Progresso pela etapa",
+                    Expanded(
+                      child: Text(
+                        remessa.origem,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: Color(0xFF94A3B8),
-                          fontSize: 9,
+                          color: scheme.onSurfaceVariant,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const Spacer(),
-                      Text(
-                        "${(remessa.progresso * 100).round()}%",
+                    ),
+
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 5),
+                      child: Icon(
+                        LucideIcons.arrowRight,
+                        size: 15,
+                        color: Color(0xFFB0BAC9),
+                      ),
+                    ),
+
+                    Expanded(
+                      child: Text(
+                        remessa.destino,
+                        textAlign: TextAlign.right,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: corStatus,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
+                          color: scheme.onSurfaceVariant,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 7),
-
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: LinearProgressIndicator(
-                      value: remessa.progresso,
-                      minHeight: 5,
-                      backgroundColor: scheme.surfaceContainerHighest,
-                      valueColor: AlwaysStoppedAnimation<Color>(corStatus),
                     ),
-                  ),
-                ],
-              ),
 
-              const SizedBox(height: 15),
+                    const SizedBox(width: 8),
 
-              // INFORMAÇÕES INFERIORES
-              Row(
-                children: [
-                  _infoItem(icon: LucideIcons.weight, texto: remessa.peso),
-                  const SizedBox(width: 15),
-                  _infoItem(icon: LucideIcons.clock, texto: remessa.eta),
-                  const Spacer(),
-                  if (_statusTransitoMotorista(remessa.status))
-                    TextButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const MapaMotoristaPage(),
+                    _pontoRota(
+                      cor: const Color(0xFFDC2626),
+                      icon: LucideIcons.mapPin,
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 15),
+
+                // PROGRESSO
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          "Progresso pela etapa",
+                          style: TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
                           ),
-                        );
-                      },
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
                         ),
-                      ),
-                      icon: const Icon(LucideIcons.map, size: 15),
-                      label: const Text(
-                        "Mapa",
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
+                        const Spacer(),
+                        Text(
+                          "${(remessa.progresso * 100).round()}%",
+                          style: TextStyle(
+                            color: corStatus,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 7),
+
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: remessa.progresso,
+                        minHeight: 6,
+                        backgroundColor: scheme.surfaceContainerHighest,
+                        valueColor: AlwaysStoppedAnimation<Color>(corStatus),
                       ),
                     ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+
+                const SizedBox(height: 15),
+
+                // INFORMAÇÕES INFERIORES
+                Row(
+                  children: [
+                    _infoItem(icon: LucideIcons.weight, texto: remessa.peso),
+                    const SizedBox(width: 15),
+                    _infoItem(icon: LucideIcons.clock, texto: remessa.eta),
+                    const Spacer(),
+                    if (_statusTransitoMotorista(remessa.status))
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const MapaMotoristaPage(),
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                        ),
+                        icon: const Icon(LucideIcons.map, size: 15),
+                        label: const Text(
+                          "Mapa",
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1787,7 +2047,7 @@ class _RemessaCardState extends State<_RemessaCard> {
       texto,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
-      style: TextStyle(color: cor, fontSize: 9, fontWeight: FontWeight.w700),
+      style: TextStyle(color: cor, fontSize: 10, fontWeight: FontWeight.w700),
     ),
   );
 
@@ -1805,7 +2065,7 @@ class _RemessaCardState extends State<_RemessaCard> {
           texto,
           style: const TextStyle(
             color: Color(0xFF64748B),
-            fontSize: 9,
+            fontSize: 10,
             fontWeight: FontWeight.w600,
           ),
         ),

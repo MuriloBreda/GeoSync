@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthControllerApi;
 use App\Http\Controllers\Api\AvaliacaoControllerApi;
 use App\Http\Controllers\Api\ContatoControllerApi;
 use App\Http\Controllers\Api\PagamentoControllerApi;
+use App\Http\Controllers\Api\ProfilePhotoControllerApi;
 use App\Http\Controllers\Api\RemessaControllerApi;
 use App\Http\Controllers\Api\LocalizacaoControllerApi;
 use App\Http\Controllers\Api\RotaControllerApi;
@@ -23,6 +24,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('auth/me', [AuthControllerApi::class, 'me']);
     Route::post('auth/logout', [AuthControllerApi::class, 'logout']);
     Route::put('perfil', [AuthControllerApi::class, 'updateProfile']);
+    Route::post('perfil/foto', [ProfilePhotoControllerApi::class, 'store']);
+    Route::delete('perfil/foto', [ProfilePhotoControllerApi::class, 'destroy']);
 
     Route::get('remessas/minhas', [RemessaControllerApi::class, 'minhas']);
     Route::get('remessas/disponiveis', [RemessaControllerApi::class, 'disponiveis']);

@@ -224,14 +224,15 @@ class _RemessasPageState extends State<RemessasPage>
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final fonteAmpliada = MediaQuery.textScalerOf(context).scale(14) > 22;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xFF0B2A4A),
-        foregroundColor: Colors.white,
+        backgroundColor: scheme.surface,
+        foregroundColor: scheme.onSurface,
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -280,8 +281,9 @@ class _RemessasPageState extends State<RemessasPage>
               16,
               fonteAmpliada ? 8 : 20,
             ),
-            decoration: const BoxDecoration(
-              color: Color(0xFF0B2A4A),
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainer,
+              border: Border(bottom: BorderSide(color: scheme.outlineVariant)),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(28),
                 bottomRight: Radius.circular(28),
@@ -294,9 +296,7 @@ class _RemessasPageState extends State<RemessasPage>
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.18),
-                    ),
+                    border: Border.all(color: scheme.outlineVariant),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.12),
@@ -311,14 +311,11 @@ class _RemessasPageState extends State<RemessasPage>
                     decoration: InputDecoration(
                       hintText: "Buscar ID, cidade ou carga...",
                       labelText: 'Buscar remessas',
-                      hintStyle: const TextStyle(
-                        color: Colors.grey,
+                      hintStyle: TextStyle(
+                        color: scheme.onSurfaceVariant,
                         fontSize: 14,
                       ),
-                      prefixIcon: const Icon(
-                        CupertinoIcons.search,
-                        color: Color(0xFF0B2A4A),
-                      ),
+                      prefixIcon: const Icon(CupertinoIcons.search),
                       suffixIcon: _searchController.text.isNotEmpty
                           ? IconButton(
                               tooltip: 'Limpar busca',
@@ -463,10 +460,10 @@ class _RemessasPageState extends State<RemessasPage>
               children: [
                 Text(
                   "${remessasFiltradas.length} remessa(s)",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
-                    color: Color(0xFF1F2937),
+                    color: scheme.onSurface,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -579,21 +576,22 @@ class ResumoItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Column(
       children: [
-        Icon(icone, color: Colors.white70, size: 20),
+        Icon(icone, color: scheme.primary, size: 20),
         const SizedBox(height: 4),
         Text(
           valor,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: scheme.onSurface,
             fontSize: 17,
             fontWeight: FontWeight.bold,
           ),
         ),
         Text(
           titulo,
-          style: const TextStyle(color: Colors.white70, fontSize: 10),
+          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 10),
         ),
       ],
     );
@@ -620,6 +618,7 @@ class FiltroChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Semantics(
       button: true,
       selected: selecionado,
@@ -635,24 +634,16 @@ class FiltroChip extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
           decoration: BoxDecoration(
-            color: selecionado ? const Color(0xFF0B2A4A) : Colors.white,
+            color: selecionado ? scheme.primary : scheme.surface,
             borderRadius: BorderRadius.circular(30),
             border: Border.all(
-              color: selecionado
-                  ? const Color(0xFF0B2A4A)
-                  : Colors.grey.shade300,
+              color: selecionado ? scheme.primary : scheme.outlineVariant,
             ),
             boxShadow: [
               if (selecionado)
                 BoxShadow(
-                  color: const Color(0xFF0B2A4A).withValues(alpha: 0.18),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              if (!selecionado)
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 6,
+                  color: scheme.primary.withValues(alpha: 0.12),
+                  blurRadius: 5,
                   offset: const Offset(0, 2),
                 ),
             ],
@@ -662,7 +653,7 @@ class FiltroChip extends StatelessWidget {
               Text(
                 texto,
                 style: TextStyle(
-                  color: selecionado ? Colors.white : const Color(0xFF374151),
+                  color: selecionado ? scheme.onPrimary : scheme.onSurface,
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
                 ),
@@ -672,14 +663,16 @@ class FiltroChip extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: selecionado
-                      ? Colors.white.withValues(alpha: 0.2)
-                      : const Color(0xFFF1F5F9),
+                      ? scheme.onPrimary.withValues(alpha: 0.18)
+                      : scheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   "$quantidade",
                   style: TextStyle(
-                    color: selecionado ? Colors.white : const Color(0xFF475569),
+                    color: selecionado
+                        ? scheme.onPrimary
+                        : scheme.onSurfaceVariant,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
@@ -742,24 +735,18 @@ class _RemessaCardState extends State<RemessaCard> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Material(
-      color: Theme.of(context).colorScheme.surface,
-      borderRadius: BorderRadius.circular(20),
+      color: scheme.surface,
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: widget.onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.grey.shade200),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.035),
-                blurRadius: 12,
-                offset: const Offset(0, 5),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: scheme.outlineVariant),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -785,17 +772,17 @@ class _RemessaCardState extends State<RemessaCard> {
                       children: [
                         Text(
                           widget.remessa.codigo,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF111827),
+                            color: scheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 3),
                         Text(
                           widget.remessa.tipo,
                           style: TextStyle(
-                            color: Colors.grey.shade600,
+                            color: scheme.onSurfaceVariant,
                             fontSize: 12,
                           ),
                         ),
@@ -815,7 +802,7 @@ class _RemessaCardState extends State<RemessaCard> {
                           : CupertinoIcons.star,
                       color: widget.remessa.favorita
                           ? Colors.amber
-                          : Colors.grey.shade400,
+                          : scheme.outline,
                     ),
                   ),
                 ],
@@ -879,7 +866,7 @@ class _RemessaCardState extends State<RemessaCard> {
                       Text(
                         'Previsão de chegada',
                         style: TextStyle(
-                          color: Colors.grey.shade500,
+                          color: scheme.onSurfaceVariant,
                           fontSize: 10,
                         ),
                       ),
@@ -914,7 +901,7 @@ class _RemessaCardState extends State<RemessaCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Colors.grey.shade600,
+                        color: scheme.onSurfaceVariant,
                         fontSize: 11,
                       ),
                     ),
@@ -937,7 +924,7 @@ class _RemessaCardState extends State<RemessaCard> {
                 child: LinearProgressIndicator(
                   value: widget.remessa.progresso,
                   minHeight: 6,
-                  backgroundColor: Colors.grey.shade200,
+                  backgroundColor: scheme.surfaceContainerHighest,
                   valueColor: AlwaysStoppedAnimation<Color>(statusColor),
                 ),
               ),
@@ -953,7 +940,7 @@ class _RemessaCardState extends State<RemessaCard> {
                       Icon(
                         CupertinoIcons.gauge,
                         size: 16,
-                        color: Colors.grey.shade500,
+                        color: scheme.onSurfaceVariant,
                       ),
                       const SizedBox(width: 5),
                       Expanded(
@@ -962,7 +949,7 @@ class _RemessaCardState extends State<RemessaCard> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Colors.grey.shade600,
+                            color: scheme.onSurfaceVariant,
                             fontSize: 12,
                           ),
                         ),
@@ -977,7 +964,7 @@ class _RemessaCardState extends State<RemessaCard> {
                       child: Icon(
                         CupertinoIcons.chevron_right,
                         size: 12,
-                        color: Color(0xFF2563EB),
+                        color: scheme.primary,
                       ),
                     ),
                   ),
@@ -1007,6 +994,7 @@ class EstadoVazio extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxHeight < 300;
@@ -1022,13 +1010,13 @@ class EstadoVazio extends StatelessWidget {
                   width: iconSize,
                   height: iconSize,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0B2A4A).withValues(alpha: 0.08),
+                    color: scheme.primary.withValues(alpha: 0.08),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     CupertinoIcons.cube_box,
                     size: compact ? 32 : 42,
-                    color: Color(0xFF0B2A4A),
+                    color: scheme.primary,
                   ),
                 ),
                 SizedBox(height: compact ? 10 : 18),
@@ -1045,7 +1033,10 @@ class EstadoVazio extends StatelessWidget {
                       ? "Ajuste a busca ou os filtros para ver outras remessas."
                       : "Suas remessas aparecerão aqui quando forem cadastradas.",
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                  style: TextStyle(
+                    color: scheme.onSurfaceVariant,
+                    fontSize: 13,
+                  ),
                 ),
                 if (temRemessas) ...[
                   SizedBox(height: compact ? 4 : 10),
@@ -1102,6 +1093,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 30),
       decoration: BoxDecoration(
@@ -1118,7 +1110,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
                   width: 45,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: scheme.outlineVariant,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -1155,7 +1147,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
                         ),
                         Text(
                           remessa.tipo,
-                          style: TextStyle(color: Colors.grey.shade600),
+                          style: TextStyle(color: scheme.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -1353,8 +1345,8 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0B2A4A),
-                    foregroundColor: Colors.white,
+                    backgroundColor: scheme.primary,
+                    foregroundColor: scheme.onPrimary,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -1444,6 +1436,7 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
     DateTime? quando,
     String detalhe,
   ) {
+    final scheme = Theme.of(context).colorScheme;
     final data = quando == null
         ? 'Data e hora não informadas pela API'
         : '${quando.toLocal().day.toString().padLeft(2, '0')}/${quando.toLocal().month.toString().padLeft(2, '0')}/${quando.toLocal().year} às ${quando.toLocal().hour.toString().padLeft(2, '0')}:${quando.toLocal().minute.toString().padLeft(2, '0')}';
@@ -1452,9 +1445,9 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(top: 4),
-            child: Icon(Icons.circle, size: 12, color: Color(0xFF2563EB)),
+            child: Icon(Icons.circle, size: 12, color: scheme.primary),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1467,13 +1460,19 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
                 ),
                 Text(
                   data,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                  style: TextStyle(
+                    color: scheme.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
                 ),
                 Text(local, style: const TextStyle(fontSize: 13)),
                 if (detalhe.trim().isNotEmpty)
                   Text(
                     detalhe,
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
                   ),
               ],
             ),
@@ -1502,6 +1501,7 @@ class InfoDetalhe extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -1510,15 +1510,15 @@ class InfoDetalhe extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: scheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icone, size: 19, color: const Color(0xFF475569)),
+            child: Icon(icone, size: 19, color: scheme.onSurfaceVariant),
           ),
           const SizedBox(width: 12),
           Text(
             titulo,
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+            style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
           ),
           const Spacer(),
           Flexible(
@@ -1556,6 +1556,7 @@ class RotaDetalhe extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -1568,7 +1569,10 @@ class RotaDetalhe extends StatelessWidget {
               children: [
                 Text(
                   titulo,
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                  style: TextStyle(
+                    color: scheme.onSurfaceVariant,
+                    fontSize: 11,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
