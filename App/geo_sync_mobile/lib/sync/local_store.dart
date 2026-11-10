@@ -79,6 +79,44 @@ Future<String> _desproteger(String payload) async {
   return utf8.decode(await _aes.decrypt(box, secretKey: await _chaveBanco()));
 }
 
+/// Na web, o cofre usa a WebCrypto, que o navegador só expõe em HTTPS ou
+/// `localhost`. Aberto por `http://IP:porta`, o cofre falha; nesse caso os
+/// dados locais ficam apenas em memória durante a sessão (nunca em texto puro
+/// no navegador), como já acontece com o token em `AppSession`.
+Future<bool>? _cofreDisponivelFuture;
+final Map<String, String> _memoriaSemCofre = {};
+const _sondaCofreId = 'geosync_teste_cofre';
+bool _verificarCofreDeTeste = false;
+
+Future<bool> _usaMemoriaSemCofre() async {
+  if ((!kIsWeb && !_verificarCofreDeTeste) || _chaveDeTeste != null) {
+    return false;
+  }
+  final disponivel = await (_cofreDisponivelFuture ??= () async {
+    try {
+      // Fora de contexto seguro o `read` do cofre web não falha (devolve
+      // null); só `write` e a WebCrypto falham. Por isso a verificação grava
+      // no cofre e faz um ciclo completo de cifra e decifra.
+      await _cofre.write(key: _sondaCofreId, value: '1');
+      await _cofre.delete(key: _sondaCofreId);
+      if (await _desproteger(await _proteger('ok')) != 'ok') {
+        throw StateError('falha ao decifrar o teste do cofre');
+      }
+      return true;
+    } on LocalStorageException {
+      rethrow;
+    } catch (e) {
+      _chaveBancoFuture = null;
+      debugPrint(
+        '[Armazenamento] cofre indisponível (web sem HTTPS?); '
+        'dados locais mantidos apenas em memória: $e',
+      );
+      return false;
+    }
+  }());
+  return !disponivel;
+}
+
 bool? _usarSqliteDeTeste;
 
 bool get _usaSqlite =>
@@ -142,8 +180,18 @@ class JsonListStore {
   @visibleForTesting
   static set usarSqliteDeTeste(bool? valor) => _usarSqliteDeTeste = valor;
 
+  /// Aplica fora da web a verificação do cofre feita no navegador.
+  @visibleForTesting
+  static set verificarCofreDeTeste(bool valor) {
+    _verificarCofreDeTeste = valor;
+    _cofreDisponivelFuture = null;
+    _memoriaSemCofre.clear();
+  }
+
   @visibleForTesting
   static Future<void> resetarParaTeste() async {
+    _cofreDisponivelFuture = null;
+    _memoriaSemCofre.clear();
     final aberto = _databaseFuture;
     if (aberto != null) {
       try {
@@ -178,6 +226,10 @@ class JsonListStore {
   });
 
   Future<List<Map<String, dynamic>>> _ler() async {
+    if (await _usaMemoriaSemCofre()) {
+      final salvo = _memoriaSemCofre[chave];
+      return salvo == null ? [] : _decodificar(salvo);
+    }
     if (_usaSqlite) {
       final db = await _abrirBanco();
       final registros = await db.query(
@@ -237,6 +289,14 @@ class JsonListStore {
   }
 
   Future<void> _gravar(List<Map<String, dynamic>> itens) async {
+    if (await _usaMemoriaSemCofre()) {
+      if (itens.isEmpty) {
+        _memoriaSemCofre.remove(chave);
+      } else {
+        _memoriaSemCofre[chave] = jsonEncode(itens);
+      }
+      return;
+    }
     if (_usaSqlite) {
       final db = await _abrirBanco();
       await db.transaction((txn) async {
