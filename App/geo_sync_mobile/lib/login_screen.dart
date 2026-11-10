@@ -16,8 +16,12 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  late final AnimationController _entradaController;
+  late final Animation<double> _opacidadeEntrada;
+  late final Animation<Offset> _deslocamentoEntrada;
   bool _obscurePassword = true;
   String _tipoUsuario = 'Cliente';
 
@@ -25,9 +29,31 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _entradaController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 520),
+    );
+    _opacidadeEntrada = CurvedAnimation(
+      parent: _entradaController,
+      curve: Curves.easeOut,
+    );
+    _deslocamentoEntrada =
+        Tween<Offset>(begin: const Offset(0, .035), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _entradaController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+    _entradaController.forward();
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _entradaController.dispose();
     super.dispose();
   }
 
@@ -97,12 +123,19 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Stack(
         children: [
           Container(
-            height: 264,
+            height: 190,
             decoration: BoxDecoration(
-              color: primaryColor,
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF0B2A4A),
+                  Color.lerp(primaryColor, const Color(0xFF0B2A4A), .35)!,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(36),
-                bottomRight: Radius.circular(36),
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
               ),
             ),
           ),
@@ -112,391 +145,469 @@ class _LoginScreenState extends State<LoginScreen> {
                 horizontal: MediaQuery.sizeOf(context).width < 360 ? 16 : 24,
                 vertical: 18,
               ),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 460),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 7,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.18),
-                          ),
-                        ),
-                        child: Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          spacing: 6,
-                          children: [
-                            const Icon(
-                              CupertinoIcons.shield_fill,
-                              color: Colors.white,
-                              size: 14,
-                            ),
-                            const Text(
-                              'Acesso seguro',
-                              softWrap: true,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.4,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: scheme.surface,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.15),
-                              blurRadius: 22,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: Image.asset(
-                          'assets/logo.png',
-                          height: 84,
-                          width: 84,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              CupertinoIcons.car_detailed,
-                              size: 52,
-                              color: primaryColor,
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'GeoSync',
-                        style: const TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Bem-vindo de volta',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Acesse sua conta para continuar',
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.white.withValues(alpha: 0.82),
-                        ),
-                      ),
-                      const SizedBox(height: 28),
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: scheme.surface,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: scheme.outlineVariant.withValues(alpha: 0.7),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.06),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+              child: FadeTransition(
+                opacity: _opacidadeEntrada,
+                child: SlideTransition(
+                  position: _deslocamentoEntrada,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 460),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20),
+                          Row(
                             children: [
-                              Text(
-                                'Tipo de acesso',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: scheme.onSurface,
+                              Container(
+                                width: 58,
+                                height: 58,
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Image.asset(
+                                  'assets/logo.png',
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Icon(
+                                        CupertinoIcons.car_detailed,
+                                        size: 34,
+                                        color: primaryColor,
+                                      ),
                                 ),
                               ),
-                              const SizedBox(height: 12),
-                              SegmentedButton<String>(
-                                showSelectedIcon: false,
-                                segments: const [
-                                  ButtonSegment(
-                                    value: 'Cliente',
-                                    icon: Icon(CupertinoIcons.person),
-                                    label: Text('Cliente'),
-                                  ),
-                                  ButtonSegment(
-                                    value: 'Motorista',
-                                    icon: Icon(Icons.local_shipping_outlined),
-                                    label: Text('Motorista'),
-                                  ),
-                                ],
-                                selected: {_tipoUsuario},
-                                onSelectionChanged: (selection) => setState(
-                                  () => _tipoUsuario = selection.first,
+                              const SizedBox(width: 14),
+                              const Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'GeoSync',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    SizedBox(height: 3),
+                                    Text(
+                                      'Gestão e rastreamento de entregas',
+                                      maxLines: 2,
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 13,
+                                        height: 1.25,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'O perfil final é confirmado pela conta cadastrada.',
-                                style: TextStyle(
-                                  color: scheme.onSurfaceVariant,
-                                  fontSize: 12,
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          Container(
+                            padding: EdgeInsets.all(
+                              MediaQuery.sizeOf(context).width < 360 ? 16 : 22,
+                            ),
+                            decoration: BoxDecoration(
+                              color: scheme.surface,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: scheme.outlineVariant.withValues(
+                                  alpha: 0.85,
                                 ),
                               ),
-                              const SizedBox(height: 22),
-                              TextFormField(
-                                controller: _emailController,
-                                keyboardType: TextInputType.emailAddress,
-                                textInputAction: TextInputAction.next,
-                                validator: (value) {
-                                  if (value == null || value.trim().isEmpty) {
-                                    return 'Informe o seu e-mail';
-                                  }
-                                  if (!value.contains('@')) {
-                                    return 'Informe um e-mail válido';
-                                  }
-                                  return null;
-                                },
-                                decoration: InputDecoration(
-                                  labelText: 'E-mail',
-                                  hintText: 'seu@email.com',
-                                  prefixIcon: const Icon(
-                                    CupertinoIcons.envelope,
-                                  ),
-                                  filled: true,
-                                  fillColor: scheme.surfaceContainer,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(
-                                      color: scheme.outlineVariant,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                      width: 2,
-                                    ),
-                                  ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.045),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 6),
                                 ),
-                              ),
-                              const SizedBox(height: 16),
-                              TextFormField(
-                                controller: _passwordController,
-                                obscureText: _obscurePassword,
-                                textInputAction: TextInputAction.done,
-                                onFieldSubmitted: (_) => _fazerLogin(),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Informe a sua senha';
-                                  }
-                                  if (value.length < 6) {
-                                    return 'A senha deve ter pelo menos 6 caracteres';
-                                  }
-                                  return null;
-                                },
-                                decoration: InputDecoration(
-                                  labelText: 'Senha',
-                                  hintText: '••••••••',
-                                  prefixIcon: const Icon(CupertinoIcons.lock),
-                                  suffixIcon: IconButton(
-                                    tooltip: _obscurePassword
-                                        ? 'Mostrar senha'
-                                        : 'Ocultar senha',
-                                    icon: Icon(
-                                      _obscurePassword
-                                          ? CupertinoIcons.eye_slash
-                                          : CupertinoIcons.eye,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        _obscurePassword = !_obscurePassword;
-                                      });
-                                    },
+                              ],
+                            ),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Acesse sua conta',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(color: scheme.onSurface),
                                   ),
-                                  filled: true,
-                                  fillColor: scheme.surfaceContainer,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(
-                                      color: scheme.outlineVariant,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                      width: 2,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: TextButton(
-                                  onPressed: () async {
-                                    final senhaRedefinida =
-                                        await Navigator.push<bool>(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => EsqueceuSenhaPage(
-                                              emailInicial:
-                                                  _emailController.text,
-                                            ),
-                                          ),
-                                        );
-                                    if (!context.mounted) return;
-                                    if (senhaRedefinida == true) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Se o e-mail estiver cadastrado, você receberá um link para criar uma nova senha.',
-                                          ),
-                                          backgroundColor: Color(0xFF16A34A),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  style: TextButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 4,
-                                    ),
-                                    minimumSize: const Size(0, 48),
-                                  ),
-                                  child: Text(
-                                    'Esqueceu a senha?',
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Entre para acompanhar suas entregas.',
                                     style: TextStyle(
-                                      color: primaryColor,
+                                      color: scheme.onSurfaceVariant,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Text(
+                                    'Tipo de acesso',
+                                    style: TextStyle(
+                                      fontSize: 14,
                                       fontWeight: FontWeight.w700,
+                                      color: scheme.onSurface,
                                     ),
                                   ),
-                                ),
-                              ),
-                              const SizedBox(height: 18),
-                              SizedBox(
-                                width: double.infinity,
-                                height: 54,
-                                child: ElevatedButton.icon(
-                                  onPressed: _carregando ? null : _fazerLogin,
-                                  icon: Icon(
-                                    _tipoUsuario == 'Cliente'
-                                        ? CupertinoIcons.arrow_right_circle
-                                        : Icons.local_shipping_rounded,
-                                    color: Colors.white,
-                                  ),
-                                  label: Text(
-                                    _carregando
-                                        ? 'Entrando...'
-                                        : 'Entrar como $_tipoUsuario',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: primaryColor,
-                                    foregroundColor: Colors.white,
-                                    elevation: 0,
-                                    shadowColor: primaryColor.withValues(
-                                      alpha: 0.26,
-                                    ),
-                                    shape: RoundedRectangleBorder(
+                                  const SizedBox(height: 12),
+                                  Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: scheme.surfaceContainerHighest,
                                       borderRadius: BorderRadius.circular(16),
                                     ),
+                                    child: SegmentedButton<String>(
+                                      showSelectedIcon: false,
+                                      style: SegmentedButton.styleFrom(
+                                        minimumSize: const Size(0, 48),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                        ),
+                                        textStyle: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        foregroundColor:
+                                            scheme.onSurfaceVariant,
+                                        selectedForegroundColor:
+                                            scheme.onPrimary,
+                                        backgroundColor:
+                                            scheme.surfaceContainerHighest,
+                                        selectedBackgroundColor: scheme.primary,
+                                        side: BorderSide.none,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        elevation: 0,
+                                        shadowColor: scheme.primary.withValues(
+                                          alpha: 0.22,
+                                        ),
+                                      ),
+                                      segments: const [
+                                        ButtonSegment(
+                                          value: 'Cliente',
+                                          icon: Icon(
+                                            CupertinoIcons.person_fill,
+                                          ),
+                                          label: Text('Cliente'),
+                                        ),
+                                        ButtonSegment(
+                                          value: 'Motorista',
+                                          icon: Icon(
+                                            Icons.local_shipping_outlined,
+                                          ),
+                                          label: Text('Motorista'),
+                                        ),
+                                      ],
+                                      selected: {_tipoUsuario},
+                                      onSelectionChanged: (selection) =>
+                                          setState(
+                                            () =>
+                                                _tipoUsuario = selection.first,
+                                          ),
+                                    ),
                                   ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'O perfil final é confirmado pela conta cadastrada.',
+                                    style: TextStyle(
+                                      color: scheme.onSurfaceVariant,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 22),
+                                  TextFormField(
+                                    controller: _emailController,
+                                    keyboardType: TextInputType.emailAddress,
+                                    textInputAction: TextInputAction.next,
+                                    autofillHints: const [
+                                      AutofillHints.username,
+                                    ],
+                                    autocorrect: false,
+                                    textCapitalization: TextCapitalization.none,
+                                    validator: (value) {
+                                      if (value == null ||
+                                          value.trim().isEmpty) {
+                                        return 'Informe o seu e-mail';
+                                      }
+                                      if (!value.contains('@')) {
+                                        return 'Informe um e-mail válido';
+                                      }
+                                      return null;
+                                    },
+                                    decoration: InputDecoration(
+                                      labelText: 'E-mail',
+                                      hintText: 'seu@email.com',
+                                      prefixIcon: const Icon(
+                                        CupertinoIcons.envelope,
+                                      ),
+                                      filled: true,
+                                      fillColor: scheme.surfaceContainer,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                          color: scheme.outlineVariant,
+                                        ),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                          color: primaryColor,
+                                          width: 2,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  TextFormField(
+                                    controller: _passwordController,
+                                    obscureText: _obscurePassword,
+                                    textInputAction: TextInputAction.done,
+                                    autofillHints: const [
+                                      AutofillHints.password,
+                                    ],
+                                    autocorrect: false,
+                                    enableSuggestions: false,
+                                    onFieldSubmitted: (_) => _fazerLogin(),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Informe a sua senha';
+                                      }
+                                      if (value.length < 6) {
+                                        return 'A senha deve ter pelo menos 6 caracteres';
+                                      }
+                                      return null;
+                                    },
+                                    decoration: InputDecoration(
+                                      labelText: 'Senha',
+                                      hintText: '••••••••',
+                                      prefixIcon: const Icon(
+                                        CupertinoIcons.lock,
+                                      ),
+                                      suffixIcon: IconButton(
+                                        tooltip: _obscurePassword
+                                            ? 'Mostrar senha'
+                                            : 'Ocultar senha',
+                                        icon: Icon(
+                                          _obscurePassword
+                                              ? CupertinoIcons.eye_slash
+                                              : CupertinoIcons.eye,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            _obscurePassword =
+                                                !_obscurePassword;
+                                          });
+                                        },
+                                      ),
+                                      filled: true,
+                                      fillColor: scheme.surfaceContainer,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                          color: scheme.outlineVariant,
+                                        ),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                          color: primaryColor,
+                                          width: 2,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: TextButton(
+                                      onPressed: () async {
+                                        final senhaRedefinida =
+                                            await Navigator.push<bool>(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    EsqueceuSenhaPage(
+                                                      emailInicial:
+                                                          _emailController.text,
+                                                    ),
+                                              ),
+                                            );
+                                        if (!context.mounted) return;
+                                        if (senhaRedefinida == true) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Se o e-mail estiver cadastrado, você receberá um link para criar uma nova senha.',
+                                              ),
+                                              backgroundColor: Color(
+                                                0xFF16A34A,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      style: TextButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                        ),
+                                        minimumSize: const Size(0, 48),
+                                      ),
+                                      child: Text(
+                                        'Esqueceu a senha?',
+                                        style: TextStyle(
+                                          color: primaryColor,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 18),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 54,
+                                    child: ElevatedButton.icon(
+                                      onPressed: _carregando
+                                          ? null
+                                          : _fazerLogin,
+                                      icon: AnimatedSwitcher(
+                                        duration: const Duration(
+                                          milliseconds: 180,
+                                        ),
+                                        child: _carregando
+                                            ? const SizedBox(
+                                                key: ValueKey('login-loading'),
+                                                width: 19,
+                                                height: 19,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2.2,
+                                                      color: Colors.white,
+                                                    ),
+                                              )
+                                            : Icon(
+                                                key: const ValueKey(
+                                                  'login-icon',
+                                                ),
+                                                _tipoUsuario == 'Cliente'
+                                                    ? CupertinoIcons
+                                                          .arrow_right_circle
+                                                    : Icons
+                                                          .local_shipping_rounded,
+                                                color: Colors.white,
+                                              ),
+                                      ),
+                                      label: AnimatedSwitcher(
+                                        duration: const Duration(
+                                          milliseconds: 180,
+                                        ),
+                                        child: Text(
+                                          _carregando
+                                              ? 'Entrando...'
+                                              : 'Entrar como $_tipoUsuario',
+                                          key: ValueKey(
+                                            'login-label-$_carregando-$_tipoUsuario',
+                                          ),
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: primaryColor,
+                                        foregroundColor: Colors.white,
+                                        elevation: 0,
+                                        shadowColor: primaryColor.withValues(
+                                          alpha: 0.26,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Center(
+                                    child: TextButton.icon(
+                                      onPressed: _configurarServidor,
+                                      icon: const Icon(
+                                        CupertinoIcons.slider_horizontal_3,
+                                        size: 18,
+                                      ),
+                                      label: const Text(
+                                        'Configurar servidor da API',
+                                      ),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor:
+                                            scheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text(
+                                'Não tem uma conta?',
+                                style: TextStyle(
+                                  color: scheme.onSurfaceVariant,
                                 ),
                               ),
-                              const SizedBox(height: 10),
-                              Center(
-                                child: TextButton.icon(
-                                  onPressed: _configurarServidor,
-                                  icon: const Icon(
-                                    CupertinoIcons.slider_horizontal_3,
-                                    size: 18,
-                                  ),
-                                  label: const Text(
-                                    'Configurar servidor da API',
-                                  ),
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: scheme.onSurfaceVariant,
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const CadastroScreen(),
+                                    ),
+                                  );
+                                },
+                                child: Text(
+                                  'Cadastre-se',
+                                  style: TextStyle(
+                                    color: primaryColor,
+                                    fontWeight: FontWeight.w800,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Text(
-                            'Não tem uma conta?',
-                            style: TextStyle(color: scheme.onSurfaceVariant),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const CadastroScreen(),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              'Cadastre-se',
-                              style: TextStyle(
-                                color: primaryColor,
-                                fontWeight: FontWeight.w800,
-                              ),
+                          const SizedBox(height: 18),
+                          const Text(
+                            'Versão 1.0.0',
+                            style: TextStyle(
+                              color: Color(0xFF94A3B8),
+                              fontSize: 12,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 18),
-                      const Text(
-                        'Versão 1.0.0',
-                        style: TextStyle(
-                          color: Color(0xFF94A3B8),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),

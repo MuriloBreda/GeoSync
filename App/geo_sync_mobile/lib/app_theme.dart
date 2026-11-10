@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 /// Paleta e componentes compartilhados pelo GeoSync.
@@ -45,6 +46,16 @@ class AppTheme {
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: _GeoSyncPageTransitionsBuilder(),
+          TargetPlatform.fuchsia: _GeoSyncPageTransitionsBuilder(),
+          TargetPlatform.linux: _GeoSyncPageTransitionsBuilder(),
+          TargetPlatform.windows: _GeoSyncPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       scaffoldBackgroundColor: isDark
           ? const Color(0xFF0F172A)
           : const Color(0xFFF3F6FA),
@@ -176,6 +187,36 @@ class AppTheme {
       TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
     ),
   );
+}
+
+class _GeoSyncPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _GeoSyncPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    if (MediaQuery.of(context).disableAnimations) return child;
+
+    final transicao = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+    return FadeTransition(
+      key: const ValueKey('geosync-page-fade'),
+      opacity: transicao,
+      child: ScaleTransition(
+        key: const ValueKey('geosync-page-scale'),
+        scale: Tween<double>(begin: 0.985, end: 1).animate(transicao),
+        child: child,
+      ),
+    );
+  }
 }
 
 extension GeoSyncTheme on BuildContext {

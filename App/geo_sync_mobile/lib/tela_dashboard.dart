@@ -752,114 +752,241 @@ class _TelaDashboardState extends State<TelaDashboard>
   Widget _buildOverviewCard() {
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.all(20),
-
       decoration: BoxDecoration(
-        color: primary,
-        borderRadius: BorderRadius.circular(16),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1749E8), Color(0xFF0C36C7)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: primary.withValues(alpha: .20),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
-
       child: Stack(
+        clipBehavior: Clip.hardEdge,
         children: [
+          Positioned(
+            top: -78,
+            right: -44,
+            child: Container(
+              width: 190,
+              height: 190,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: .055),
+              ),
+            ),
+          ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                children: [
-                  Icon(
-                    CupertinoIcons.chart_bar,
-                    color: Colors.white70,
-                    size: 19,
-                  ),
-
-                  SizedBox(width: 8),
-
-                  Text(
-                    "OPERAÇÃO HOJE",
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.7,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 10),
-
-              Text(
-                _carregandoResumo || _falhaRemessas ? "—" : "$_totalRemessas",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 36,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -1.5,
-                ),
-              ),
-
-              const Text(
-                "remessas em operação",
-                style: TextStyle(color: Colors.white70, fontSize: 13),
-              ),
-
-              const SizedBox(height: 18),
-
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 9,
-                      vertical: 6,
-                    ),
-
+                    width: 38,
+                    height: 38,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.white.withValues(alpha: .14),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-
-                    child: Row(
+                    child: const Icon(
+                      CupertinoIcons.chart_bar,
+                      color: Colors.white,
+                      size: 19,
+                    ),
+                  ),
+                  const SizedBox(width: 11),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(
-                          CupertinoIcons.checkmark_circle,
-                          color: Colors.white,
-                          size: 15,
+                        Text(
+                          'VISÃO GERAL',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.05,
+                          ),
                         ),
-
-                        const SizedBox(width: 5),
-
-                        Flexible(
-                          child: Text(
-                            _falhaRemessas
-                                ? "— entregues"
-                                : "$_entregues entregues",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        SizedBox(height: 3),
+                        Text(
+                          'Resumo das suas remessas',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
                     ),
                   ),
-
-                  const SizedBox(height: 8),
-
-                  Text(
-                    _saldoMovimentado == null
-                        ? "Pagamentos indisponíveis"
-                        : "R\$ ${_saldoMovimentado!.toStringAsFixed(2).replaceAll('.', ',')} em pagamentos",
-                    softWrap: true,
-                    style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  if (_carregandoResumo)
+                    const SizedBox.square(
+                      dimension: 17,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: .12),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        _falhaRemessas ? 'ATENÇÃO' : 'RESUMO',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: .5,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 22),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 260),
+                    transitionBuilder: (child, animation) => FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, .18),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: child,
+                      ),
+                    ),
+                    child: Text(
+                      _carregandoResumo || _falhaRemessas
+                          ? '—'
+                          : '$_totalRemessas',
+                      key: ValueKey(
+                        'total-${_carregandoResumo || _falhaRemessas ? 'indisponivel' : _totalRemessas}',
+                      ),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 44,
+                        height: 1,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -1.8,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        'remessas monitoradas',
+                        maxLines: 2,
+                        softWrap: true,
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Container(height: 1, color: Colors.white.withValues(alpha: .16)),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: _overviewMetric(
+                      icon: CupertinoIcons.checkmark_circle,
+                      label: 'ENTREGUES',
+                      value: _carregandoResumo || _falhaRemessas
+                          ? '—'
+                          : '$_entregues',
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 34,
+                    color: Colors.white.withValues(alpha: .16),
+                  ),
+                  Expanded(
+                    child: _overviewMetric(
+                      icon: CupertinoIcons.creditcard,
+                      label: 'PAGAMENTOS',
+                      value: _saldoMovimentado == null
+                          ? 'Indisponível'
+                          : 'R\$ ${_saldoMovimentado!.toStringAsFixed(2).replaceAll('.', ',')}',
+                    ),
                   ),
                 ],
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _overviewMetric({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: Colors.white70, size: 14),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 2,
+                  softWrap: true,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: .7,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            child: Text(
+              value,
+              key: ValueKey(value),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ),
         ],
       ),
