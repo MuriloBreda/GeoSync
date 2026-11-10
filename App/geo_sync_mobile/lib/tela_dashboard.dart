@@ -6,7 +6,6 @@ import 'package:mobile/widgets/adaptive_grid.dart';
 import 'package:mobile/app_session.dart';
 import 'package:mobile/core/avaliacao_repository.dart';
 import 'package:mobile/core/alerta_repository.dart';
-import 'package:mobile/core/pagamento_repository.dart';
 import 'package:mobile/core/remessa_repository.dart';
 
 import 'package:mobile/perfil_page.dart';
@@ -31,9 +30,9 @@ class _TelaDashboardState extends State<TelaDashboard>
     with WidgetsBindingObserver {
   final AlertaRepository _alertaRepository = AlertaRepository();
   final RemessaRepository _remessaRepository = RemessaRepository();
-  final PagamentoRepository _pagamentoRepository = PagamentoRepository();
   final AvaliacaoRepository _avaliacaoRepository = AvaliacaoRepository();
   int _currentIndex = 0;
+  String? _codigoRemessaMapaInicial;
 
   static const Color primary = Color(0xFF0C46FF);
   static const Color primaryDark = Color(0xFF0B2A4A);
@@ -53,7 +52,6 @@ class _TelaDashboardState extends State<TelaDashboard>
   bool _falhaAvaliacao = false;
   List<Remessa> _remessas = [];
   List<Alerta> _alertas = [];
-  double? _saldoMovimentado;
   double? _avaliacaoMedia;
   Timer? _timerRemessas;
   bool _appAtivo = true;
@@ -137,10 +135,7 @@ class _TelaDashboardState extends State<TelaDashboard>
     if (mounted) {
       setState(() {
         _carregandoResumo =
-            _remessas.isEmpty &&
-            _alertas.isEmpty &&
-            _saldoMovimentado == null &&
-            _avaliacaoMedia == null;
+            _remessas.isEmpty && _alertas.isEmpty && _avaliacaoMedia == null;
         _falhaCarregamentoResumo = false;
         _falhaRemessas = false;
         _falhaAvaliacao = false;
@@ -149,15 +144,13 @@ class _TelaDashboardState extends State<TelaDashboard>
     final resultados = await Future.wait([
       _carregarRemessas(),
       _carregarAlertas(),
-      _carregarSaldo(),
       _carregarAvaliacao(),
     ]);
     if (!mounted) return;
     setState(() {
       _remessas = resultados[0] as List<Remessa>;
       _alertas = resultados[1] as List<Alerta>;
-      _saldoMovimentado = resultados[2] as double?;
-      _avaliacaoMedia = resultados[3] as double?;
+      _avaliacaoMedia = resultados[2] as double?;
       _carregandoResumo = false;
     });
   }
@@ -225,25 +218,6 @@ class _TelaDashboardState extends State<TelaDashboard>
     }
   }
 
-  Future<double?> _carregarSaldo() async {
-    try {
-      final pagamentos = await _pagamentoRepository.listar();
-      return pagamentos.whereType<Map>().fold<double>(0, (total, item) {
-        final raw = item['valor'] ?? item['amount'];
-        if (raw == null) return total;
-        final texto = '$raw'.trim().replaceAll('R\$', '').replaceAll(' ', '');
-        final valor = texto.contains(',')
-            ? double.tryParse(texto.replaceAll('.', '').replaceAll(',', '.')) ??
-                  0
-            : double.tryParse(texto) ?? 0;
-        return total + valor;
-      });
-    } catch (_) {
-      _falhaCarregamentoResumo = true;
-      return _saldoMovimentado;
-    }
-  }
-
   Future<double?> _carregarAvaliacao() async {
     try {
       final resumo = await _avaliacaoRepository.resumo();
@@ -286,10 +260,10 @@ class _TelaDashboardState extends State<TelaDashboard>
         return _home();
 
       case 1:
-        return const RemessasPage();
+        return RemessasPage(onOpenMap: _abrirMapaDaRemessa);
 
       case 2:
-        return const MapaPage();
+        return MapaPage(initialShipmentCode: _codigoRemessaMapaInicial);
 
       case 3:
         return const TelaAlertas();
@@ -302,6 +276,14 @@ class _TelaDashboardState extends State<TelaDashboard>
   void _changePage(int index) {
     setState(() {
       _currentIndex = index;
+      if (index == 2) _codigoRemessaMapaInicial = null;
+    });
+  }
+
+  void _abrirMapaDaRemessa(Remessa remessa) {
+    setState(() {
+      _codigoRemessaMapaInicial = remessa.codigo;
+      _currentIndex = 2;
     });
   }
 
@@ -919,20 +901,6 @@ class _TelaDashboardState extends State<TelaDashboard>
                       value: _carregandoResumo || _falhaRemessas
                           ? '—'
                           : '$_entregues',
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    height: 34,
-                    color: Colors.white.withValues(alpha: .16),
-                  ),
-                  Expanded(
-                    child: _overviewMetric(
-                      icon: CupertinoIcons.creditcard,
-                      label: 'PAGAMENTOS',
-                      value: _saldoMovimentado == null
-                          ? 'Indisponível'
-                          : 'R\$ ${_saldoMovimentado!.toStringAsFixed(2).replaceAll('.', ',')}',
                     ),
                   ),
                 ],
@@ -1569,7 +1537,8 @@ class _TelaDashboardState extends State<TelaDashboard>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => DetalhesRemessa(remessa: remessa),
+      builder: (_) =>
+          DetalhesRemessa(remessa: remessa, onViewMap: _abrirMapaDaRemessa),
     );
   }
 

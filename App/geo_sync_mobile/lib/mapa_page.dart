@@ -22,8 +22,14 @@ import 'package:mobile/widgets/data_state_widgets.dart';
 class MapaPage extends StatefulWidget {
   final int currentIndex;
   final Function(int)? onTap;
+  final String? initialShipmentCode;
 
-  const MapaPage({super.key, this.currentIndex = 2, this.onTap});
+  const MapaPage({
+    super.key,
+    this.currentIndex = 2,
+    this.onTap,
+    this.initialShipmentCode,
+  });
 
   @override
   State<MapaPage> createState() => _MapaPageState();
@@ -121,19 +127,25 @@ class _MapaPageState extends State<MapaPage>
     try {
       final resposta = await _remessaRepository.autorizadas();
       final dados = resposta.whereType<Map>().map(_rotaFromApi).toList();
+      final rotaInicial = dados.isEmpty
+          ? null
+          : dados.firstWhere(
+              (rota) => rota.codigo == widget.initialShipmentCode,
+              orElse: () => dados.first,
+            );
       if (!mounted) return false;
       setState(() {
         _rotas
           ..clear()
           ..addAll(dados);
-        _veiculoSelecionado = dados.isEmpty ? null : dados.first.codigo;
-        _remessaSelecionadaId = dados.isEmpty ? null : dados.first.id;
+        _veiculoSelecionado = rotaInicial?.codigo;
+        _remessaSelecionadaId = rotaInicial?.id;
         _pontosRota = [];
         _erroLocalizacoes = null;
         _carregandoLocalizacoes = false;
       });
-      if (dados.isNotEmpty && dados.first.id != null) {
-        await _carregarRota(dados.first);
+      if (rotaInicial?.id != null) {
+        await _carregarRota(rotaInicial!);
       }
       return _erroLocalizacoes == null;
     } on ApiException catch (error) {

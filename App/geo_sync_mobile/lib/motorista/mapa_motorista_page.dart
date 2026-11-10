@@ -350,7 +350,7 @@ class _MapaMotoristaPageState extends State<MapaMotoristaPage>
                             borderRadius: BorderRadius.circular(13),
                           ),
                           child: Icon(
-                            LucideIcons.packageCheck,
+                            LucideIcons.packageSearch,
                             color: scheme.primary,
                             size: 20,
                           ),
@@ -519,7 +519,7 @@ class _Mapa extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(LucideIcons.radio, color: Color(0xFF0C46FF)),
+                  const Icon(LucideIcons.mapPin, color: Color(0xFF0C46FF)),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -730,6 +730,13 @@ class _CartaoRemessa extends StatelessWidget {
         : status.startsWith('aguardando') || status == 'pending'
         ? const Color(0xFFF59E0B)
         : scheme.primary;
+    final statusIcon = _statusEntregueMotorista(status)
+        ? LucideIcons.circleCheck
+        : statusColor == scheme.error
+        ? LucideIcons.triangleAlert
+        : status.startsWith('aguardando') || status == 'pending'
+        ? LucideIcons.clock3
+        : LucideIcons.truck;
 
     return Semantics(
       button: true,
@@ -810,30 +817,72 @@ class _CartaoRemessa extends StatelessWidget {
                               color: statusColor.withValues(alpha: .10),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Text(
-                              remessa.status,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: statusColor,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(statusIcon, size: 12, color: statusColor),
+                                const SizedBox(width: 4),
+                                Text(
+                                  remessa.status,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: statusColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 5),
-                      Text(
-                        remessa.rota,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: scheme.onSurfaceVariant,
-                          fontSize: 12,
-                        ),
+                      Row(
+                        children: [
+                          Icon(
+                            LucideIcons.route,
+                            size: 14,
+                            color: scheme.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              remessa.rota,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: scheme.onSurfaceVariant,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 9),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Progresso da entrega',
+                              style: TextStyle(
+                                color: scheme.onSurfaceVariant,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${(remessa.progresso * 100).round()}%',
+                            style: TextStyle(
+                              color: scheme.primary,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 5),
                       TweenAnimationBuilder<double>(
                         tween: Tween(begin: 0, end: remessa.progresso),
                         duration: const Duration(milliseconds: 500),

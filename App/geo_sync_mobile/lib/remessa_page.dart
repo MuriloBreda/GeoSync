@@ -10,7 +10,9 @@ import 'package:mobile/suporte_page.dart';
 import 'package:mobile/widgets/data_state_widgets.dart';
 
 class RemessasPage extends StatefulWidget {
-  const RemessasPage({super.key});
+  const RemessasPage({super.key, this.onOpenMap});
+
+  final ValueChanged<Remessa>? onOpenMap;
 
   @override
   State<RemessasPage> createState() => _RemessasPageState();
@@ -217,7 +219,7 @@ class _RemessasPageState extends State<RemessasPage>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return DetalhesRemessa(remessa: remessa);
+        return DetalhesRemessa(remessa: remessa, onViewMap: widget.onOpenMap);
       },
     );
   }
@@ -1061,8 +1063,9 @@ class EstadoVazio extends StatelessWidget {
 
 class DetalhesRemessa extends StatefulWidget {
   final Remessa remessa;
+  final ValueChanged<Remessa>? onViewMap;
 
-  const DetalhesRemessa({super.key, required this.remessa});
+  const DetalhesRemessa({super.key, required this.remessa, this.onViewMap});
 
   @override
   State<DetalhesRemessa> createState() => _DetalhesRemessaState();
@@ -1334,10 +1337,19 @@ class _DetalhesRemessaState extends State<DetalhesRemessa> {
                       ? null
                       : () {
                           Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const MapaPage()),
-                          );
+                          final onViewMap = widget.onViewMap;
+                          if (onViewMap != null) {
+                            onViewMap(remessa);
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => MapaPage(
+                                  initialShipmentCode: remessa.codigo,
+                                ),
+                              ),
+                            );
+                          }
                         },
                   icon: const Icon(CupertinoIcons.map),
                   label: const Text(
