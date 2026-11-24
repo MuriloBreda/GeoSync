@@ -31,7 +31,7 @@ class ProfilePhotoApiTest extends TestCase
 
             $resposta = $this->actingAs($usuario, 'sanctum')->post(
                 '/api/perfil/foto',
-                ['foto' => UploadedFile::fake()->image('perfil.png')],
+                ['foto' => UploadedFile::fake()->createWithContent('perfil.png', "\x89PNG\r\n\x1a\n")],
                 ['Accept' => 'application/json'],
             );
 
@@ -67,7 +67,7 @@ class ProfilePhotoApiTest extends TestCase
     public function test_upload_da_foto_exige_autenticacao_e_imagem_valida(): void
     {
         $this->post('/api/perfil/foto', [
-            'foto' => UploadedFile::fake()->image('perfil.jpg'),
+            'foto' => UploadedFile::fake()->createWithContent('perfil.jpg', "\xff\xd8\xff\xd9"),
         ], ['Accept' => 'application/json'])->assertUnauthorized();
 
         $usuario = User::factory()->create();
